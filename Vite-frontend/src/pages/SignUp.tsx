@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ROUTES } from "../routes/paths";
+import { useAuth } from "../context/AuthContext";
 import styles from "./SignUp.module.css";
 
 interface FormData {
@@ -48,6 +49,7 @@ const SignUp: React.FC = () => {
         firstName: "", lastName: "", email: "", password: "", confirmPassword: "",
     });
     const navigate = useNavigate();
+    const { register } = useAuth();
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -91,9 +93,21 @@ const SignUp: React.FC = () => {
         setTouched(allTouched);
         const newErrors = validate(formData);
         setErrors(newErrors);
+
         if (Object.keys(newErrors).length === 0) {
-            setSubmitted(true);
-            setTimeout(() => navigate(ROUTES.HOME), 800);
+            // Înregistrăm userul și salvăm datele în localStorage
+            const result = register({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                password: formData.password,
+            });
+
+            if (result.success) {
+                setSubmitted(true);
+                // Redirecționăm la dashboard după 800ms (cât timp se vede mesajul de succes)
+                setTimeout(() => navigate(ROUTES.DASHBOARD), 800);
+            }
         }
     };
 
@@ -124,7 +138,7 @@ const SignUp: React.FC = () => {
                     <p className={styles.successText}>
                         Bine ai venit în comunitatea{" "}
                         <span className={styles.accent}>FitMoldova</span>.
-                        <br />Ești redirecționat către pagina principală...
+                        <br />Ești redirecționat către dashboard...
                     </p>
                 </div>
             </div>

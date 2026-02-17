@@ -93,7 +93,7 @@ const SignUp: React.FC = () => {
         setErrors(newErrors);
         if (Object.keys(newErrors).length === 0) {
             setSubmitted(true);
-            setTimeout(() => navigate(ROUTES.HOME), 1800);
+            setTimeout(() => navigate(ROUTES.HOME), 800);
         }
     };
 

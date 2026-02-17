@@ -13,6 +13,12 @@ const Dashboard: React.FC = () => {
     navigate(ROUTES.HOME);
   };
 
+  const registeredDate = user?.registeredAt
+      ? new Date(user.registeredAt).toLocaleDateString('ro-RO', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+      : '';
+
   return (
       <div className="db-page">
         <div className="db-grid" aria-hidden="true" />
@@ -76,6 +82,17 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
+          {/* Welcome card */}
+          <div className="db-welcome-card">
+            <div className="db-welcome-content">
+              <h2 className="db-welcome-title">Cont creat cu succes!</h2>
+              <p className="db-welcome-text">
+                Te-ai înregistrat pe{' '}
+                <strong>{registeredDate}</strong>. Ești gata să începi
+                călătoria ta fitness alături de comunitatea FitMoldova.
+              </p>
+            </div>
+          </div>
 
           {/* Stats */}
           <div className="db-stats-grid">
@@ -104,7 +121,30 @@ const Dashboard: React.FC = () => {
           {/* Bottom sections */}
           <div className="db-sections-grid">
 
-
+            <div className="db-section-card">
+              <h3 className="db-section-title"> Provocări Active</h3>
+              <div className="db-challenge-item">
+                <div className="db-challenge-info">
+                  <div className="db-challenge-name">100 km în Martie</div>
+                  <div className="db-challenge-sub">312 participanți</div>
+                </div>
+                <button className="db-btn-join">Alătură-te</button>
+              </div>
+              <div className="db-challenge-item">
+                <div className="db-challenge-info">
+                  <div className="db-challenge-name">Streak de 7 zile</div>
+                  <div className="db-challenge-sub">891 participanți</div>
+                </div>
+                <button className="db-btn-join">Alătură-te</button>
+              </div>
+              <div className="db-challenge-item">
+                <div className="db-challenge-info">
+                  <div className="db-challenge-name">50 km Ciclism</div>
+                  <div className="db-challenge-sub">156 participanți</div>
+                </div>
+                <button className="db-btn-join">Alătură-te</button>
+              </div>
+            </div>
           </div>
         </main>
       </div>

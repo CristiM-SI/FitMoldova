@@ -157,7 +157,7 @@ const Home: React.FC = () => {
             <h3>Comunitate</h3>
             <ul>
               <li><button onClick={() => scrollToSection("forum")} className="footer-link">Forum</button></li>
-              <li><button onClick={() => scrollToSection("clubs")} className="footer-link">Cluburi</button></li>
+              <li><Link to={ROUTES.CLUBS} className="footer-link">Cluburi</Link></li>
               <li><button onClick={() => scrollToSection("routes")} className="footer-link">Rute</button></li>
               <li><button onClick={() => scrollToSection("gallery")} className="footer-link">Galerie</button></li>
             </ul>

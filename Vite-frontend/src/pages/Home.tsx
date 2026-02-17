@@ -1,0 +1,183 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import Navbar from '../components/layout/Navbar';
+import { ROUTES } from '../routes/paths';
+import { scrollToSection } from '../utils/navigation';
+import '../styles/Home.css';
+
+interface Feature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+const Home: React.FC = () => {
+  const features: Feature[] = [
+    {
+      icon: '📊',
+      title: 'Dashboard Personal',
+      description: 'Vizualizează statistici detaliate, urmărește progresul tău și editează informațiile profilului într-un singur loc centralizat și intuitiv.'
+    },
+    {
+      icon: '🏃',
+      title: 'Tracking Activități',
+      description: 'Înregistrează sesiunile de alergare, ciclism sau sală cu introducere manuală sau timer live. Monitorizează distanța, durata și caloriile.'
+    },
+    {
+      icon: '🏆',
+      title: 'Provocări & Competiții',
+      description: 'Participă la challenges motivante, urmărește progresul în timp real și trimite dovezi pentru verificare. Câștigă premii și recunoaștere.'
+    },
+    {
+      icon: '📅',
+      title: 'Evenimente Sportive',
+      description: 'Creează și gestionează evenimente, caută și filtrează după preferințe, înscrie-te la competiții și conectează-te cu alți participanți.'
+    },
+    {
+      icon: '🗺️',
+      title: 'Rute Interactive',
+      description: 'Explorează hărți interactive cu rute recomandate de ciclism și alergare. Adaugă propriile tale rute și descoperă noi trasee.'
+    },
+    {
+      icon: '💬',
+      title: 'Forum & Comunitate',
+      description: 'Participă la discuții pe categorii (general, ciclism, alergare, sală), pune întrebări, împărtășește sfaturi și conectează-te cu comunitatea.'
+    },
+    {
+      icon: '📱',
+      title: 'Mesagerie Privată',
+      description: 'Comunicare directă între utilizatori prin mesaje private sau grupuri de discuție pentru planificarea antrenamentelor și evenimente.'
+    },
+    {
+      icon: '📸',
+      title: 'Galerii Multimedia',
+      description: 'Încarcă și partajează fotografii de la antrenamente, evenimente și competiții. Creează amintiri alături de comunitate.'
+    },
+    {
+      icon: '👥',
+      title: 'Cluburi Locale',
+      description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.'
+    }
+  ];
+
+  return (
+    <div className="home-page">
+      <div className="noise-bg"></div>
+      <div className="gradient-orb orb-1"></div>
+      <div className="gradient-orb orb-2"></div>
+
+      <Navbar />
+
+      <section className="hero">
+        <div className="hero-content">
+          <h1>
+            Transformă-ți <span className="highlight">Fitness-ul</span> într-o Comunitate
+          </h1>
+          <p>
+            Alătură-te celei mai vibrantă platforme de fitness din România.
+            Urmărește progresul, participă la provocări și conectează-te cu pasionați de sport.
+          </p>
+          <div className="hero-cta">
+            <Link to={ROUTES.REGISTER} className="btn btn-primary">Creează Cont Gratuit</Link>
+            <button onClick={() => scrollToSection("features")} className="btn btn-outline">Descoperă Mai Mult</button>
+          </div>
+
+          <div className="stats">
+            <div className="stat-item">
+              <div className="stat-number">50K+</div>
+              <div className="stat-label">Utilizatori Activi</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">2.5M+</div>
+              <div className="stat-label">Km Parcurși</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">1.2K+</div>
+              <div className="stat-label">Evenimente</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">300+</div>
+              <div className="stat-label">Cluburi Locale</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="features">
+        <div className="section-header">
+          <h2 className="section-title">Totul ce ai nevoie pentru succes</h2>
+          <p className="section-subtitle">
+            O platformă completă care te ajută să-ți atingi obiectivele de fitness
+          </p>
+        </div>
+
+        <div className="features-grid">
+          {features.map((feature, index) => (
+            <div key={index} className="feature-card">
+              <div className="feature-icon">{feature.icon}</div>
+              <h3 className="feature-title">{feature.title}</h3>
+              <p className="feature-description">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="cta-section">
+        <div className="cta-content">
+          <h2 className="cta-title">Gata să începi călătoria ta?</h2>
+          <p className="cta-description">
+            Alătură-te comunității FitHub astăzi și descoperă o nouă modalitate
+            de a-ți atinge obiectivele de fitness alături de mii de alți pasionați.
+          </p>
+          <Link to={ROUTES.REGISTER} className="btn btn-primary cta-btn">
+            Creează Cont Gratuit
+          </Link>
+        </div>
+      </section>
+
+      <footer className="footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <h3>FitHub</h3>
+            <p>
+              Platforma ta completă pentru fitness, comunitate și progres.
+              Transformă-ți obiectivele în realitate.
+            </p>
+          </div>
+          <div className="footer-section">
+            <h3>Platformă</h3>
+            <ul>
+              <li><button onClick={() => scrollToSection("features")} className="footer-link">Features</button></li>
+              <li><Link to={ROUTES.ACTIVITIES}>Tracking Activități</Link></li>
+              <li><button onClick={() => scrollToSection("events")} className="footer-link">Evenimente</button></li>
+              <li><button onClick={() => scrollToSection("challenges")} className="footer-link">Provocări</button></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Comunitate</h3>
+            <ul>
+              <li><button onClick={() => scrollToSection("forum")} className="footer-link">Forum</button></li>
+              <li><button onClick={() => scrollToSection("clubs")} className="footer-link">Cluburi</button></li>
+              <li><button onClick={() => scrollToSection("routes")} className="footer-link">Rute</button></li>
+              <li><button onClick={() => scrollToSection("gallery")} className="footer-link">Galerie</button></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Suport</h3>
+            <ul>
+              <li><button onClick={() => scrollToSection("help")} className="footer-link">Ajutor</button></li>
+              <li><button onClick={() => scrollToSection("feedback")} className="footer-link">Feedback</button></li>
+              <li><button onClick={() => scrollToSection("contact")} className="footer-link">Contact</button></li>
+              <li><button onClick={() => scrollToSection("privacy")} className="footer-link">Confidențialitate</button></li>
+            </ul>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2026 FitHub. Toate drepturile rezervate.</p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Home;

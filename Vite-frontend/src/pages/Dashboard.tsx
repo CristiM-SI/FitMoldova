@@ -144,6 +144,32 @@ const Dashboard: React.FC = () => {
                 </div>
                 <button className="db-btn-join">Alătură-te</button>
               </div>
+
+            </div>
+            <div className="db-section-card">
+              <h3 className="db-section-title">🚀 Pași următori</h3>
+              <ul className="db-checklist">
+                <li className="db-check-item db-check-done">
+                  <span className="db-check-icon">✓</span>
+                  Creare cont
+                </li>
+                <li className="db-check-item">
+                  <span className="db-check-icon">○</span>
+                  Completează profilul tău
+                </li>
+                <li className="db-check-item">
+                  <span className="db-check-icon">○</span>
+                  Înregistrează prima activitate
+                </li>
+                <li className="db-check-item">
+                  <span className="db-check-icon">○</span>
+                  Alătură-te unui club local
+                </li>
+                <li className="db-check-item">
+                  <span className="db-check-icon">○</span>
+                  Participă la o provocare
+                </li>
+              </ul>
             </div>
           </div>
         </main>

@@ -45,11 +45,3 @@ export const PROTECTED_ROUTES: RoutePath[] = [
   ROUTES.GALLERY,
   ROUTES.FEEDBACK,
 ];
-
-export const isPublicRoute = (path: string): boolean => {
-  return PUBLIC_ROUTES.includes(path as RoutePath);
-};
-
-export const isProtectedRoute = (path: string): boolean => {
-  return PROTECTED_ROUTES.includes(path as RoutePath);
-};

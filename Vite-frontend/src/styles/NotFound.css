@@ -1,0 +1,127 @@
+/* NotFound.css */
+.notfound-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.notfound-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 5% 4rem;
+  position: relative;
+  z-index: 2;
+}
+
+.notfound-inner {
+  max-width: 600px;
+  animation: notfoundFadeIn 0.8s ease-out;
+}
+
+@keyframes notfoundFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notfound-code {
+  font-size: clamp(8rem, 20vw, 14rem);
+  font-weight: 900;
+  line-height: 1;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+  font-family: 'Space Mono', monospace;
+}
+
+.notfound-title {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.notfound-description {
+  font-size: 1.1rem;
+  color: rgba(248, 249, 250, 0.6);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+.notfound-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.notfound-btn {
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-md, 12px);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.notfound-btn-primary {
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 102, 255, 0.3);
+}
+
+.notfound-btn-primary:hover {
+  box-shadow: 0 12px 32px rgba(0, 102, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.notfound-btn-outline {
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.notfound-btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.notfound-path {
+  margin-top: 3rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.notfound-path code {
+  color: rgba(248, 249, 250, 0.4);
+  font-size: 0.9rem;
+  font-family: 'Space Mono', monospace;
+}
+
+@media (max-width: 768px) {
+  .notfound-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}

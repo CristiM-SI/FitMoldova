@@ -20,6 +20,7 @@ export const ROUTES = {
   CLUBS: '/clubs',
   GALLERY: '/gallery',
   FEEDBACK: '/feedback',
+  PRICING: '/pricing',
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;
@@ -29,6 +30,7 @@ export const PUBLIC_ROUTES: RoutePath[] = [
   ROUTES.HOME,
   ROUTES.LOGIN,
   ROUTES.REGISTER,
+  ROUTES.PRICING,
 ];
 
 export const PROTECTED_ROUTES: RoutePath[] = [

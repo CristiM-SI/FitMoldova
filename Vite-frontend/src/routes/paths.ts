@@ -1,0 +1,53 @@
+/**
+ * Application Route Paths
+ * Centralized route management for type-safe navigation
+ */
+
+export const ROUTES = {
+  // Public routes
+  HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+
+  // Protected routes
+  DASHBOARD: '/dashboard',
+  PROFILE: '/profile',
+  ACTIVITIES: '/activities',
+  CHALLENGES: '/challenges',
+  EVENTS: '/events',
+  ROUTES_MAP: '/routes',
+  FORUM: '/forum',
+  CLUBS: '/clubs',
+  GALLERY: '/gallery',
+  FEEDBACK: '/feedback',
+} as const;
+
+export type RouteKey = keyof typeof ROUTES;
+export type RoutePath = typeof ROUTES[RouteKey];
+
+export const PUBLIC_ROUTES: RoutePath[] = [
+  ROUTES.HOME,
+  ROUTES.LOGIN,
+  ROUTES.REGISTER,
+];
+
+export const PROTECTED_ROUTES: RoutePath[] = [
+  ROUTES.DASHBOARD,
+  ROUTES.PROFILE,
+  ROUTES.ACTIVITIES,
+  ROUTES.CHALLENGES,
+  ROUTES.EVENTS,
+  ROUTES.ROUTES_MAP,
+  ROUTES.FORUM,
+  ROUTES.CLUBS,
+  ROUTES.GALLERY,
+  ROUTES.FEEDBACK,
+];
+
+export const isPublicRoute = (path: string): boolean => {
+  return PUBLIC_ROUTES.includes(path as RoutePath);
+};
+
+export const isProtectedRoute = (path: string): boolean => {
+  return PROTECTED_ROUTES.includes(path as RoutePath);
+};

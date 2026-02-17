@@ -24,7 +24,8 @@ _ReSharper*/
 *.njsproj
 *.sln
 *.sw?
-
+.claude
+fithub-typescript-final
 #################################
 # Build output
 #################################

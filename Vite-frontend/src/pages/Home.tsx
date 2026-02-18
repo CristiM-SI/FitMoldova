@@ -126,7 +126,7 @@ const Home: React.FC = () => {
         <div className="cta-content">
           <h2 className="cta-title">Gata să începi călătoria ta?</h2>
           <p className="cta-description">
-            Alătură-te comunității FitHub astăzi și descoperă o nouă modalitate
+            Alătură-te comunității FitMoldova astăzi și descoperă o nouă modalitate
             de a-ți atinge obiectivele de fitness alături de mii de alți pasionați.
           </p>
           <Link to={ROUTES.REGISTER} className="btn btn-primary cta-btn">
@@ -138,7 +138,7 @@ const Home: React.FC = () => {
       <footer className="footer">
         <div className="footer-content">
           <div className="footer-section">
-            <h3>FitHub</h3>
+            <h3>FitMoldova</h3>
             <p>
               Platforma ta completă pentru fitness, comunitate și progres.
               Transformă-ți obiectivele în realitate.
@@ -148,32 +148,32 @@ const Home: React.FC = () => {
             <h3>Platformă</h3>
             <ul>
               <li><button onClick={() => scrollToSection("features")} className="footer-link">Features</button></li>
-              <li><Link to={ROUTES.ACTIVITIES}>Tracking Activități</Link></li>
-              <li><button onClick={() => scrollToSection("events")} className="footer-link">Evenimente</button></li>
-              <li><button onClick={() => scrollToSection("challenges")} className="footer-link">Provocări</button></li>
+              <li><Link to={ROUTES.ACTIVITIES} className="footer-link">Tracking Activități</Link></li>
+              <li><Link to={ROUTES.EVENTS} className="footer-link">Evenimente</Link></li>
+              <li><Link to={ROUTES.CHALLENGES} className="footer-link">Provocări</Link></li>
             </ul>
           </div>
           <div className="footer-section">
             <h3>Comunitate</h3>
             <ul>
-              <li><button onClick={() => scrollToSection("forum")} className="footer-link">Forum</button></li>
+              <li><Link to={ROUTES.FORUM} className="footer-link">Forum</Link></li>
               <li><Link to={ROUTES.CLUBS} className="footer-link">Cluburi</Link></li>
-              <li><button onClick={() => scrollToSection("routes")} className="footer-link">Rute</button></li>
-              <li><button onClick={() => scrollToSection("gallery")} className="footer-link">Galerie</button></li>
+              <li><Link to={ROUTES.ROUTES_MAP} className="footer-link">Rute</Link></li>
+              <li><Link to={ROUTES.GALLERY} className="footer-link">Galerie</Link></li>
             </ul>
           </div>
           <div className="footer-section">
             <h3>Suport</h3>
             <ul>
-              <li><button onClick={() => scrollToSection("help")} className="footer-link">Ajutor</button></li>
-              <li><button onClick={() => scrollToSection("feedback")} className="footer-link">Feedback</button></li>
-              <li><button onClick={() => scrollToSection("contact")} className="footer-link">Contact</button></li>
-              <li><button onClick={() => scrollToSection("privacy")} className="footer-link">Confidențialitate</button></li>
+              <li><Link to={ROUTES.PRICING} className="footer-link">Prețuri</Link></li>
+              <li><Link to={ROUTES.FEEDBACK} className="footer-link">Feedback</Link></li>
+              <li><Link to={ROUTES.FORUM} className="footer-link">Contact</Link></li>
+              <li><Link to={ROUTES.PRICING} className="footer-link">Confidențialitate</Link></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2026 FitHub. Toate drepturile rezervate.</p>
+          <p>© 2026 FitMoldova. Toate drepturile rezervate.</p>
         </div>
       </footer>
     </div>

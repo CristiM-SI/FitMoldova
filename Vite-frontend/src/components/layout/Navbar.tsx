@@ -33,7 +33,7 @@ const Navbar: React.FC = () => {
 
   return (
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-        <Link to={ROUTES.HOME} className="logo">FitHub</Link>
+        <Link to={ROUTES.HOME} className="logo">FitMoldova</Link>
 
         <ul className="nav-links">
           <li><button onClick={handleSectionClick('features')} className="nav-link-btn">Features</button></li>

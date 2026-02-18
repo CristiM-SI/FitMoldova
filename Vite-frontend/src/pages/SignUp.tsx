@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ROUTES } from "../routes/paths";
 import { useAuth } from "../context/AuthContext";
-import styles from "./SignUp.module.css";
+import { useUser } from "../context/UserContext";
+import styles from "../styles/SignUp.module.css";
 
 interface FormData {
     firstName: string;
@@ -44,12 +45,13 @@ function validateEmail(email: string): string | undefined {
     return undefined;
 }
 
-const SignUp: React.FC = () => {
+const SignUp = () => {
     const [formData, setFormData] = useState<FormData>({
         firstName: "", lastName: "", email: "", password: "", confirmPassword: "",
     });
     const navigate = useNavigate();
     const { register } = useAuth();
+    const { setUser } = useUser();
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -84,7 +86,7 @@ const SignUp: React.FC = () => {
         setErrors(validate(formData));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const allTouched = Object.keys(formData).reduce(
             (acc, key) => ({ ...acc, [key]: true }),
@@ -95,7 +97,6 @@ const SignUp: React.FC = () => {
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            // Înregistrăm userul și salvăm datele în localStorage
             const result = register({
                 firstName: formData.firstName,
                 lastName: formData.lastName,
@@ -104,8 +105,21 @@ const SignUp: React.FC = () => {
             });
 
             if (result.success) {
+                setUser({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: "",
+                    location: "",
+                    bio: "",
+                    joinDate: new Date().toLocaleDateString("ro-RO", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                    }),
+                });
+
                 setSubmitted(true);
-                // Redirecționăm la dashboard după 800ms (cât timp se vede mesajul de succes)
                 setTimeout(() => navigate(ROUTES.DASHBOARD), 800);
             }
         }

@@ -53,6 +53,7 @@ function App() {
             {/* Rute publice */}
             <Route path={ROUTES.HOME} element={<Home />} />
             <Route path={ROUTES.CLUBS} element={<Clubs />} />
+            <Route path={ROUTES.PRICING} element={<Pricing />} />
             <Route
                 path={ROUTES.REGISTER}
                 element={
@@ -72,8 +73,8 @@ function App() {
                 }
             />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

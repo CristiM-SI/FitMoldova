@@ -8,6 +8,8 @@ import Profile from './pages/Profile'  // ← adaugă
 import { ROUTES } from './routes/paths'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
+import CommunityPage from './pages/CommunityPage'
+
 
 // Guard pentru rutele protejate (necesită autentificare)
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -77,6 +79,15 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <Profile />
+                                </ProtectedRoute>
+                            }
+                        />
+                        
+                        <Route
+                            path={ROUTES.COMMUNITY}
+                            element={
+                                <ProtectedRoute>
+                                    <CommunityPage />
                                 </ProtectedRoute>
                             }
                         />

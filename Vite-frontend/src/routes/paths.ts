@@ -12,6 +12,7 @@ export const ROUTES = {
   // Protected routes
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
+  COMMUNITY:  '/community',
   ACTIVITIES: '/activities',
   CHALLENGES: '/challenges',
   EVENTS: '/events',

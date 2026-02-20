@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../routes/paths';
@@ -19,27 +19,39 @@ const Dashboard: React.FC = () => {
       })
       : '';
 
+  const [showUnderConstruction, setShowUnderConstruction] = useState<boolean>(false);
+
+  const handleUnderConstructionClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+    e.preventDefault();  // ← oprește navigarea default
+    setShowUnderConstruction(true);  // ← arată overlay-ul
+  };
+
+  const closeOverlay = (): void => {
+    setShowUnderConstruction(false);  // ← ascunde overlay-ul
+  };
+
   return (
       <div className="db-page">
+
         <div className="db-grid" aria-hidden="true" />
 
         {/* Sidebar */}
         <aside className="db-sidebar">
-          <div className="db-logo">
+          <Link to={ROUTES.HOME} className="db-logo">
             <span className="db-logo-white">FIT</span>
             <span className="db-logo-blue">MOLDOVA</span>
-          </div>
+          </Link>
 
           <nav className="db-nav">
             <a href="#" className="db-nav-item db-nav-item--active">
               <span className="db-nav-icon">📊</span>
               Dashboard
             </a>
-            <a href="#" className="db-nav-item">
+            <a href="#" className="db-nav-item" onClick={handleUnderConstructionClick}>
               <span className="db-nav-icon">🏃</span>
               Activități
             </a>
-            <a href="#" className="db-nav-item">
+            <a href="#" className="db-nav-item" onClick={handleUnderConstructionClick}>
               <span className="db-nav-icon">🏆</span>
               Provocări
             </a>
@@ -47,11 +59,11 @@ const Dashboard: React.FC = () => {
               <span className="db-nav-icon">👥</span>
               Cluburi
             </Link>
-            <a href="#" className="db-nav-item">
+            <a href="#" className="db-nav-item" onClick={handleUnderConstructionClick}>
               <span className="db-nav-icon">📅</span>
               Evenimente
             </a>
-            <a href="#" className="db-nav-item">
+            <a href="#" className="db-nav-item" onClick={handleUnderConstructionClick}>
               <span className="db-nav-icon">👤</span>
               Profil
             </a>
@@ -165,6 +177,21 @@ const Dashboard: React.FC = () => {
                   <span className="db-check-icon">○</span>
                   Alătură-te unui club local
                 </li>
+                {showUnderConstruction && (
+                    <div className="db-overlay" onClick={closeOverlay}>
+                      <div className="db-overlay-card" onClick={(e) => e.stopPropagation()}>
+                        <button className="db-overlay-close" onClick={closeOverlay}>×</button>
+                        <div className="db-overlay-icon">🚧</div>
+                        <h2 className="db-overlay-title">Pagină în Construcție</h2>
+                        <p className="db-overlay-text">
+                          Această funcționalitate este în curs de dezvoltare...
+                        </p>
+                        <button className="db-overlay-btn" onClick={closeOverlay}>
+                          Înapoi la Dashboard
+                        </button>
+                      </div>
+                    </div>
+                )}
                 <li className="db-check-item">
                   <span className="db-check-icon">○</span>
                   Participă la o provocare

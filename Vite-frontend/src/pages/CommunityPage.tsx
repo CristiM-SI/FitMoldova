@@ -1,5 +1,6 @@
 ﻿import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths'; // adjust path to your routes file
 
 // ─────────────────────────────────────────────
@@ -162,7 +163,7 @@ function CircleProgress({ pct, uid }: CircleProgressProps) {
 // ─────────────────────────────────────────────
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,900&family=Barlow:wght@300;400;500;600;700&display=swap');
 
   .fm *, .fm *::before, .fm *::after { box-sizing: border-box; margin: 0; padding: 0; }
   .fm {
@@ -516,30 +517,12 @@ export default function CommunityPage() {
     return (
         <>
             <style>{CSS}</style>
+            <Navbar/>
             <div className="fm">
+                
 
                 {/* ── TOP NAV ── */}
-                <nav className="fm-topnav">
-                    <div className="fm-logo" onClick={() => navigate(ROUTES.HOME)}>
-                        FIT<span>MOLDOVA</span>
-                    </div>
-
-                    <ul className="fm-topnav-links">
-                        <li><a onClick={() => navigate(ROUTES.HOME)}>Features</a></li>
-                        <li><a className="active">Comunitate</a></li>
-                        <li><a onClick={() => navigate(ROUTES.EVENTS)}>Evenimente</a></li>
-                        <li><a onClick={() => navigate(ROUTES.PRICING)}>Prețuri</a></li>
-                    </ul>
-
-                    <div className="fm-topnav-actions">
-                        <button className="btn btn-outline" onClick={() => navigate(ROUTES.LOGIN)}>
-                            Login
-                        </button>
-                        <button className="btn btn-solid" onClick={() => navigate(ROUTES.REGISTER)}>
-                            Începe Acum
-                        </button>
-                    </div>
-                </nav>
+                
 
                 {/* ── BODY ── */}
                 <div className="fm-body">

@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
 
         <ul className="nav-links">
           <li><button onClick={handleSectionClick('features')} className="nav-link-btn">Features</button></li>
-          <li><button onClick={handleSectionClick('community')} className="nav-link-btn">Comunitate</button></li>
+          <li><button onClick={() => navigate(ROUTES.COMMUNITY)} className="nav-link-btn">Comunitate</button></li>
           <li><button onClick={handleSectionClick('events')} className="nav-link-btn">Evenimente</button></li>
           <li><button onClick={handleSectionClick('pricing')} className="nav-link-btn">Prețuri</button></li>
         </ul>

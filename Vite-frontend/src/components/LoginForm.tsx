@@ -76,3 +76,39 @@ export function LoginForm({
                 <span className="divider-text">sau cu email</span>
                 <div className="divider-line" />
             </div>
+
+            {/* ---- CÂMPURI FORMULAR ---- */}
+            <div>
+
+                {/* Câmp Email */}
+                <div className="form-group">
+                    <label className="form-label" htmlFor="email">Adresă Email</label>
+                    <div className="input-wrapper">
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="exemplu@email.com"
+                            className={`form-input${errors.email ? " error" : ""}`}
+                            value={form.email}
+                            onChange={(e) => onChange("email", e.target.value)}
+                            autoComplete="email"
+                        />
+                    </div>
+                    {/* Mesaj eroare email — afișat condiționat */}
+                    {errors.email && <div className="error-msg">⚠ {errors.email}</div>}
+                </div>
+
+                {/* Câmp Parolă cu toggle vizibilitate */}
+                <div className="form-group">
+                    <label className="form-label" htmlFor="password">Parolă</label>
+                    <div className="input-wrapper">
+                        <input
+                            id="password"
+                            type={showPassword ? "text" : "password"} // comutăm tipul
+                            placeholder="Introdu parola"
+                            className={`form-input${errors.password ? " error" : ""}`}
+                            style={{ paddingRight: "46px" }} // spațiu pentru iconița de ochi
+                            value={form.password}
+                            onChange={(e) => onChange("password", e.target.value)}
+                            autoComplete="current-password"
+                        />

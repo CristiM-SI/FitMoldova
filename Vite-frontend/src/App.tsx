@@ -14,6 +14,7 @@ import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
 import EVENTS from './pages/Evenimente'
 import Contact from './pages/Contact'
+import Feedback from './pages/Feedback'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -128,6 +129,16 @@ function App() {
 
                         {/* Rută publică Contact */}
                         <Route path={ROUTES.CONTACT} element={<Contact />} />
+
+                        {/* Rută protejată Feedback */}
+                        <Route
+                            path={ROUTES.FEEDBACK}
+                            element={
+                                <ProtectedRoute>
+                                    <Feedback />
+                                </ProtectedRoute>
+                            }
+                        />
 
                         {/* Fallback */}
                         <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

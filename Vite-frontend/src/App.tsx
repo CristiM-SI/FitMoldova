@@ -4,10 +4,10 @@ import { UserProvider } from './context/UserContext'  // ← adaugă
 import { useAuth } from './context/AuthContext'
 import Home from './pages/Home'
 import Clubs from './pages/Clubs'
-import Profile from './pages/Profile'  // ← adaugă
 import { ROUTES } from './routes/paths'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
+import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
 
 
@@ -74,20 +74,21 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
-                        <Route
-                            path={ROUTES.PROFILE}  // ← adaugă ruta de profil
-                            element={
-                                <ProtectedRoute>
-                                    <Profile />
-                                </ProtectedRoute>
-                            }
-                        />
-                        
+
                         <Route
                             path={ROUTES.COMMUNITY}
                             element={
                                 <ProtectedRoute>
                                     <CommunityPage />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path={ROUTES.ACTIVITIES}
+                            element={
+                                <ProtectedRoute>
+                                    <Activitati />
                                 </ProtectedRoute>
                             }
                         />

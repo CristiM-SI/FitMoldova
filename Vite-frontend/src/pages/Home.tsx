@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { scrollToSection } from '../utils/navigation';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Home.css';
 
 interface Feature {
@@ -12,6 +13,8 @@ interface Feature {
 }
 
 const Home: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   const features: Feature[] = [
     {
       icon: '📊',
@@ -83,7 +86,11 @@ const Home: React.FC = () => {
             Urmărește progresul, participă la provocări și conectează-te cu pasionați de sport.
           </p>
           <div className="hero-cta">
-            <Link to={ROUTES.REGISTER} className="btn btn-primary">Creează Cont Gratuit</Link>
+            {isAuthenticated ? (
+              <Link to={ROUTES.DASHBOARD} className="btn btn-primary">Mergi la Dashboard</Link>
+            ) : (
+              <Link to={ROUTES.REGISTER} className="btn btn-primary">Creează Cont Gratuit</Link>
+            )}
             <button onClick={() => scrollToSection("features")} className="btn btn-outline">Descoperă Mai Mult</button>
           </div>
 
@@ -158,18 +165,20 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <section className="cta-section">
-        <div className="cta-content">
-          <h2 className="cta-title">Gata să începi călătoria ta?</h2>
-          <p className="cta-description">
-            Alătură-te comunității FitMoldova astăzi și descoperă o nouă modalitate
-            de a-ți atinge obiectivele de fitness alături de mii de alți pasionați.
-          </p>
-          <Link to={ROUTES.REGISTER} className="btn btn-primary cta-btn">
-            Creează Cont Gratuit
-          </Link>
-        </div>
-      </section>
+      {!isAuthenticated && (
+        <section className="cta-section">
+          <div className="cta-content">
+            <h2 className="cta-title">Gata să începi călătoria ta?</h2>
+            <p className="cta-description">
+              Alătură-te comunității FitMoldova astăzi și descoperă o nouă modalitate
+              de a-ți atinge obiectivele de fitness alături de mii de alți pasionați.
+            </p>
+            <Link to={ROUTES.REGISTER} className="btn btn-primary cta-btn">
+              Creează Cont Gratuit
+            </Link>
+          </div>
+        </section>
+      )}
 
       <footer className="footer">
         <div className="footer-content">

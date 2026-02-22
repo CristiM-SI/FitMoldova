@@ -214,8 +214,7 @@
 }
 
 .contact-field input,
-.contact-field textarea,
-.contact-field select {
+.contact-field textarea {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--dark-border, rgba(255,255,255,0.12));
   border-radius: var(--radius-md, 12px);
@@ -234,21 +233,99 @@
   color: var(--text-disabled, rgba(255,255,255,0.35));
 }
 
-.contact-field select option {
-  background: var(--dark-card, #0F1F35);
+/* ── CUSTOM SELECT ──────────────────────────────────────────── */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border, rgba(255,255,255,0.12));
+  border-radius: var(--radius-md, 12px);
   color: var(--text-primary, #fff);
+  font-family: inherit;
+  font-size: 0.97rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--transition-base, 250ms ease-in-out),
+              background var(--transition-base, 250ms ease-in-out);
+}
+
+.custom-select--open .custom-select__trigger,
+.custom-select__trigger:focus {
+  border-color: var(--primary, #0066FF);
+  background: rgba(0, 102, 255, 0.07);
+  outline: none;
+}
+
+.custom-select.input-error .custom-select__trigger {
+  border-color: #ff5c5c;
+  background: rgba(255, 59, 59, 0.05);
+}
+
+.custom-select__placeholder {
+  color: var(--text-disabled, rgba(255,255,255,0.35));
+}
+
+.custom-select__chevron {
+  flex-shrink: 0;
+  transition: transform 250ms ease-in-out;
+}
+
+.custom-select--open .custom-select__chevron {
+  transform: rotate(180deg);
+}
+
+.custom-select__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #0F1F35;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  z-index: 100;
+  list-style: none;
+  padding: 0.4rem;
+  margin: 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.custom-select__option {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.97rem;
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  transition: background 150ms ease-in-out;
+}
+
+.custom-select__option:hover {
+  background: rgba(0, 102, 255, 0.12);
+}
+
+.custom-select__option--selected {
+  background: rgba(0, 102, 255, 0.18);
+  color: #3385FF;
+  font-weight: 600;
 }
 
 .contact-field input:focus,
-.contact-field textarea:focus,
-.contact-field select:focus {
+.contact-field textarea:focus {
   border-color: var(--primary, #0066FF);
   background: rgba(0, 102, 255, 0.07);
 }
 
 .contact-field input.input-error,
-.contact-field textarea.input-error,
-.contact-field select.input-error {
+.contact-field textarea.input-error {
   border-color: #ff5c5c;
   background: rgba(255, 59, 59, 0.05);
 }
@@ -427,9 +504,10 @@
 
 /* ── FEEDBACK PROMO ─────────────────────────────────────────── */
 .contact-feedback-promo {
-  padding: 0 5% 4rem;
+  padding: 3rem 5% 5rem;
   position: relative;
   z-index: 2;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 102, 255, 0.05) 100%);
 }
 
 .contact-feedback-promo-inner {
@@ -494,8 +572,7 @@
   text-align: center;
   position: relative;
   z-index: 2;
-  background: linear-gradient(135deg, rgba(0,102,255,0.08) 0%, rgba(0,184,255,0.05) 100%);
-  border-top: 1px solid rgba(0,102,255,0.15);
+  background: linear-gradient(180deg, rgba(0,102,255,0.05) 0%, rgba(0,102,255,0.10) 40%, rgba(0,184,255,0.06) 100%);
   border-bottom: 1px solid rgba(0,102,255,0.15);
 }
 

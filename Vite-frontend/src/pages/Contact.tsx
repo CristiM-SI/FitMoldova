@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
@@ -78,6 +78,26 @@ const Contact: React.FC = () => {
 
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Partial<typeof form>>({});
+  const [subjectOpen, setSubjectOpen] = useState(false);
+  const subjectRef = useRef<HTMLDivElement>(null);
+
+  const SUBJECT_OPTIONS = [
+    { value: 'suport-tehnic',   label: 'Suport tehnic' },
+    { value: 'cont-abonament',  label: 'Cont / Abonament' },
+    { value: 'parteneriat',     label: 'Parteneriat / B2B' },
+    { value: 'feedback',        label: 'Feedback & Sugestii' },
+    { value: 'altele',          label: 'Altele' },
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (subjectRef.current && !subjectRef.current.contains(e.target as Node)) {
+        setSubjectOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const validate = (): boolean => {
     const newErrors: Partial<typeof form> = {};
@@ -212,21 +232,43 @@ const Contact: React.FC = () => {
               </div>
 
               <div className="contact-field">
-                <label htmlFor="subject">Subiect *</label>
-                <select
-                  id="subject"
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
-                  className={errors.subject ? 'input-error' : ''}
+                <label>Subiect *</label>
+                <div
+                  ref={subjectRef}
+                  className={`custom-select ${subjectOpen ? 'custom-select--open' : ''} ${errors.subject ? 'input-error' : ''}`}
                 >
-                  <option value="">Selectează un subiect</option>
-                  <option value="suport-tehnic">Suport tehnic</option>
-                  <option value="cont-abonament">Cont / Abonament</option>
-                  <option value="parteneriat">Parteneriat / B2B</option>
-                  <option value="feedback">Feedback & Sugestii</option>
-                  <option value="altele">Altele</option>
-                </select>
+                  <button
+                    type="button"
+                    className="custom-select__trigger"
+                    onClick={() => setSubjectOpen((o) => !o)}
+                  >
+                    <span className={form.subject ? '' : 'custom-select__placeholder'}>
+                      {form.subject
+                        ? SUBJECT_OPTIONS.find((o) => o.value === form.subject)?.label
+                        : 'Selectează un subiect'}
+                    </span>
+                    <svg className="custom-select__chevron" width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <path d="M1 1l5 5 5-5" stroke="rgba(255,255,255,0.45)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  {subjectOpen && (
+                    <ul className="custom-select__list">
+                      {SUBJECT_OPTIONS.map((opt) => (
+                        <li
+                          key={opt.value}
+                          className={`custom-select__option ${form.subject === opt.value ? 'custom-select__option--selected' : ''}`}
+                          onClick={() => {
+                            setForm((prev) => ({ ...prev, subject: opt.value }));
+                            setErrors((prev) => ({ ...prev, subject: undefined }));
+                            setSubjectOpen(false);
+                          }}
+                        >
+                          {opt.label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 {errors.subject && (
                   <span className="field-error">{errors.subject}</span>
                 )}

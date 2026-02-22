@@ -68,7 +68,7 @@ const Navbar: React.FC = () => {
           {isAuthenticated ? (
               <>
                 <Link to={ROUTES.DASHBOARD} className="btn btn-outline">Dashboard</Link>
-                {user && <UserAvatar />}  {/* ← adaugă iconița aici */}
+                <UserAvatar />
                 <button onClick={handleLogout} className="btn btn-outline">Logout</button>
               </>
           ) : (

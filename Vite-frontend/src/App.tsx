@@ -13,6 +13,7 @@ import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
 import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
+import LoginPage from './pages/LoginPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -70,7 +71,15 @@ function App() {
                                         </PublicRoute>
                                     }
                                 />
-
+                                <Route
+                                    path={ROUTES.LOGIN}
+                                    element={
+                                        <PublicRoute>
+                                            <LoginPage />
+                                        </PublicRoute>
+                                    }
+                                />
+                                
                                 {/* Rute protejate */}
                                 <Route
                                     path={ROUTES.DASHBOARD}

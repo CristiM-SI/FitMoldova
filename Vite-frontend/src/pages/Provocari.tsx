@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProgress } from '../context/ProgressContext';
 import { ROUTES } from '../routes/paths';
 import { MOCK_PROVOCARI } from '../services/mock/provocari';
 import type { Provocare } from '../services/mock/provocari';
@@ -15,6 +16,7 @@ const difficultyColor = (d: string) => {
 
 const Provocari: React.FC = () => {
   const { user, logout } = useAuth();
+  const { completeChallenge } = useProgress();
   const navigate = useNavigate();
 
   const [inscrise, setInscrise] = useState<Provocare[]>([]);
@@ -29,6 +31,7 @@ const Provocari: React.FC = () => {
     const cuProgress: Provocare = { ...provocare, progress: 0 };
     setInscrise((prev) => [...prev, cuProgress]);
     setDisponibile((prev) => prev.filter((p) => p.id !== provocare.id));
+    completeChallenge();
   };
 
   const paraseste = (id: number) => {

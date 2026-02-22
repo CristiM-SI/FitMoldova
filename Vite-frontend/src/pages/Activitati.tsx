@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProgress } from '../context/ProgressContext';
 import { ROUTES } from '../routes/paths';
 import { MOCK_ACTIVITATI } from '../services/mock/activitati';
 import type { Activitate } from '../services/mock/activitati';
@@ -9,6 +10,7 @@ import './DashboardOverlays.css';
 
 const Activitati: React.FC = () => {
   const { user, logout } = useAuth();
+  const { completeFirstActivity } = useProgress();
   const navigate = useNavigate();
 
   const [activitatiCurente, setActivitatiCurente] = useState<Activitate[]>([]);
@@ -31,6 +33,7 @@ const Activitati: React.FC = () => {
     };
     setActivitatiCurente((prev) => [nouaActivitate, ...prev]);
     setRecomandari((prev) => prev.filter((r) => r.id !== activitate.id));
+    completeFirstActivity();
   };
 
   const eliminaActivitate = (id: number) => {

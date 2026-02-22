@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProgress } from '../context/ProgressContext';
 import { ROUTES } from '../routes/paths';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const { progress } = useProgress();
   const navigate = useNavigate();
 
   const handleLogout = (): void => {
@@ -150,24 +152,24 @@ const Dashboard: React.FC = () => {
             <div className="db-section-card">
               <h3 className="db-section-title">🚀 Pași următori</h3>
               <ul className="db-checklist">
-                <li className="db-check-item db-check-done">
-                  <span className="db-check-icon">✓</span>
+                <li className={`db-check-item ${progress.accountCreated ? 'db-check-done' : ''}`}>
+                  <span className="db-check-icon">{progress.accountCreated ? '✓' : '○'}</span>
                   Creare cont
                 </li>
-                <li className="db-check-item">
-                  <span className="db-check-icon">○</span>
+                <li className={`db-check-item ${progress.profileCompleted ? 'db-check-done' : ''}`}>
+                  <span className="db-check-icon">{progress.profileCompleted ? '✓' : '○'}</span>
                   Completează profilul tău
                 </li>
-                <li className="db-check-item">
-                  <span className="db-check-icon">○</span>
+                <li className={`db-check-item ${progress.firstActivity ? 'db-check-done' : ''}`}>
+                  <span className="db-check-icon">{progress.firstActivity ? '✓' : '○'}</span>
                   Înregistrează prima activitate
                 </li>
-                <li className="db-check-item">
-                  <span className="db-check-icon">○</span>
+                <li className={`db-check-item ${progress.joinedClub ? 'db-check-done' : ''}`}>
+                  <span className="db-check-icon">{progress.joinedClub ? '✓' : '○'}</span>
                   Alătură-te unui club local
                 </li>
-                <li className="db-check-item">
-                  <span className="db-check-icon">○</span>
+                <li className={`db-check-item ${progress.joinedChallenge ? 'db-check-done' : ''}`}>
+                  <span className="db-check-icon">{progress.joinedChallenge ? '✓' : '○'}</span>
                   Participă la o provocare
                 </li>
               </ul>

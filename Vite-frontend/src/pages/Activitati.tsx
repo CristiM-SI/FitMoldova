@@ -2,29 +2,48 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../routes/paths';
+import { MOCK_ACTIVITATI } from '../services/mock/activitati';
+import type { Activitate } from '../services/mock/activitati';
 import './Dashboard.css';
 import './DashboardOverlays.css';
 
-interface Activitate {
-  id: number;
-  name: string;
-  type: string;
-  icon: string;
-  distance: string;
-  duration: string;
-  calories: number;
-  date: string;
-}
-
-const ActivitatiEmpty: React.FC = () => {
+const Activitati: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activitatiCurente] = useState<Activitate[]>([]);
+  const [activitatiCurente, setActivitatiCurente] = useState<Activitate[]>([]);
+  const [recomandari, setRecomandari] = useState<Activitate[]>(MOCK_ACTIVITATI);
 
   const handleLogout = (): void => {
     logout();
     navigate(ROUTES.HOME);
+  };
+
+  const adaugaActivitate = (activitate: Activitate) => {
+    const nouaActivitate: Activitate = {
+      ...activitate,
+      id: Date.now(),
+      date: new Date().toLocaleDateString('ro-RO', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }),
+    };
+    setActivitatiCurente((prev) => [nouaActivitate, ...prev]);
+    setRecomandari((prev) => prev.filter((r) => r.id !== activitate.id));
+  };
+
+  const eliminaActivitate = (id: number) => {
+    const activitate = activitatiCurente.find((a) => a.id === id);
+    setActivitatiCurente((prev) => prev.filter((a) => a.id !== id));
+    if (activitate) {
+      const originalRec = MOCK_ACTIVITATI.find(
+          (r) => r.name === activitate.name
+      );
+      if (originalRec) {
+        setRecomandari((prev) => [...prev, originalRec]);
+      }
+    }
   };
 
   const totalCalories = activitatiCurente.reduce((s, a) => s + a.calories, 0);
@@ -107,7 +126,7 @@ const ActivitatiEmpty: React.FC = () => {
             </div>
             <div className="db-stat-card">
               <div className="db-stat-label">Recomandări Disponibile</div>
-              <div className="db-stat-value">0</div>
+              <div className="db-stat-value">{recomandari.length}</div>
               <div className="db-stat-hint">Activități sugerate</div>
             </div>
           </div>
@@ -116,15 +135,81 @@ const ActivitatiEmpty: React.FC = () => {
           <div className="db-section-card ov-section">
             <h3 className="db-section-title">Activitățile Tale Curente</h3>
 
-            <div className="ov-empty">
-              <p className="ov-empty-text">
-                Nu ai nicio activitate la moment.
-              </p>
-              <p className="ov-empty-hint">
-                Momentan nu sunt activități disponibile pentru adăugare.
-              </p>
-            </div>
+            {activitatiCurente.length === 0 ? (
+                <div className="ov-empty">
+                  <p className="ov-empty-text">
+                    Nu ai nicio activitate la moment.
+                  </p>
+                  <p className="ov-empty-hint">
+                    Adaugă activități din recomandările de mai jos!
+                  </p>
+                </div>
+            ) : (
+                <div className="ov-list">
+                  {activitatiCurente.map((act) => (
+                      <div key={act.id} className="ov-item">
+                        <div className="ov-item-info">
+                          <div className="ov-item-name">{act.name}</div>
+                          <div className="ov-item-meta">
+                            <span className="ov-tag">{act.type}</span>
+                            <span>{act.distance}</span>
+                            <span>{act.duration}</span>
+                            <span>{act.calories} kcal</span>
+                            {act.date && <span>📅 {act.date}</span>}
+                          </div>
+                        </div>
+                        <button
+                            className="ov-btn-remove"
+                            onClick={() => eliminaActivitate(act.id)}
+                            title="Elimină activitatea"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                  ))}
+                </div>
+            )}
           </div>
+
+          {/* Recomandări — apare doar dacă există date mock */}
+          {MOCK_ACTIVITATI.length > 0 && (
+              <div className="db-section-card ov-section">
+                <h3 className="db-section-title">Recomandări de Activități</h3>
+                <p className="ov-section-desc">
+                  Activități populare din comunitatea FitMoldova. Adaugă-le la lista ta!
+                </p>
+
+                {recomandari.length === 0 ? (
+                    <div className="ov-empty">
+                      <p className="ov-empty-text">
+                        Ai adăugat toate recomandările! Felicitări!!!
+                      </p>
+                    </div>
+                ) : (
+                    <div className="ov-list">
+                      {recomandari.map((rec) => (
+                          <div key={rec.id} className="ov-item ov-item--rec">
+                            <div className="ov-item-info">
+                              <div className="ov-item-name">{rec.name}</div>
+                              <div className="ov-item-meta">
+                                <span className="ov-tag">{rec.type}</span>
+                                <span>{rec.distance}</span>
+                                <span>{rec.duration}</span>
+                                <span>{rec.calories} kcal</span>
+                              </div>
+                            </div>
+                            <button
+                                className="ov-btn-add"
+                                onClick={() => adaugaActivitate(rec)}
+                            >
+                              + Adaugă
+                            </button>
+                          </div>
+                      ))}
+                    </div>
+                )}
+              </div>
+          )}
 
           {/* Buton înapoi */}
           <div className="ov-back-wrap">
@@ -137,4 +222,4 @@ const ActivitatiEmpty: React.FC = () => {
   );
 };
 
-export default ActivitatiEmpty;
+export default Activitati;

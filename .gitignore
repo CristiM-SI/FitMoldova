@@ -59,6 +59,7 @@ node_modules/
 .pnp.data.json
 .yarn-integrity
 package-lock.json
+package.json
 yarn.lock
 
 #################################
@@ -109,7 +110,7 @@ knip.jsonc
 *.cache
 private_key.pem
 public_key.pem
-
+.npmrc
 node_modules
 dist
 dist-ssr

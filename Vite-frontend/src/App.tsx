@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { UserProvider } from './context/UserContext'  // ← adaugă
+import { UserProvider } from './context/UserContext'
+import { ProgressProvider } from './context/ProgressContext'
 import { useAuth } from './context/AuthContext'
 import Home from './pages/Home'
 import Clubs from './pages/Clubs'
@@ -11,7 +12,6 @@ import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
 import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
-import EVENTS from './pages/Evenimente'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -54,79 +54,72 @@ function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <UserProvider>  {/* ← adaugă */}
-                    <Routes>
-                        {/* Rute publice */}
-                        <Route path={ROUTES.HOME} element={<Home />} />
-                        <Route path={ROUTES.CLUBS} element={<Clubs />} />
-                        <Route
-                            path={ROUTES.REGISTER}
-                            element={
-                                <PublicRoute>
-                                    <SignUp />
-                                </PublicRoute>
-                            }
-                        />
+                <UserProvider>
+                    <ProgressProvider>
+                        <Routes>
+                            {/* Rute publice */}
+                            <Route path={ROUTES.HOME} element={<Home />} />
+                            <Route path={ROUTES.CLUBS} element={<Clubs />} />
+                            <Route
+                                path={ROUTES.REGISTER}
+                                element={
+                                    <PublicRoute>
+                                        <SignUp />
+                                    </PublicRoute>
+                                }
+                            />
 
-                        {/* Rute protejate */}
-                        <Route
-                            path={ROUTES.DASHBOARD}
-                            element={
-                                <ProtectedRoute>
-                                    <Dashboard />
-                                </ProtectedRoute>
-                            }
-                        />
+                            {/* Rute protejate */}
+                            <Route
+                                path={ROUTES.DASHBOARD}
+                                element={
+                                    <ProtectedRoute>
+                                        <Dashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.PROFILE}
-                            element={
-                                <ProtectedRoute>
-                                    <Profile/>
-                                </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path={ROUTES.PROFILE}
+                                element={
+                                    <ProtectedRoute>
+                                        <Profile/>
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.COMMUNITY}
-                            element={
-                                <ProtectedRoute>
-                                    <CommunityPage />
-                                </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path={ROUTES.COMMUNITY}
+                                element={
+                                    <ProtectedRoute>
+                                        <CommunityPage />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.ACTIVITIES}
-                            element={
-                                <ProtectedRoute>
-                                    <Activitati />
-                                </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path={ROUTES.ACTIVITIES}
+                                element={
+                                    <ProtectedRoute>
+                                        <Activitati />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.CHALLENGES}
-                            element={
-                                <ProtectedRoute>
-                                    <Provocari />
-                                </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path={ROUTES.CHALLENGES}
+                                element={
+                                    <ProtectedRoute>
+                                        <Provocari />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.EVENTS}
-                            element={
-                                <ProtectedRoute>
-                                    <EVENTS />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        {/* Fallback */}
-                        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
-                    </Routes>
-                </UserProvider>  {/* ← închide */}
+                            {/* Fallback */}
+                            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+                        </Routes>
+                    </ProgressProvider>
+                </UserProvider>
             </AuthProvider>
         </BrowserRouter>
     )

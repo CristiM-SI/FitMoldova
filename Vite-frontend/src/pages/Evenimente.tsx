@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useDashboardData } from '../context/DashboardDataContext';
 import { ROUTES } from '../routes/paths';
-import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
 import './Dashboard.css';
 import './DashboardOverlays.css';
@@ -39,10 +39,14 @@ const capacityClass = (pct: number) => {
 
 const EvenimenteDashboard: React.FC = () => {
     const { user, logout } = useAuth();
+    const {
+        evenimenteInscrise: inscrise,
+        evenimenteDisponibile: disponibile,
+        addEveniment,
+        removeEveniment,
+    } = useDashboardData();
     const navigate = useNavigate();
 
-    const [inscrise, setInscrise] = useState<Eveniment[]>([]);
-    const [disponibile, setDisponibile] = useState<Eveniment[]>(MOCK_EVENIMENTE);
     const [view, setView] = useState<ViewType>('all');
     const [search, setSearch] = useState('');
     const [filterCat, setFilterCat] = useState<string>('Toate');
@@ -54,18 +58,12 @@ const EvenimenteDashboard: React.FC = () => {
     };
 
     const register = (ev: Eveniment) => {
-        setInscrise((prev) => [...prev, ev]);
-        setDisponibile((prev) => prev.filter((e) => e.id !== ev.id));
+        addEveniment(ev);
         setDetail(null);
     };
 
     const cancel = (id: number) => {
-        const ev = inscrise.find((e) => e.id === id);
-        setInscrise((prev) => prev.filter((e) => e.id !== id));
-        if (ev) {
-            const orig = MOCK_EVENIMENTE.find((e) => e.name === ev.name);
-            if (orig) setDisponibile((prev) => [...prev, orig]);
-        }
+        removeEveniment(id);
         setDetail(null);
     };
 

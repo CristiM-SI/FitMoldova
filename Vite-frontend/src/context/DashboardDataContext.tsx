@@ -3,28 +3,34 @@ import { MOCK_ACTIVITATI } from '../services/mock/activitati';
 import type { Activitate } from '../services/mock/activitati';
 import { MOCK_PROVOCARI } from '../services/mock/provocari';
 import type { Provocare } from '../services/mock/provocari';
+import { MOCK_CLUBURI } from '../services/mock/cluburi';
+import type { Club } from '../services/mock/cluburi';
+import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
+import type { Eveniment } from '../services/mock/evenimente';
 
 interface DashboardData {
-    // Activități
     activitatiCurente: Activitate[];
     activitatiDisponibile: Activitate[];
-    // Provocări
     provocariInscrise: Provocare[];
     provocariDisponibile: Provocare[];
+    cluburiJoined: Club[];
+    cluburiDisponibile: Club[];
+    evenimenteInscrise: Eveniment[];
+    evenimenteDisponibile: Eveniment[];
 }
 
 interface DashboardDataContextType extends DashboardData {
-    // Activități
     addActivitate: (item: Activitate) => void;
     removeActivitate: (id: number) => void;
-    // Provocări
     addProvocare: (item: Provocare) => void;
     removeProvocare: (id: number) => void;
-    // Reset
+    addClub: (item: Club) => void;
+    removeClub: (id: number) => void;
+    addEveniment: (item: Eveniment) => void;
+    removeEveniment: (id: number) => void;
     resetAll: () => void;
 }
 
-/* ---- Constante ---- */
 const STORAGE_KEY = 'fitmoldova_dashboard_data';
 
 const DEFAULT_DATA: DashboardData = {
@@ -32,9 +38,12 @@ const DEFAULT_DATA: DashboardData = {
     activitatiDisponibile: MOCK_ACTIVITATI,
     provocariInscrise: [],
     provocariDisponibile: MOCK_PROVOCARI,
+    cluburiJoined: [],
+    cluburiDisponibile: MOCK_CLUBURI,
+    evenimenteInscrise: [],
+    evenimenteDisponibile: MOCK_EVENIMENTE,
 };
 
-/* ---- Context ---- */
 const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
 
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
@@ -43,75 +52,104 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved) as DashboardData;
-                // Verificăm că structura e validă
-                if (parsed.activitatiCurente && parsed.activitatiDisponibile) {
-                    return parsed;
-                }
+                if (parsed.activitatiCurente && parsed.activitatiDisponibile) return parsed;
             }
-        } catch { /* ignore corrupt data */ }
+        } catch { /* ignore */ }
         return DEFAULT_DATA;
     });
 
-    // Persistă la fiecare schimbare
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }, [data]);
 
-    /* ---- Activități ---- */
+    /* ---- Activitati ---- */
     const addActivitate = useCallback((item: Activitate) => {
-        const nouaActivitate: Activitate = {
-            ...item,
-            id: Date.now(),
-            date: new Date().toLocaleDateString('ro-RO', {
-                day: 'numeric', month: 'long', year: 'numeric',
-            }),
+        const nou: Activitate = {
+            ...item, id: Date.now(),
+            date: new Date().toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }),
         };
-        setData((prev) => ({
-            ...prev,
-            activitatiCurente: [nouaActivitate, ...prev.activitatiCurente],
-            activitatiDisponibile: prev.activitatiDisponibile.filter((a) => a.id !== item.id),
+        setData((p) => ({
+            ...p,
+            activitatiCurente: [nou, ...p.activitatiCurente],
+            activitatiDisponibile: p.activitatiDisponibile.filter((a) => a.id !== item.id),
         }));
     }, []);
 
     const removeActivitate = useCallback((id: number) => {
-        setData((prev) => {
-            const removed = prev.activitatiCurente.find((a) => a.id === id);
-            const original = removed ? MOCK_ACTIVITATI.find((m) => m.name === removed.name) : null;
+        setData((p) => {
+            const rm = p.activitatiCurente.find((a) => a.id === id);
+            const orig = rm ? MOCK_ACTIVITATI.find((m) => m.name === rm.name) : null;
             return {
-                ...prev,
-                activitatiCurente: prev.activitatiCurente.filter((a) => a.id !== id),
-                activitatiDisponibile: original
-                    ? [...prev.activitatiDisponibile, original]
-                    : prev.activitatiDisponibile,
+                ...p,
+                activitatiCurente: p.activitatiCurente.filter((a) => a.id !== id),
+                activitatiDisponibile: orig ? [...p.activitatiDisponibile, orig] : p.activitatiDisponibile,
             };
         });
     }, []);
 
-    /* ---- Provocări ---- */
+    /* ---- Provocari ---- */
     const addProvocare = useCallback((item: Provocare) => {
-        const cuProgress: Provocare = { ...item, progress: 0 };
-        setData((prev) => ({
-            ...prev,
-            provocariInscrise: [...prev.provocariInscrise, cuProgress],
-            provocariDisponibile: prev.provocariDisponibile.filter((p) => p.id !== item.id),
+        setData((p) => ({
+            ...p,
+            provocariInscrise: [...p.provocariInscrise, { ...item, progress: 0 }],
+            provocariDisponibile: p.provocariDisponibile.filter((x) => x.id !== item.id),
         }));
     }, []);
 
     const removeProvocare = useCallback((id: number) => {
-        setData((prev) => {
-            const removed = prev.provocariInscrise.find((p) => p.id === id);
-            const original = removed ? MOCK_PROVOCARI.find((m) => m.name === removed.name) : null;
+        setData((p) => {
+            const rm = p.provocariInscrise.find((x) => x.id === id);
+            const orig = rm ? MOCK_PROVOCARI.find((m) => m.name === rm.name) : null;
             return {
-                ...prev,
-                provocariInscrise: prev.provocariInscrise.filter((p) => p.id !== id),
-                provocariDisponibile: original
-                    ? [...prev.provocariDisponibile, original]
-                    : prev.provocariDisponibile,
+                ...p,
+                provocariInscrise: p.provocariInscrise.filter((x) => x.id !== id),
+                provocariDisponibile: orig ? [...p.provocariDisponibile, orig] : p.provocariDisponibile,
             };
         });
     }, []);
 
-    /* ---- Reset ---- */
+    /* ---- Cluburi ---- */
+    const addClub = useCallback((item: Club) => {
+        setData((p) => ({
+            ...p,
+            cluburiJoined: [...p.cluburiJoined, item],
+            cluburiDisponibile: p.cluburiDisponibile.filter((c) => c.id !== item.id),
+        }));
+    }, []);
+
+    const removeClub = useCallback((id: number) => {
+        setData((p) => {
+            const rm = p.cluburiJoined.find((c) => c.id === id);
+            const orig = rm ? MOCK_CLUBURI.find((m) => m.name === rm.name) : null;
+            return {
+                ...p,
+                cluburiJoined: p.cluburiJoined.filter((c) => c.id !== id),
+                cluburiDisponibile: orig ? [...p.cluburiDisponibile, orig] : p.cluburiDisponibile,
+            };
+        });
+    }, []);
+
+    /* ---- Evenimente ---- */
+    const addEveniment = useCallback((item: Eveniment) => {
+        setData((p) => ({
+            ...p,
+            evenimenteInscrise: [...p.evenimenteInscrise, item],
+            evenimenteDisponibile: p.evenimenteDisponibile.filter((e) => e.id !== item.id),
+        }));
+    }, []);
+
+    const removeEveniment = useCallback((id: number) => {
+        setData((p) => {
+            const rm = p.evenimenteInscrise.find((e) => e.id === id);
+            const orig = rm ? MOCK_EVENIMENTE.find((m) => m.name === rm.name) : null;
+            return {
+                ...p,
+                evenimenteInscrise: p.evenimenteInscrise.filter((e) => e.id !== id),
+                evenimenteDisponibile: orig ? [...p.evenimenteDisponibile, orig] : p.evenimenteDisponibile,
+            };
+        });
+    }, []);
+
     const resetAll = useCallback(() => {
         setData(DEFAULT_DATA);
         localStorage.removeItem(STORAGE_KEY);
@@ -122,6 +160,8 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             ...data,
             addActivitate, removeActivitate,
             addProvocare, removeProvocare,
+            addClub, removeClub,
+            addEveniment, removeEveniment,
             resetAll,
         }}>
             {children}

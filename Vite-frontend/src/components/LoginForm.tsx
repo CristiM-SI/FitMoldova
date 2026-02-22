@@ -112,3 +112,51 @@ export function LoginForm({
                             onChange={(e) => onChange("password", e.target.value)}
                             autoComplete="current-password"
                         />
+                        {/* Buton ochi — alternează între arată/ascunde parolă */}
+                        <button
+                            className="password-toggle"
+                            type="button"
+                            onClick={onTogglePassword}
+                            aria-label={showPassword ? "Ascunde parola" : "Arată parola"}
+                        >
+                            {showPassword ? <EyeOffIcon /> : <EyeOpenIcon />}
+                        </button>
+                    </div>
+                    {/* Mesaj eroare parolă — afișat condiționat */}
+                    {errors.password && <div className="error-msg">⚠ {errors.password}</div>}
+                </div>
+
+                {/* Rând: checkbox "Ține-mă conectat" + link "Ai uitat parola?" */}
+                <div className="form-row">
+                    <label className="checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={form.rememberMe}
+                            onChange={(e) => onChange("rememberMe", e.target.checked)}
+                        />
+                        Ține-mă conectat
+                    </label>
+                    <a href="/forgot-password" className="forgot-link">Ai uitat parola?</a>
+                </div>
+
+                {/* Buton principal submit — dezactivat cât timp se încarcă */}
+                <button
+                    className="submit-btn"
+                    type="button"
+                    onClick={onSubmit}
+                    disabled={isLoading}
+                >
+                    {/* Spinner vizibil doar în starea de loading */}
+                    {isLoading && <span className="spinner" />}
+                    {isLoading ? "Se conectează..." : "Intră în cont"}
+                </button>
+
+                {/* Link spre pagina de înregistrare */}
+                <div className="register-link">
+                    Nu ai cont?{" "}
+                    <a href="/register">Creează cont gratuit</a>
+                </div>
+            </div>
+        </div>
+    );
+}

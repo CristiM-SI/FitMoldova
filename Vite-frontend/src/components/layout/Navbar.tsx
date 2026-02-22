@@ -42,7 +42,6 @@ const Navbar: React.FC = () => {
           <li><button onClick={() => { handleSectionClick('features')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Features</button></li>
           <li><button onClick={() => { navigate(ROUTES.COMMUNITY); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
           <li><button onClick={() => { handleSectionClick('events')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
-          <li><button onClick={() => { handleSectionClick('pricing')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Prețuri</button></li>
           <li>
             <NavLink
               to={ROUTES.CONTACT}

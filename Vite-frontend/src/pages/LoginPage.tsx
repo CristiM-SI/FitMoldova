@@ -1,9 +1,8 @@
-﻿import { loginStyles } from "./styles/login.styles";
-import { useLoginForm } from "./hooks/useLoginForm";
-import { LeftPanel } from "./components/LeftPanel";
-import { LoginForm } from "./components/LoginForm";
-import { StatItem } from "./types/login.types";
-
+﻿import { loginStyles } from "../styles/login.styles";
+import { useLoginForm } from "../hooks/useLoginForm";
+import { LeftPanel } from "../components/LeftPanel";
+import { LoginForm } from "../components/LoginForm";
+import { StatItem } from "../types/login.types";
 // Datele statistice afișate în panoul stâng
 // Le definim aici pentru a le putea schimba ușor sau a le lua dintr-un API
 const STATS: StatItem[] = [

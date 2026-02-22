@@ -28,8 +28,8 @@ const NotFound: React.FC = () => {
             <Link to={ROUTES.HOME} className="notfound-btn notfound-btn-primary">
               &#8592; Pagina Principală
             </Link>
-            <Link to={ROUTES.PRICING} className="notfound-btn notfound-btn-outline">
-              Vezi Prețuri
+            <Link to={ROUTES.CONTACT} className="notfound-btn notfound-btn-outline">
+              Contact
             </Link>
           </div>
 

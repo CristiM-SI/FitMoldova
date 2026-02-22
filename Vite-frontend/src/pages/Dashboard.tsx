@@ -58,6 +58,10 @@ const Dashboard: React.FC = () => {
               <span className="db-nav-icon">👤</span>
               Profil
             </Link>
+            <Link to={ROUTES.CONTACT} className="db-nav-item">
+              <span className="db-nav-icon">✉️</span>
+              Contact
+            </Link>
           </nav>
 
           <button className="db-logout-btn" onClick={handleLogout}>

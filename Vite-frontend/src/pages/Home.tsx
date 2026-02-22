@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { scrollToSection } from '../utils/navigation';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Home.css';
 
 interface Feature {
@@ -12,6 +13,8 @@ interface Feature {
 }
 
 const Home: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   const features: Feature[] = [
     {
       icon: '📊',
@@ -57,6 +60,11 @@ const Home: React.FC = () => {
       icon: '👥',
       title: 'Cluburi Locale',
       description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.'
+    },
+    {
+      icon: '⭐',
+      title: 'Feedback & Recenzii',
+      description: 'Împărtășește experiența ta, evaluează platforma și citește recenziile comunității. Opinia ta ne ajută să creștem.'
     }
   ];
 
@@ -78,7 +86,11 @@ const Home: React.FC = () => {
             Urmărește progresul, participă la provocări și conectează-te cu pasionați de sport.
           </p>
           <div className="hero-cta">
-            <Link to={ROUTES.REGISTER} className="btn btn-primary">Creează Cont Gratuit</Link>
+            {isAuthenticated ? (
+              <Link to={ROUTES.DASHBOARD} className="btn btn-primary">Mergi la Dashboard</Link>
+            ) : (
+              <Link to={ROUTES.REGISTER} className="btn btn-primary">Creează Cont Gratuit</Link>
+            )}
             <button onClick={() => scrollToSection("features")} className="btn btn-outline">Descoperă Mai Mult</button>
           </div>
 
@@ -122,18 +134,51 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <section className="cta-section">
-        <div className="cta-content">
-          <h2 className="cta-title">Gata să începi călătoria ta?</h2>
-          <p className="cta-description">
-            Alătură-te comunității FitMoldova astăzi și descoperă o nouă modalitate
-            de a-ți atinge obiectivele de fitness alături de mii de alți pasionați.
-          </p>
-          <Link to={ROUTES.REGISTER} className="btn btn-primary cta-btn">
-            Creează Cont Gratuit
-          </Link>
+      <section className="home-feedback-section">
+        <div className="home-feedback-inner">
+          <div className="home-feedback-left">
+            <div className="home-feedback-badge">Comunitate</div>
+            <h2>Ce spun membrii noștri?</h2>
+            <p>
+              Alătură-te celor 3.200+ utilizatori care și-au împărtășit
+              experiența. Citește recenziile sau lasă propriul tău feedback.
+            </p>
+            <Link to={ROUTES.FEEDBACK} className="btn btn-primary">
+              Vezi Recenziile
+            </Link>
+          </div>
+          <div className="home-feedback-ratings">
+            {[
+              { score: '4.7', label: 'Rating general', stars: 5 },
+              { score: '94%', label: 'Utilizatori mulțumiți', stars: 5 },
+              { score: '3.2K+', label: 'Recenzii scrise', stars: 4 },
+            ].map((item, i) => (
+              <div key={i} className="home-feedback-rating-card">
+                <div className="home-feedback-score">{item.score}</div>
+                <div className="home-feedback-stars">
+                  {'★'.repeat(item.stars)}
+                </div>
+                <div className="home-feedback-rating-label">{item.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
+
+      {!isAuthenticated && (
+        <section className="cta-section">
+          <div className="cta-content">
+            <h2 className="cta-title">Gata să începi călătoria ta?</h2>
+            <p className="cta-description">
+              Alătură-te comunității FitMoldova astăzi și descoperă o nouă modalitate
+              de a-ți atinge obiectivele de fitness alături de mii de alți pasionați.
+            </p>
+            <Link to={ROUTES.REGISTER} className="btn btn-primary cta-btn">
+              Creează Cont Gratuit
+            </Link>
+          </div>
+        </section>
+      )}
 
       <footer className="footer">
         <div className="footer-content">
@@ -165,10 +210,8 @@ const Home: React.FC = () => {
           <div className="footer-section">
             <h3>Suport</h3>
             <ul>
-              <li><Link to={ROUTES.PRICING} className="footer-link">Prețuri</Link></li>
               <li><Link to={ROUTES.FEEDBACK} className="footer-link">Feedback</Link></li>
-              <li><Link to={ROUTES.FORUM} className="footer-link">Contact</Link></li>
-              <li><Link to={ROUTES.PRICING} className="footer-link">Confidențialitate</Link></li>
+              <li><Link to={ROUTES.CONTACT} className="footer-link">Contact</Link></li>
             </ul>
           </div>
         </div>

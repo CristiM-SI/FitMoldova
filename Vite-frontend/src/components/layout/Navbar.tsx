@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';  // ← adaugă
 import UserAvatar from '../UserAvatar';  // ← adaugă
@@ -9,6 +9,7 @@ import '../../styles/Navbar.css';
 
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const { isAuthenticated, logout } = useAuth();
   const { user } = useUser();  // ← adaugă
   const navigate = useNavigate();
@@ -31,22 +32,43 @@ const Navbar: React.FC = () => {
     scrollToSection(sectionId);
   };
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <Link to={ROUTES.HOME} className="logo">FitMoldova</Link>
 
-        <ul className="nav-links">
-          <li><button onClick={handleSectionClick('features')} className="nav-link-btn">Features</button></li>
-          <li><button onClick={() => navigate(ROUTES.COMMUNITY)} className="nav-link-btn">Comunitate</button></li>
-          <li><button onClick={handleSectionClick('events')} className="nav-link-btn">Evenimente</button></li>
-          <li><button onClick={handleSectionClick('pricing')} className="nav-link-btn">Prețuri</button></li>
+        <ul className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
+          <li><button onClick={() => { handleSectionClick('features')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Features</button></li>
+          <li><button onClick={() => { navigate(ROUTES.COMMUNITY); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
+          <li><button onClick={() => { handleSectionClick('events')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
+          <li>
+            <NavLink
+              to={ROUTES.CONTACT}
+              className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+              onClick={closeMenu}
+            >
+              Contact
+            </NavLink>
+          </li>
+          {isAuthenticated && (
+            <li>
+              <NavLink
+                to={ROUTES.FEEDBACK}
+                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                onClick={closeMenu}
+              >
+                Feedback
+              </NavLink>
+            </li>
+          )}
         </ul>
 
         <div className="nav-actions">
           {isAuthenticated ? (
               <>
                 <Link to={ROUTES.DASHBOARD} className="btn btn-outline">Dashboard</Link>
-                {user && <UserAvatar />}  {/* ← adaugă iconița aici */}
+                <UserAvatar />
                 <button onClick={handleLogout} className="btn btn-outline">Logout</button>
               </>
           ) : (
@@ -55,6 +77,13 @@ const Navbar: React.FC = () => {
                 <Link to={ROUTES.REGISTER} className="btn btn-primary">Începe Acum</Link>
               </>
           )}
+          <button
+            className={`nav-hamburger ${menuOpen ? 'nav-hamburger--open' : ''}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Deschide meniu"
+          >
+            <span /><span /><span />
+          </button>
         </div>
       </nav>
   );

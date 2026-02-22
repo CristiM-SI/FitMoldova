@@ -256,10 +256,17 @@ const Contact: React.FC = () => {
 
           {/* Map / social sidebar */}
           <div className="contact-sidebar">
-            <div className="contact-map-placeholder">
-              <div className="map-icon">🗺️</div>
-              <p>Chișinău, Moldova</p>
-              <p className="map-sub">Str. Ștefan cel Mare 1</p>
+            <div className="contact-map-embed">
+              <iframe
+                title="FitMoldova Location"
+                src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1200.3019609866276!2d28.844215832910013!3d47.01626473852786!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2s!4v1771784359709!5m2!1sen!2s"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <div className="contact-map-label">
+                <span>📍</span> Str. Ștefan cel Mare 1, Chișinău
+              </div>
             </div>
 
             <div className="contact-social">
@@ -290,15 +297,6 @@ const Contact: React.FC = () => {
                   <span className="social-icon">✈️</span> Telegram
                 </a>
               </div>
-            </div>
-
-            <div className="contact-hours">
-              <h3>Program de lucru</h3>
-              <ul>
-                <li><span>Luni – Vineri</span><span>9:00 – 18:00</span></li>
-                <li><span>Sâmbătă</span><span>10:00 – 14:00</span></li>
-                <li><span>Duminică</span><span>Închis</span></li>
-              </ul>
             </div>
           </div>
         </div>

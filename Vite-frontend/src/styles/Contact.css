@@ -277,31 +277,28 @@
   gap: 1.5rem;
 }
 
-/* Map placeholder */
-.contact-map-placeholder {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--dark-border, rgba(255,255,255,0.1));
+/* Google Maps embed */
+.contact-map-embed {
   border-radius: var(--radius-lg, 16px);
-  padding: 2.5rem;
-  text-align: center;
+  overflow: hidden;
+  border: 1px solid var(--dark-border, rgba(255,255,255,0.1));
 }
 
-.map-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+.contact-map-embed iframe {
+  display: block;
+  width: 100%;
+  height: 280px;
+  border: none;
 }
 
-.contact-map-placeholder p {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary, #fff);
-  margin-bottom: 0.25rem;
-}
-
-.map-sub {
-  font-size: 0.88rem !important;
-  color: var(--text-muted, rgba(255,255,255,0.55)) !important;
-  font-weight: 400 !important;
+.contact-map-label {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, rgba(255,255,255,0.6));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Social links */
@@ -352,49 +349,6 @@
   font-size: 1.2rem;
 }
 
-/* Hours */
-.contact-hours {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--dark-border, rgba(255,255,255,0.1));
-  border-radius: var(--radius-lg, 16px);
-  padding: 1.75rem;
-}
-
-.contact-hours h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: var(--text-secondary, rgba(255,255,255,0.8));
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.contact-hours ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.contact-hours li {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.92rem;
-  color: var(--text-muted, rgba(255,255,255,0.6));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding-bottom: 0.6rem;
-}
-
-.contact-hours li:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.contact-hours li span:first-child {
-  font-weight: 600;
-  color: var(--text-secondary, rgba(255,255,255,0.8));
-}
 
 /* ── FAQ ────────────────────────────────────────────────────── */
 .contact-faq-section {
@@ -513,7 +467,7 @@
     gap: 1.25rem;
   }
 
-  .contact-map-placeholder {
+  .contact-map-embed {
     grid-column: 1 / -1;
   }
 }

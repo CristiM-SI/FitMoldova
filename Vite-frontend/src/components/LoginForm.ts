@@ -49,7 +49,6 @@ export function useLoginForm() {
     // ----------------------------------------------------------
     // handleSubmit() — apelat la click pe butonul "Intră în cont"
     // Validează, simulează un request API și arată rezultatul
-    // TODO: înlocuiește setTimeout cu un apel real la API (ex: fetch/axios)
     // ----------------------------------------------------------
     const handleSubmit = async (): Promise<void> => {
         if (!validate()) return; // oprește dacă există erori

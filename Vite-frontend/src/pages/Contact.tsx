@@ -332,6 +332,23 @@ const Contact: React.FC = () => {
         </div>
       </section>
 
+      {/* ── FEEDBACK PROMO ───────────────────────────────── */}
+      <section className="contact-feedback-promo">
+        <div className="contact-feedback-promo-inner">
+          <div className="contact-feedback-promo-icon">⭐</div>
+          <div className="contact-feedback-promo-text">
+            <h3>Ești deja membru? Lasă un feedback!</h3>
+            <p>
+              Spune-ne ce funcționează bine și ce am putea îmbunătăți.
+              Opinia ta ajută comunitatea să crească.
+            </p>
+          </div>
+          <Link to={ROUTES.FEEDBACK} className="btn btn-primary contact-feedback-promo-btn">
+            Lasă Feedback
+          </Link>
+        </div>
+      </section>
+
       {/* ── CTA FOOTER STRIP ─────────────────────────────── */}
       <section className="contact-cta-section">
         <div className="contact-cta-content">

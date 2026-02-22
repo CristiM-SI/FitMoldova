@@ -425,6 +425,69 @@
   margin: 0;
 }
 
+/* ── FEEDBACK PROMO ─────────────────────────────────────────── */
+.contact-feedback-promo {
+  padding: 0 5% 4rem;
+  position: relative;
+  z-index: 2;
+}
+
+.contact-feedback-promo-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, rgba(0, 208, 132, 0.08) 0%, rgba(0, 184, 255, 0.05) 100%);
+  border: 1px solid rgba(0, 208, 132, 0.25);
+  border-radius: var(--radius-xl, 24px);
+  padding: 2rem 2.5rem;
+}
+
+.contact-feedback-promo-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(255, 184, 0, 0.4));
+}
+
+.contact-feedback-promo-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-feedback-promo-text h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  color: var(--text-primary, #fff);
+}
+
+.contact-feedback-promo-text p {
+  font-size: 0.9rem;
+  color: var(--text-muted, rgba(255, 255, 255, 0.6));
+  line-height: 1.5;
+  margin: 0;
+}
+
+.contact-feedback-promo-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #00D084 0%, #00B8FF 100%) !important;
+  box-shadow: 0 8px 24px rgba(0, 208, 132, 0.3) !important;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .contact-feedback-promo-inner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.75rem;
+  }
+
+  .contact-feedback-promo-btn {
+    width: 100%;
+  }
+}
+
 /* ── CTA STRIP ──────────────────────────────────────────────── */
 .contact-cta-section {
   padding: 5rem 5%;

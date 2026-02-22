@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext'
 import { UserProvider } from './context/UserContext'  // ← adaugă
 import { useAuth } from './context/AuthContext'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Clubs from './pages/Clubs'
 import { ROUTES } from './routes/paths'
@@ -54,6 +55,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 function App() {
     return (
         <BrowserRouter>
+            <ScrollToTop />
             <AuthProvider>
                 <UserProvider>  {/* ← adaugă */}
                     <Routes>

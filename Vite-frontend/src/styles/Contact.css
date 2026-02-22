@@ -412,6 +412,65 @@
   gap: 1rem;
 }
 
+.contact-faq-grid .faq-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.contact-faq-grid .faq-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.contact-faq-grid .faq-question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.contact-faq-grid .faq-icon {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--primary, #0066FF);
+  flex-shrink: 0;
+  margin-left: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.contact-faq-grid .faq-item.open .faq-icon {
+  transform: rotate(0deg);
+}
+
+.contact-faq-grid .faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.contact-faq-grid .faq-item.open .faq-answer {
+  max-height: 300px;
+}
+
+.contact-faq-grid .faq-answer p {
+  padding: 0 1.5rem 1.25rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.7;
+  font-weight: 300;
+  margin: 0;
+}
+
 /* ── CTA STRIP ──────────────────────────────────────────────── */
 .contact-cta-section {
   padding: 5rem 5%;

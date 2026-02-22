@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProgress } from '../context/ProgressContext';
+import { useDashboardData } from '../context/DashboardDataContext';
 import { ROUTES } from '../routes/paths';
-import { MOCK_PROVOCARI } from '../services/mock/provocari';
 import type { Provocare } from '../services/mock/provocari';
 import './Dashboard.css';
 import './DashboardOverlays.css';
@@ -17,10 +17,13 @@ const difficultyColor = (d: string) => {
 const Provocari: React.FC = () => {
   const { user, logout } = useAuth();
   const { completeChallenge } = useProgress();
+  const {
+    provocariInscrise: inscrise,
+    provocariDisponibile: disponibile,
+    addProvocare,
+    removeProvocare,
+  } = useDashboardData();
   const navigate = useNavigate();
-
-  const [inscrise, setInscrise] = useState<Provocare[]>([]);
-  const [disponibile, setDisponibile] = useState<Provocare[]>(MOCK_PROVOCARI);
 
   const handleLogout = (): void => {
     logout();
@@ -28,19 +31,12 @@ const Provocari: React.FC = () => {
   };
 
   const inscrieTe = (provocare: Provocare) => {
-    const cuProgress: Provocare = { ...provocare, progress: 0 };
-    setInscrise((prev) => [...prev, cuProgress]);
-    setDisponibile((prev) => prev.filter((p) => p.id !== provocare.id));
+    addProvocare(provocare);
     completeChallenge();
   };
 
   const paraseste = (id: number) => {
-    const provocare = inscrise.find((p) => p.id === id);
-    setInscrise((prev) => prev.filter((p) => p.id !== id));
-    if (provocare) {
-      const orig = MOCK_PROVOCARI.find((p) => p.name === provocare.name);
-      if (orig) setDisponibile((prev) => [...prev, orig]);
-    }
+    removeProvocare(id);
   };
 
   return (

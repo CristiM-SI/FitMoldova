@@ -8,6 +8,7 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  CONTACT: '/contact',
 
   // Protected routes
   DASHBOARD: '/dashboard',
@@ -32,6 +33,7 @@ export const PUBLIC_ROUTES: RoutePath[] = [
   ROUTES.LOGIN,
   ROUTES.REGISTER,
   ROUTES.PRICING,
+  ROUTES.CONTACT,
 ];
 
 export const PROTECTED_ROUTES: RoutePath[] = [

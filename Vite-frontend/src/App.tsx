@@ -12,6 +12,7 @@ import CommunityPage from './pages/CommunityPage'
 import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
 import EVENTS from './pages/Evenimente'
+import Contact from './pages/Contact'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -122,6 +123,9 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* Rută publică Contact */}
+                        <Route path={ROUTES.CONTACT} element={<Contact />} />
 
                         {/* Fallback */}
                         <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

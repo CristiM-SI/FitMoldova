@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { UserProvider } from './context/UserContext'  // ← adaugă
+import { UserProvider } from './context/UserContext'
+import { ProgressProvider } from './context/ProgressContext'
+import { DashboardDataProvider } from './context/DashboardDataContext'
 import { useAuth } from './context/AuthContext'
 import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'

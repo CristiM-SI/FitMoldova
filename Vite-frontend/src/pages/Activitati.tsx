@@ -1,49 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProgress } from '../context/ProgressContext';
+import { useDashboardData } from '../context/DashboardDataContext';
 import { ROUTES } from '../routes/paths';
 import { MOCK_ACTIVITATI } from '../services/mock/activitati';
-import type { Activitate } from '../services/mock/activitati';
 import './Dashboard.css';
 import './DashboardOverlays.css';
 
 const Activitati: React.FC = () => {
   const { user, logout } = useAuth();
+  const { completeFirstActivity } = useProgress();
+  const {
+    activitatiCurente,
+    activitatiDisponibile: recomandari,
+    addActivitate,
+    removeActivitate,
+  } = useDashboardData();
   const navigate = useNavigate();
-
-  const [activitatiCurente, setActivitatiCurente] = useState<Activitate[]>([]);
-  const [recomandari, setRecomandari] = useState<Activitate[]>(MOCK_ACTIVITATI);
 
   const handleLogout = (): void => {
     logout();
     navigate(ROUTES.HOME);
   };
 
-  const adaugaActivitate = (activitate: Activitate) => {
-    const nouaActivitate: Activitate = {
-      ...activitate,
-      id: Date.now(),
-      date: new Date().toLocaleDateString('ro-RO', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }),
-    };
-    setActivitatiCurente((prev) => [nouaActivitate, ...prev]);
-    setRecomandari((prev) => prev.filter((r) => r.id !== activitate.id));
+  const adaugaActivitate = (activitate: typeof recomandari[0]) => {
+    addActivitate(activitate);
+    completeFirstActivity();
   };
 
   const eliminaActivitate = (id: number) => {
-    const activitate = activitatiCurente.find((a) => a.id === id);
-    setActivitatiCurente((prev) => prev.filter((a) => a.id !== id));
-    if (activitate) {
-      const originalRec = MOCK_ACTIVITATI.find(
-          (r) => r.name === activitate.name
-      );
-      if (originalRec) {
-        setRecomandari((prev) => [...prev, originalRec]);
-      }
-    }
+    removeActivitate(id);
   };
 
   const totalCalories = activitatiCurente.reduce((s, a) => s + a.calories, 0);

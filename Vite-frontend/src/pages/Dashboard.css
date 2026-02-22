@@ -33,11 +33,19 @@
 
 .db-logo {
   font-size: 1.4rem;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;  /* ← mâna când hover */
+  transition: opacity 0.2s ease;
   font-weight: 900;
   letter-spacing: 0.04em;
   padding: 0 1.75rem 2rem;
   border-bottom: 1px solid rgba(26, 127, 255, 0.12);
   margin-bottom: 1.5rem;
+}
+
+.db-logo:hover {
+  opacity: 0.8;  /* ← efect subtil la hover */
 }
 
 .db-logo-white { color: #ffffff; }
@@ -450,4 +458,15 @@
     flex-direction: column;
     gap: 1rem;
   }
+}
+
+.db-overlay {
+  position: fixed;  /* ← fix peste tot ecranul */
+  inset: 0;  /* ← echivalent cu top:0; right:0; bottom:0; left:0; */
+  background: rgba(10, 15, 30, 0.95);  /* ← fundal întunecat semi-transparent */
+  backdrop-filter: blur(8px);  /* ← blurează conținutul din spate */
+  z-index: 9999;  /* ← peste tot */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

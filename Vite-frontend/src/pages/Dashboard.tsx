@@ -21,40 +21,41 @@ const Dashboard: React.FC = () => {
 
   return (
       <div className="db-page">
+
         <div className="db-grid" aria-hidden="true" />
 
         {/* Sidebar */}
         <aside className="db-sidebar">
-          <div className="db-logo">
+          <Link to={ROUTES.HOME} className="db-logo">
             <span className="db-logo-white">FIT</span>
             <span className="db-logo-blue">MOLDOVA</span>
-          </div>
+          </Link>
 
           <nav className="db-nav">
-            <a href="#" className="db-nav-item db-nav-item--active">
+            <Link to={ROUTES.DASHBOARD} className="db-nav-item db-nav-item--active">
               <span className="db-nav-icon">📊</span>
               Dashboard
-            </a>
-            <a href="#" className="db-nav-item">
+            </Link>
+            <Link to={ROUTES.ACTIVITIES} className="db-nav-item">
               <span className="db-nav-icon">🏃</span>
               Activități
-            </a>
-            <a href="#" className="db-nav-item">
+            </Link>
+            <Link to={ROUTES.CHALLENGES} className="db-nav-item">
               <span className="db-nav-icon">🏆</span>
               Provocări
-            </a>
+            </Link>
             <Link to={ROUTES.CLUBS} className="db-nav-item">
               <span className="db-nav-icon">👥</span>
               Cluburi
             </Link>
-            <a href="#" className="db-nav-item">
+            <Link to={ROUTES.EVENTS} className="db-nav-item">
               <span className="db-nav-icon">📅</span>
               Evenimente
-            </a>
-            <a href="#" className="db-nav-item">
+            </Link>
+            <Link to={ROUTES.PROFILE} className="db-nav-item">
               <span className="db-nav-icon">👤</span>
               Profil
-            </a>
+            </Link>
           </nav>
 
           <button className="db-logout-btn" onClick={handleLogout}>

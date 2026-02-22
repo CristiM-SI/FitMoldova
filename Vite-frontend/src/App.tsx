@@ -4,11 +4,14 @@ import { UserProvider } from './context/UserContext'  // ← adaugă
 import { useAuth } from './context/AuthContext'
 import Home from './pages/Home'
 import Clubs from './pages/Clubs'
-import Profile from './pages/Profile'  // ← adaugă
 import { ROUTES } from './routes/paths'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
+import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
+import Profile from './pages/Profile'
+import Provocari from './pages/Provocari'
+import EVENTS from './pages/Evenimente'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -28,7 +31,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     }
 
     if (!isAuthenticated) {
-        return <Navigate to={ROUTES.REGISTER} state={{ from: location }} replace />;
+        return <Navigate to={ROUTES.HOME} state={{ from: location }} replace />;
     }
 
     return <>{children}</>;
@@ -74,20 +77,48 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
+
                         <Route
-                            path={ROUTES.PROFILE}  // ← adaugă ruta de profil
+                            path={ROUTES.PROFILE}
                             element={
                                 <ProtectedRoute>
-                                    <Profile />
+                                    <Profile/>
                                 </ProtectedRoute>
                             }
                         />
-                        
+
                         <Route
                             path={ROUTES.COMMUNITY}
                             element={
                                 <ProtectedRoute>
                                     <CommunityPage />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path={ROUTES.ACTIVITIES}
+                            element={
+                                <ProtectedRoute>
+                                    <Activitati />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path={ROUTES.CHALLENGES}
+                            element={
+                                <ProtectedRoute>
+                                    <Provocari />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path={ROUTES.EVENTS}
+                            element={
+                                <ProtectedRoute>
+                                    <EVENTS />
                                 </ProtectedRoute>
                             }
                         />

@@ -1,0 +1,350 @@
+/* ===== OVERLAY DASHBOARD SUB-PAGES (shared) ===== */
+
+/* Section spacing */
+.ov-section {
+  margin-bottom: 1.5rem;
+}
+
+.ov-section-desc {
+  color: #7a8baa;
+  font-size: 0.85rem;
+  margin: -0.75rem 0 1.25rem;
+}
+
+/* Empty state */
+.ov-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+
+.ov-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+.ov-empty-text {
+  color: #7a8baa;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.ov-empty-hint {
+  color: #3d5070;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Item list */
+.ov-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ov-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(26, 127, 255, 0.04);
+  border: 1px solid rgba(26, 127, 255, 0.12);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.ov-item:hover {
+  border-color: rgba(26, 127, 255, 0.3);
+  transform: translateX(4px);
+}
+
+.ov-item--rec {
+  border-color: rgba(0, 200, 160, 0.15);
+  background: rgba(0, 200, 160, 0.04);
+}
+
+.ov-item--rec:hover {
+  border-color: rgba(0, 200, 160, 0.35);
+}
+
+.ov-item-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+}
+
+.ov-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ov-item-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.3rem;
+}
+
+.ov-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.775rem;
+  color: #7a8baa;
+}
+
+.ov-tag {
+  background: rgba(26, 127, 255, 0.15);
+  color: #1a7fff;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Buttons */
+.ov-btn-add {
+  padding: 0.45rem 1rem;
+  background: #00c8a0;
+  color: #0a0f1e;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ov-btn-add:hover {
+  background: #00ddb0;
+  box-shadow: 0 4px 16px rgba(0, 200, 160, 0.35);
+}
+
+.ov-btn-remove {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.ov-btn-remove:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.ov-btn-join {
+  padding: 0.45rem 1rem;
+  background: #1a7fff;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ov-btn-join:hover {
+  background: #3d95ff;
+  box-shadow: 0 4px 16px rgba(26, 127, 255, 0.35);
+}
+
+.ov-btn-leave {
+  padding: 0.45rem 1rem;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ov-btn-leave:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+/* Back button */
+.ov-back-wrap {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(26, 127, 255, 0.12);
+}
+
+.ov-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(26, 127, 255, 0.08);
+  border: 1px solid rgba(26, 127, 255, 0.2);
+  border-radius: 8px;
+  color: #1a7fff;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.ov-btn-back:hover {
+  background: rgba(26, 127, 255, 0.15);
+  border-color: #1a7fff;
+  transform: translateX(-4px);
+}
+
+/* Progress bar */
+.ov-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(26, 127, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.ov-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #1a7fff, #00c8a0);
+  transition: width 0.4s ease;
+}
+
+/* Badge */
+.ov-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.ov-badge--green {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.ov-badge--blue {
+  background: rgba(26, 127, 255, 0.15);
+  color: #1a7fff;
+}
+
+.ov-badge--yellow {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.ov-badge--red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Profile-specific */
+.ov-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ov-profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a7fff, #00c8a0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.ov-profile-details h2 {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+}
+
+.ov-profile-details p {
+  color: #7a8baa;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.ov-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.ov-info-item {
+  padding: 1rem;
+  background: rgba(26, 127, 255, 0.04);
+  border: 1px solid rgba(26, 127, 255, 0.1);
+  border-radius: 8px;
+}
+
+.ov-info-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a8baa;
+  margin-bottom: 0.35rem;
+}
+
+.ov-info-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ov-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .ov-btn-add,
+  .ov-btn-join,
+  .ov-btn-leave,
+  .ov-btn-remove {
+    align-self: flex-end;
+  }
+
+  .ov-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ov-profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -1,204 +1,336 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../routes/paths';
+import { MOCK_CLUBURI } from '../services/mock/cluburi';
+import type { Club } from '../services/mock/cluburi';
+import './Dashboard.css';
+import './DashboardOverlays.css';
+import './Clubs.css';
 
-interface Club {
-  id: number;
-  name: string;
-  category: string;
-  members: number;
-  location: string;
-  description: string;
-}
+type TabType = 'mine' | 'explore';
+const CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Înot', 'Trail'] as const;
 
-const MOCK_CLUBS: Club[] = [
-  {
-    id: 1,
-    name: 'Runners Chișinău',
-    category: 'Alergare',
-    members: 124,
-    location: 'Chișinău',
-    description: 'Comunitate de alergători din Chișinău. Antrenamente comune în fiecare weekend în Parcul Valea Morilor.',
-  },
-  {
-    id: 2,
-    name: 'CycleMD',
-    category: 'Ciclism',
-    members: 89,
-    location: 'Chișinău',
-    description: 'Club de ciclism pentru trasee urbane și rurale. Organizăm ture de grup în fiecare duminică.',
-  },
-  {
-    id: 3,
-    name: 'FitGym Bălți',
-    category: 'Sală',
-    members: 56,
-    location: 'Bălți',
-    description: 'Grup de pasionați de fitness din Bălți. Împărtășim rutine, sfaturi și motivație.',
-  },
-  {
-    id: 4,
-    name: 'Trail Moldova',
-    category: 'Alergare',
-    members: 73,
-    location: 'Moldova',
-    description: 'Club dedicat alergării pe trasee montane și off-road din toată Moldova.',
-  },
-  {
-    id: 5,
-    name: 'Yoga & Wellness MD',
-    category: 'Wellness',
-    members: 98,
-    location: 'Chișinău',
-    description: 'Sesiuni de yoga, meditație și wellness. Bine veniți începători și avansați.',
-  },
-  {
-    id: 6,
-    name: 'CrossFit Cahul',
-    category: 'Sală',
-    members: 42,
-    location: 'Cahul',
-    description: 'Comunitate CrossFit din Cahul. WOD-uri zilnice și competiții locale.',
-  },
-];
+const renderStars = (rating: number) => {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
+};
 
-const CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Sală', 'Wellness'];
+const ClubsDashboard: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-const Clubs: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Toate');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [joined, setJoined] = useState<Club[]>([]);
+  const [available, setAvailable] = useState<Club[]>(MOCK_CLUBURI);
+  const [activeTab, setActiveTab] = useState<TabType>('explore');
+  const [search, setSearch] = useState('');
+  const [filterCat, setFilterCat] = useState<string>('Toate');
+  const [detailClub, setDetailClub] = useState<Club | null>(null);
 
-  const filteredClubs = MOCK_CLUBS.filter((club) => {
-    const matchesCategory = selectedCategory === 'Toate' || club.category === selectedCategory;
-    const matchesSearch =
-      club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      club.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const handleLogout = (): void => {
+    logout();
+    navigate(ROUTES.HOME);
+  };
+
+  const joinClub = (club: Club) => {
+    setJoined((prev) => [...prev, club]);
+    setAvailable((prev) => prev.filter((c) => c.id !== club.id));
+    setDetailClub(null);
+  };
+
+  const leaveClub = (id: number) => {
+    const club = joined.find((c) => c.id === id);
+    setJoined((prev) => prev.filter((c) => c.id !== id));
+    if (club) {
+      const orig = MOCK_CLUBURI.find((c) => c.name === club.name);
+      if (orig) setAvailable((prev) => [...prev, orig]);
+    }
+    setDetailClub(null);
+  };
+
+  const displayList = activeTab === 'mine' ? joined : available;
+
+  const filtered = useMemo(() => {
+    return displayList.filter((c) => {
+      const matchSearch =
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.location.toLowerCase().includes(search.toLowerCase());
+      const matchCat = filterCat === 'Toate' || c.category === filterCat;
+      return matchSearch && matchCat;
+    });
+  }, [displayList, search, filterCat]);
+
+  const totalMembers = [...joined, ...available].reduce((s, c) => s + c.members, 0);
+
+  const isJoined = (id: number) => joined.some((c) => c.id === id);
 
   return (
-    <div className="clubs-page">
-      <Navbar />
+      <div className="db-page">
+        <div className="db-grid" aria-hidden="true" />
 
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 20px 40px' }}>
-        <div style={{ marginBottom: '32px' }}>
-          <Link to={ROUTES.HOME} style={{ color: '#6c63ff', textDecoration: 'none' }}>
-            &larr; Înapoi la pagina principală
+        {/* Sidebar */}
+        <aside className="db-sidebar">
+          <Link to={ROUTES.HOME} className="db-logo">
+            <span className="db-logo-white">FIT</span>
+            <span className="db-logo-blue">MOLDOVA</span>
           </Link>
-        </div>
+          <nav className="db-nav">
+            <Link to={ROUTES.DASHBOARD} className="db-nav-item">
+              <span className="db-nav-icon">📊</span> Dashboard
+            </Link>
+            <Link to={ROUTES.ACTIVITIES} className="db-nav-item">
+              <span className="db-nav-icon">🏃</span> Activități
+            </Link>
+            <Link to={ROUTES.CHALLENGES} className="db-nav-item">
+              <span className="db-nav-icon">🏆</span> Provocări
+            </Link>
+            <Link to={ROUTES.CLUBS} className="db-nav-item db-nav-item--active">
+              <span className="db-nav-icon">👥</span> Cluburi
+            </Link>
+            <Link to={ROUTES.EVENTS} className="db-nav-item">
+              <span className="db-nav-icon">📅</span> Evenimente
+            </Link>
+            <Link to={ROUTES.PROFILE} className="db-nav-item">
+              <span className="db-nav-icon">👤</span> Profil
+            </Link>
+          </nav>
+          <button className="db-logout-btn" onClick={handleLogout}>
+            <span>↩</span> Deconectare
+          </button>
+        </aside>
 
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Cluburi Locale</h1>
-        <p style={{ color: '#aaa', marginBottom: '32px' }}>
-          Descoperă și alătură-te cluburilor sportive din comunitatea ta
-        </p>
-
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Caută cluburi după nume sau locație..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: '200px',
-              padding: '10px 16px',
-              borderRadius: '8px',
-              border: '1px solid #333',
-              background: '#1a1a2e',
-              color: '#fff',
-              fontSize: '14px',
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                border: selectedCategory === cat ? '1px solid #6c63ff' : '1px solid #333',
-                background: selectedCategory === cat ? '#6c63ff' : 'transparent',
-                color: '#fff',
-                cursor: 'pointer',
-                fontSize: '14px',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {filteredClubs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
-            <p style={{ fontSize: '18px' }}>Nu s-au găsit cluburi pentru filtrele selectate.</p>
-          </div>
-        ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-              gap: '24px',
-            }}
-          >
-            {filteredClubs.map((club) => (
-              <div
-                key={club.id}
-                style={{
-                  background: '#16213e',
-                  borderRadius: '12px',
-                  padding: '24px',
-                  border: '1px solid #1a1a3e',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '18px', margin: 0 }}>{club.name}</h3>
-                  <span
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      background: '#6c63ff22',
-                      color: '#6c63ff',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {club.category}
-                  </span>
-                </div>
-
-                <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5 }}>
-                  {club.description}
-                </p>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: '16px', color: '#888', fontSize: '13px' }}>
-                    <span>{club.members} membri</span>
-                    <span>{club.location}</span>
-                  </div>
-                  <button
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #6c63ff',
-                      background: 'transparent',
-                      color: '#6c63ff',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                    }}
-                  >
-                    Alătură-te
-                  </button>
-                </div>
+        {/* Main */}
+        <main className="db-main">
+          <div className="db-topbar">
+            <div>
+              <h1 className="db-title">Cluburi</h1>
+              <p className="db-subtitle">
+                Descoperă și alătură-te cluburilor sportive din comunitate
+              </p>
+            </div>
+            <div className="db-user-chip">
+              <div className="db-avatar">{user?.avatar}</div>
+              <div className="db-user-info">
+                <div className="db-user-name">{user?.firstName} {user?.lastName}</div>
+                <div className="db-user-email">{user?.email}</div>
               </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="db-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <div className="db-stat-card">
+              <div className="db-stat-label">Cluburile Mele</div>
+              <div className="db-stat-value">{joined.length}</div>
+              <div className="db-stat-hint">Cluburi la care ești membru</div>
+            </div>
+            <div className="db-stat-card">
+              <div className="db-stat-label">Disponibile</div>
+              <div className="db-stat-value">{available.length}</div>
+              <div className="db-stat-hint">Cluburi de explorat</div>
+            </div>
+            <div className="db-stat-card">
+              <div className="db-stat-label">Comunitate Totală</div>
+              <div className="db-stat-value">{totalMembers.toLocaleString()}</div>
+              <div className="db-stat-hint">Membri activi în cluburi</div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="cl-tabs">
+            <button
+                className={`cl-tab ${activeTab === 'mine' ? 'cl-tab--active' : ''}`}
+                onClick={() => setActiveTab('mine')}
+            >
+              Cluburile Mele <span className="cl-tab-count">{joined.length}</span>
+            </button>
+            <button
+                className={`cl-tab ${activeTab === 'explore' ? 'cl-tab--active' : ''}`}
+                onClick={() => setActiveTab('explore')}
+            >
+              Explorează <span className="cl-tab-count">{available.length}</span>
+            </button>
+          </div>
+
+          {/* Toolbar */}
+          <div className="cl-toolbar">
+            <div className="cl-search-wrap">
+              <span className="cl-search-icon">🔍</span>
+              <input
+                  className="cl-search"
+                  type="text"
+                  placeholder="Caută cluburi după nume sau locație..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            {CATEGORIES.map((cat) => (
+                <button
+                    key={cat}
+                    className={`cl-filter-btn ${filterCat === cat ? 'cl-filter-btn--active' : ''}`}
+                    onClick={() => setFilterCat(cat)}
+                >
+                  {cat}
+                </button>
             ))}
           </div>
-        )}
-      </main>
-    </div>
+
+          {/* Card grid or empty */}
+          {filtered.length === 0 ? (
+              <div className="cl-empty">
+                <div className="cl-empty-icon">
+                  {activeTab === 'mine' ? '🏠' : '🔍'}
+                </div>
+                <h3 className="cl-empty-title">
+                  {activeTab === 'mine'
+                      ? 'Nu ești membru în niciun club'
+                      : 'Niciun club găsit'}
+                </h3>
+                <p className="cl-empty-text">
+                  {activeTab === 'mine'
+                      ? 'Explorează cluburile disponibile și alătură-te comunității!'
+                      : 'Încearcă să schimbi filtrul sau termenul de căutare.'}
+                </p>
+              </div>
+          ) : (
+              <div className="cl-grid">
+                {filtered.map((club) => {
+                  const memberOfClub = isJoined(club.id);
+                  return (
+                      <div
+                          key={club.id}
+                          className={`cl-card ${memberOfClub ? 'cl-card--joined' : ''}`}
+                          onClick={() => setDetailClub(club)}
+                      >
+                        <div className="cl-card-banner" />
+                        <div className="cl-card-body">
+                          <div className="cl-card-top">
+                            <div className="cl-card-icon">{club.icon}</div>
+                            <div className="cl-card-header">
+                              <h3 className="cl-card-name">{club.name}</h3>
+                              <div className="cl-card-location"> {club.location}</div>
+                            </div>
+                          </div>
+
+                          <p className="cl-card-desc">{club.description}</p>
+
+                          <div className="cl-card-meta">
+                            <span className="cl-chip cl-chip--cat">{club.category}</span>
+                            <span className={`cl-chip cl-chip--level-${club.level}`}>{club.level}</span>
+                            <span className="cl-chip">🗓 {club.schedule}</span>
+                            <span className="cl-chip">
+                        <span className="cl-stars">{renderStars(club.rating)}</span> {club.rating}
+                      </span>
+                          </div>
+
+                          <div className="cl-card-footer">
+                            <span className="cl-card-members">👥 {club.members} membri</span>
+                            {memberOfClub ? (
+                                <button
+                                    className="cl-btn-leave"
+                                    onClick={(e) => { e.stopPropagation(); leaveClub(club.id); }}
+                                >
+                                  Părăsește
+                                </button>
+                            ) : (
+                                <button
+                                    className="cl-btn-join"
+                                    onClick={(e) => { e.stopPropagation(); joinClub(club); }}
+                                >
+                                  Alătură-te
+                                </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                  );
+                })}
+              </div>
+          )}
+
+          {/* Detail overlay */}
+          {detailClub && (
+              <div className="cl-detail-overlay" onClick={() => setDetailClub(null)}>
+                <div className="cl-detail-panel" onClick={(e) => e.stopPropagation()}>
+                  <div className="cl-detail-banner" />
+                  <button className="cl-detail-close" onClick={() => setDetailClub(null)}>✕</button>
+
+                  <div className="cl-detail-body">
+                    <div className="cl-detail-top">
+                      <div className="cl-detail-icon">{detailClub.icon}</div>
+                      <div>
+                        <h2 className="cl-detail-name">{detailClub.name}</h2>
+                        <div className="cl-detail-loc">📍 {detailClub.location}</div>
+                      </div>
+                    </div>
+
+                    <p className="cl-detail-desc">{detailClub.description}</p>
+
+                    <div className="cl-detail-grid">
+                      <div className="cl-detail-stat">
+                        <div className="cl-detail-stat-label">Categorie</div>
+                        <div className="cl-detail-stat-value">{detailClub.category}</div>
+                      </div>
+                      <div className="cl-detail-stat">
+                        <div className="cl-detail-stat-label">Nivel</div>
+                        <div className="cl-detail-stat-value">{detailClub.level}</div>
+                      </div>
+                      <div className="cl-detail-stat">
+                        <div className="cl-detail-stat-label">Program</div>
+                        <div className="cl-detail-stat-value">{detailClub.schedule}</div>
+                      </div>
+                      <div className="cl-detail-stat">
+                        <div className="cl-detail-stat-label">Membri</div>
+                        <div className="cl-detail-stat-value">{detailClub.members}</div>
+                      </div>
+                      <div className="cl-detail-stat">
+                        <div className="cl-detail-stat-label">Rating</div>
+                        <div className="cl-detail-stat-value">
+                          <span className="cl-stars">{renderStars(detailClub.rating)}</span> {detailClub.rating}
+                        </div>
+                      </div>
+                      <div className="cl-detail-stat">
+                        <div className="cl-detail-stat-label">Fondat</div>
+                        <div className="cl-detail-stat-value">{detailClub.founded}</div>
+                      </div>
+                    </div>
+
+                    {detailClub.nextEvent && (
+                        <div className="cl-detail-event">
+                          <div className="cl-detail-event-icon">📅</div>
+                          <div>
+                            <div className="cl-detail-event-label">Următorul Eveniment</div>
+                            <div className="cl-detail-event-text">{detailClub.nextEvent}</div>
+                          </div>
+                        </div>
+                    )}
+
+                    <div className="cl-detail-actions">
+                      {isJoined(detailClub.id) ? (
+                          <button className="cl-btn-leave" onClick={() => leaveClub(detailClub.id)}>
+                            Părăsește Clubul
+                          </button>
+                      ) : (
+                          <button className="cl-btn-join" onClick={() => joinClub(detailClub)}>
+                            Alătură-te Clubului
+                          </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+          )}
+
+          {/* Back */}
+          <div className="ov-back-wrap">
+            <Link to={ROUTES.DASHBOARD} className="ov-btn-back">
+              ← Înapoi la Dashboard
+            </Link>
+          </div>
+        </main>
+      </div>
   );
 };
 
-export default Clubs;
+export default ClubsDashboard;

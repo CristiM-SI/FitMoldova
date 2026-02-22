@@ -40,6 +40,7 @@ const Navbar: React.FC = () => {
           <li><button onClick={() => navigate(ROUTES.COMMUNITY)} className="nav-link-btn">Comunitate</button></li>
           <li><button onClick={handleSectionClick('events')} className="nav-link-btn">Evenimente</button></li>
           <li><button onClick={handleSectionClick('pricing')} className="nav-link-btn">Prețuri</button></li>
+          <li><Link to={ROUTES.CONTACT} className="nav-link-btn">Contact</Link></li>
         </ul>
 
         <div className="nav-actions">

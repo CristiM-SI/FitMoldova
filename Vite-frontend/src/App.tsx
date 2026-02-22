@@ -9,6 +9,8 @@ import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
 import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
+import Profile from './pages/Profile'
+import Provocari from './pages/Provocari'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -76,6 +78,15 @@ function App() {
                         />
 
                         <Route
+                            path={ROUTES.PROFILE}
+                            element={
+                                <ProtectedRoute>
+                                    <Profile/>
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
                             path={ROUTES.COMMUNITY}
                             element={
                                 <ProtectedRoute>
@@ -89,6 +100,15 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <Activitati />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path={ROUTES.CHALLENGES}
+                            element={
+                                <ProtectedRoute>
+                                    <Provocari />
                                 </ProtectedRoute>
                             }
                         />

@@ -1,0 +1,533 @@
+/* ===== CLUBS DASHBOARD — UNIQUE CARD-GRID LAYOUT ===== */
+
+/* Tab bar */
+.cl-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(26, 127, 255, 0.1);
+}
+
+.cl-tab {
+    padding: 0.85rem 1.5rem;
+    background: none;
+    border: none;
+    color: #7a8baa;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s ease;
+}
+
+.cl-tab:hover {
+    color: #ffffff;
+}
+
+.cl-tab--active {
+    color: #1a7fff;
+}
+
+.cl-tab--active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #1a7fff;
+    border-radius: 1px 1px 0 0;
+}
+
+.cl-tab-count {
+    margin-left: 0.4rem;
+    background: rgba(26, 127, 255, 0.15);
+    color: #1a7fff;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+/* Search & filter bar */
+.cl-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.cl-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.7rem 1rem 0.7rem 2.5rem;
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.15);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    transition: border-color 0.15s ease;
+    outline: none;
+}
+
+.cl-search:focus {
+    border-color: #1a7fff;
+}
+
+.cl-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.cl-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.cl-filter-btn {
+    padding: 0.55rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(26, 127, 255, 0.2);
+    border-radius: 20px;
+    color: #7a8baa;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.cl-filter-btn:hover {
+    border-color: rgba(26, 127, 255, 0.4);
+    color: #ffffff;
+}
+
+.cl-filter-btn--active {
+    background: rgba(26, 127, 255, 0.12);
+    border-color: #1a7fff;
+    color: #1a7fff;
+}
+
+/* Card grid */
+.cl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Club card */
+.cl-card {
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+}
+
+.cl-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(26, 127, 255, 0.12);
+    border-color: rgba(26, 127, 255, 0.3);
+}
+
+.cl-card--joined {
+    border-color: rgba(0, 200, 160, 0.3);
+}
+
+.cl-card--joined:hover {
+    border-color: rgba(0, 200, 160, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 200, 160, 0.1);
+}
+
+/* Card header band with gradient */
+.cl-card-banner {
+    height: 4px;
+    background: linear-gradient(90deg, #1a7fff, #00c8a0);
+}
+
+.cl-card--joined .cl-card-banner {
+    background: linear-gradient(90deg, #00c8a0, #22c55e);
+}
+
+/* Card body */
+.cl-card-body {
+    padding: 1.25rem;
+}
+
+.cl-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+}
+
+.cl-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(26, 127, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.cl-card--joined .cl-card-icon {
+    background: rgba(0, 200, 160, 0.08);
+}
+
+.cl-card-header {
+    flex: 1;
+    min-width: 0;
+}
+
+.cl-card-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.3rem;
+    line-height: 1.2;
+}
+
+.cl-card-location {
+    font-size: 0.75rem;
+    color: #7a8baa;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.cl-card-desc {
+    color: #7a8baa;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin: 0 0 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Card meta row */
+.cl-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.cl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(26, 127, 255, 0.08);
+    color: #7a8baa;
+    white-space: nowrap;
+}
+
+.cl-chip--cat {
+    background: rgba(26, 127, 255, 0.15);
+    color: #1a7fff;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.cl-chip--level-Începător {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+}
+
+.cl-chip--level-Intermediar {
+    background: rgba(234, 179, 8, 0.12);
+    color: #eab308;
+}
+
+.cl-chip--level-Avansat {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.cl-chip--level-Toate {
+    background: rgba(26, 127, 255, 0.12);
+    color: #1a7fff;
+}
+
+/* Star rating */
+.cl-stars {
+    color: #eab308;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+/* Card footer */
+.cl-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(26, 127, 255, 0.08);
+}
+
+.cl-card-members {
+    font-size: 0.78rem;
+    color: #7a8baa;
+    font-weight: 600;
+}
+
+.cl-btn-join {
+    padding: 0.5rem 1.2rem;
+    background: #1a7fff;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cl-btn-join:hover {
+    background: #3d95ff;
+    box-shadow: 0 4px 16px rgba(26, 127, 255, 0.35);
+}
+
+.cl-btn-leave {
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cl-btn-leave:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+/* ===== EXPANDED DETAIL PANEL ===== */
+.cl-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 15, 30, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.cl-detail-panel {
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.2);
+    border-radius: 16px;
+    max-width: 560px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.cl-detail-banner {
+    height: 6px;
+    background: linear-gradient(90deg, #1a7fff, #00c8a0);
+    border-radius: 16px 16px 0 0;
+}
+
+.cl-detail-body {
+    padding: 2rem;
+}
+
+.cl-detail-close {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(26, 127, 255, 0.08);
+    border: 1px solid rgba(26, 127, 255, 0.15);
+    color: #7a8baa;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    z-index: 1;
+}
+
+.cl-detail-close:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.cl-detail-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.cl-detail-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(26, 127, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.cl-detail-name {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0 0 0.2rem;
+}
+
+.cl-detail-loc {
+    font-size: 0.82rem;
+    color: #7a8baa;
+}
+
+.cl-detail-desc {
+    color: #8a9bba;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.cl-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.cl-detail-stat {
+    padding: 0.85rem 1rem;
+    background: rgba(26, 127, 255, 0.04);
+    border: 1px solid rgba(26, 127, 255, 0.08);
+    border-radius: 8px;
+}
+
+.cl-detail-stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a8baa;
+    margin-bottom: 0.3rem;
+}
+
+.cl-detail-stat-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.cl-detail-event {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: rgba(0, 200, 160, 0.06);
+    border: 1px solid rgba(0, 200, 160, 0.15);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.cl-detail-event-icon {
+    font-size: 1.2rem;
+}
+
+.cl-detail-event-text {
+    font-size: 0.82rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.cl-detail-event-label {
+    font-size: 0.7rem;
+    color: #7a8baa;
+}
+
+.cl-detail-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.cl-detail-actions .cl-btn-join,
+.cl-detail-actions .cl-btn-leave {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Empty state for clubs */
+.cl-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.cl-empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+}
+
+.cl-empty-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.5rem;
+}
+
+.cl-empty-text {
+    color: #7a8baa;
+    font-size: 0.88rem;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .cl-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cl-toolbar {
+        flex-direction: column;
+    }
+
+    .cl-detail-panel {
+        margin: 1rem;
+        max-height: 90vh;
+    }
+
+    .cl-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}

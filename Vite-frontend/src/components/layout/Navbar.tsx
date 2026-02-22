@@ -51,6 +51,17 @@ const Navbar: React.FC = () => {
               Contact
             </NavLink>
           </li>
+          {isAuthenticated && (
+            <li>
+              <NavLink
+                to={ROUTES.FEEDBACK}
+                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                onClick={closeMenu}
+              >
+                Feedback
+              </NavLink>
+            </li>
+          )}
         </ul>
 
         <div className="nav-actions">

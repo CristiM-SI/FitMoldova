@@ -1,0 +1,118 @@
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { ROUTES } from '../routes/paths';
+import './Dashboard.css';
+import './DashboardOverlays.css';
+import './Evenimente.css';
+
+const Evenimente: React.FC = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = (): void => {
+        logout();
+        navigate(ROUTES.HOME);
+    };
+
+    return (
+        <div className="db-page">
+            <div className="db-grid" aria-hidden="true" />
+
+            {/* Sidebar */}
+            <aside className="db-sidebar">
+                <Link to={ROUTES.HOME} className="db-logo">
+                    <span className="db-logo-white">FIT</span>
+                    <span className="db-logo-blue">MOLDOVA</span>
+                </Link>
+                <nav className="db-nav">
+                    <Link to={ROUTES.DASHBOARD} className="db-nav-item">
+                        <span className="db-nav-icon">📊</span> Dashboard
+                    </Link>
+                    <Link to={ROUTES.ACTIVITIES} className="db-nav-item">
+                        <span className="db-nav-icon">🏃</span> Activități
+                    </Link>
+                    <Link to={ROUTES.CHALLENGES} className="db-nav-item">
+                        <span className="db-nav-icon">🏆</span> Provocări
+                    </Link>
+                    <Link to={ROUTES.CLUBS} className="db-nav-item">
+                        <span className="db-nav-icon">👥</span> Cluburi
+                    </Link>
+                    <Link to={ROUTES.EVENTS} className="db-nav-item db-nav-item--active">
+                        <span className="db-nav-icon">📅</span> Evenimente
+                    </Link>
+                    <Link to={ROUTES.PROFILE} className="db-nav-item">
+                        <span className="db-nav-icon">👤</span> Profil
+                    </Link>
+                </nav>
+                <button className="db-logout-btn" onClick={handleLogout}>
+                    <span>↩</span> Deconectare
+                </button>
+            </aside>
+
+            {/* Main */}
+            <main className="db-main">
+                <div className="db-topbar">
+                    <div>
+                        <h1 className="db-title">Evenimente</h1>
+                        <p className="db-subtitle">
+                            Descoperă și participă la evenimente sportive din Moldova
+                        </p>
+                    </div>
+                    <div className="db-user-chip">
+                        <div className="db-avatar">{user?.avatar}</div>
+                        <div className="db-user-info">
+                            <div className="db-user-name">{user?.firstName} {user?.lastName}</div>
+                            <div className="db-user-email">{user?.email}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stats */}
+                <div className="db-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                    <div className="db-stat-card">
+                        <div className="db-stat-label">Înscris la</div>
+                        <div className="db-stat-value">0</div>
+                        <div className="db-stat-hint">evenimente viitoare</div>
+                    </div>
+                    <div className="db-stat-card">
+                        <div className="db-stat-label">Disponibile</div>
+                        <div className="db-stat-value">0</div>
+                        <div className="db-stat-hint">evenimente de explorat</div>
+                    </div>
+                    <div className="db-stat-card">
+                        <div className="db-stat-label">Participări</div>
+                        <div className="db-stat-value">0</div>
+                        <div className="db-stat-hint">evenimente finalizate</div>
+                    </div>
+                </div>
+
+                {/* View bar placeholder */}
+                <div className="ev-view-bar">
+                    <div className="ev-view-toggle">
+                        <button className="ev-view-btn ev-view-btn--active">Evenimente înscrise</button>
+                        <button className="ev-view-btn">Sugestii</button>
+                    </div>
+                </div>
+
+                {/* Empty state */}
+                <div className="ev-empty">
+                    <div className="ev-empty-icon">📅</div>
+                    <h3 className="ev-empty-title">Niciun eveniment disponibil</h3>
+                    <p className="ev-empty-text">
+                        Momentan nu sunt evenimente programate. Revino mai târziu pentru noi oportunități sportive!
+                    </p>
+                </div>
+
+                {/* Back */}
+                <div className="ov-back-wrap">
+                    <Link to={ROUTES.DASHBOARD} className="ov-btn-back">
+                        ← Înapoi la Dashboard
+                    </Link>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default Evenimente;

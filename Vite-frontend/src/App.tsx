@@ -11,6 +11,7 @@ import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
 import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
+import EVENTS from './pages/Evenimente'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -109,6 +110,15 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <Provocari />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path={ROUTES.EVENTS}
+                            element={
+                                <ProtectedRoute>
+                                    <EVENTS />
                                 </ProtectedRoute>
                             }
                         />

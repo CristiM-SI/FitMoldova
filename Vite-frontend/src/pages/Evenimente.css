@@ -1,0 +1,658 @@
+/* ===== EVENTS DASHBOARD — EVENTBRITE-INSPIRED TIMELINE ===== */
+
+/* View toggle */
+.ev-view-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.ev-view-toggle {
+    display: flex;
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ev-view-btn {
+    padding: 0.6rem 1.2rem;
+    background: transparent;
+    border: none;
+    color: #7a8baa;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ev-view-btn--active {
+    background: rgba(26, 127, 255, 0.12);
+    color: #1a7fff;
+}
+
+.ev-view-btn:hover:not(.ev-view-btn--active) {
+    color: #ffffff;
+}
+
+/* Search */
+.ev-search-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 360px;
+    min-width: 200px;
+}
+
+.ev-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.ev-search {
+    width: 100%;
+    padding: 0.65rem 1rem 0.65rem 2.4rem;
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.15);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.ev-search:focus {
+    border-color: #1a7fff;
+}
+
+/* Category filter pills */
+.ev-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+}
+
+.ev-filter {
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    border: 1px solid rgba(26, 127, 255, 0.15);
+    background: transparent;
+    color: #7a8baa;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ev-filter:hover {
+    border-color: rgba(26, 127, 255, 0.35);
+    color: #ffffff;
+}
+
+.ev-filter--active {
+    background: rgba(26, 127, 255, 0.12);
+    border-color: #1a7fff;
+    color: #1a7fff;
+}
+
+/* ===== TIMELINE LAYOUT ===== */
+.ev-timeline {
+    position: relative;
+    padding-left: 90px;
+}
+
+/* Vertical line */
+.ev-timeline::before {
+    content: '';
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #1a7fff, rgba(26, 127, 255, 0.1));
+    border-radius: 1px;
+}
+
+/* Month separator */
+.ev-month-label {
+    position: relative;
+    margin: 2rem 0 1.25rem -90px;
+    padding-left: 90px;
+}
+
+.ev-month-label span {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1a7fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: #ffffff;
+    z-index: 2;
+}
+
+.ev-month-label h3 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #7a8baa;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0;
+}
+
+/* Timeline event card */
+.ev-card {
+    position: relative;
+    display: flex;
+    gap: 0;
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ev-card:hover {
+    transform: translateY(-3px) translateX(4px);
+    box-shadow: 0 12px 40px rgba(26, 127, 255, 0.1);
+    border-color: rgba(26, 127, 255, 0.3);
+}
+
+.ev-card--joined {
+    border-color: rgba(0, 200, 160, 0.3);
+}
+
+.ev-card--joined:hover {
+    border-color: rgba(0, 200, 160, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 200, 160, 0.08);
+}
+
+/* Timeline dot */
+.ev-card::before {
+    content: '';
+    position: absolute;
+    left: -58px;
+    top: 28px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #0d1526;
+    border: 2px solid #1a7fff;
+    z-index: 2;
+}
+
+.ev-card--joined::before {
+    border-color: #00c8a0;
+    background: #00c8a0;
+}
+
+/* Date badge — Eventbrite-style prominent date */
+.ev-date-badge {
+    width: 80px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0.5rem;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.ev-date-badge::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 15%;
+    bottom: 15%;
+    width: 1px;
+    background: rgba(26, 127, 255, 0.1);
+}
+
+.ev-date-day {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #1a7fff;
+    line-height: 1;
+}
+
+.ev-date-month {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a8baa;
+    margin-top: 0.2rem;
+}
+
+.ev-date-weekday {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #3d5070;
+    margin-top: 0.15rem;
+}
+
+/* Card content */
+.ev-card-body {
+    flex: 1;
+    padding: 1.1rem 1.25rem;
+    min-width: 0;
+}
+
+.ev-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.ev-card-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.ev-card-price {
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ev-card-price--free {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+}
+
+.ev-card-price--paid {
+    background: rgba(234, 179, 8, 0.12);
+    color: #eab308;
+}
+
+.ev-card-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.78rem;
+    color: #7a8baa;
+    margin-bottom: 0.65rem;
+}
+
+.ev-card-info span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Capacity bar */
+.ev-capacity {
+    margin-bottom: 0.65rem;
+}
+
+.ev-capacity-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(26, 127, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.3rem;
+}
+
+.ev-capacity-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+.ev-capacity-fill--low {
+    background: #22c55e;
+}
+
+.ev-capacity-fill--mid {
+    background: #eab308;
+}
+
+.ev-capacity-fill--high {
+    background: #ef4444;
+}
+
+.ev-capacity-text {
+    font-size: 0.68rem;
+    color: #3d5070;
+}
+
+/* Tags */
+.ev-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.ev-tag {
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: rgba(26, 127, 255, 0.06);
+    color: #5a7baa;
+}
+
+/* Card footer */
+.ev-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(26, 127, 255, 0.06);
+}
+
+.ev-organizer {
+    font-size: 0.72rem;
+    color: #3d5070;
+    font-weight: 600;
+}
+
+.ev-btn-register {
+    padding: 0.45rem 1.1rem;
+    background: #1a7fff;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ev-btn-register:hover {
+    background: #3d95ff;
+    box-shadow: 0 4px 16px rgba(26, 127, 255, 0.35);
+}
+
+.ev-btn-cancel {
+    padding: 0.45rem 1.1rem;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ev-btn-cancel:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+/* ===== DETAIL OVERLAY ===== */
+.ev-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 15, 30, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.ev-detail-panel {
+    background: #0d1526;
+    border: 1px solid rgba(26, 127, 255, 0.2);
+    border-radius: 16px;
+    max-width: 580px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.ev-detail-header {
+    position: relative;
+    padding: 2rem 2rem 1.25rem;
+    border-bottom: 1px solid rgba(26, 127, 255, 0.1);
+}
+
+.ev-detail-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(26, 127, 255, 0.08);
+    border: 1px solid rgba(26, 127, 255, 0.15);
+    color: #7a8baa;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.ev-detail-close:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.ev-detail-date-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.ev-detail-date-box {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: rgba(26, 127, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ev-detail-date-box .ev-date-day {
+    font-size: 1.5rem;
+}
+
+.ev-detail-name {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.ev-detail-body {
+    padding: 1.5rem 2rem 2rem;
+}
+
+.ev-detail-desc {
+    color: #8a9bba;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.ev-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.ev-detail-stat {
+    padding: 0.85rem 1rem;
+    background: rgba(26, 127, 255, 0.04);
+    border: 1px solid rgba(26, 127, 255, 0.08);
+    border-radius: 8px;
+}
+
+.ev-detail-stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a8baa;
+    margin-bottom: 0.3rem;
+}
+
+.ev-detail-stat-value {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.ev-detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.ev-detail-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.ev-detail-actions .ev-btn-register,
+.ev-detail-actions .ev-btn-cancel {
+    flex: 1;
+    padding: 0.85rem;
+    font-size: 0.88rem;
+    text-align: center;
+}
+
+/* Empty state */
+.ev-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.ev-empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+}
+
+.ev-empty-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.5rem;
+}
+
+.ev-empty-text {
+    color: #7a8baa;
+    font-size: 0.88rem;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Category color accents */
+.ev-cat--Maraton { border-left: 3px solid #ef4444; }
+.ev-cat--Ciclism { border-left: 3px solid #eab308; }
+.ev-cat--Yoga { border-left: 3px solid #a855f7; }
+.ev-cat--Fitness { border-left: 3px solid #f97316; }
+.ev-cat--Trail { border-left: 3px solid #22c55e; }
+.ev-cat--Înot { border-left: 3px solid #06b6d4; }
+.ev-cat--Social { border-left: 3px solid #ec4899; }
+
+/* Responsive */
+@media (max-width: 900px) {
+    .ev-timeline {
+        padding-left: 0;
+    }
+
+    .ev-timeline::before {
+        display: none;
+    }
+
+    .ev-card::before {
+        display: none;
+    }
+
+    .ev-month-label {
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    .ev-month-label span {
+        position: static;
+        transform: none;
+        display: inline-flex;
+        margin-right: 0.5rem;
+        width: 28px;
+        height: 28px;
+        font-size: 0.55rem;
+    }
+
+    .ev-month-label h3 {
+        display: inline;
+    }
+
+    .ev-card {
+        flex-direction: column;
+    }
+
+    .ev-date-badge {
+        width: 100%;
+        min-height: auto;
+        flex-direction: row;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .ev-date-badge::after {
+        display: none;
+    }
+
+    .ev-view-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ev-search-wrap {
+        max-width: 100%;
+    }
+
+    .ev-detail-panel {
+        margin: 1rem;
+        max-height: 90vh;
+    }
+
+    .ev-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}

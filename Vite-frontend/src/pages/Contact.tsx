@@ -375,7 +375,6 @@ const Contact: React.FC = () => {
           <div className="footer-section">
             <h3>Suport</h3>
             <ul>
-              <li><Link to={ROUTES.PRICING} className="footer-link">Prețuri</Link></li>
               <li><Link to={ROUTES.CONTACT} className="footer-link">Contact</Link></li>
               <li><Link to={ROUTES.FEEDBACK} className="footer-link">Feedback</Link></li>
             </ul>

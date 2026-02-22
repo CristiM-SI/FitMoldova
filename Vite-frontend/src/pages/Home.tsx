@@ -57,6 +57,11 @@ const Home: React.FC = () => {
       icon: '👥',
       title: 'Cluburi Locale',
       description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.'
+    },
+    {
+      icon: '⭐',
+      title: 'Feedback & Recenzii',
+      description: 'Împărtășește experiența ta, evaluează platforma și citește recenziile comunității. Opinia ta ne ajută să creștem.'
     }
   ];
 
@@ -119,6 +124,37 @@ const Home: React.FC = () => {
               <p className="feature-description">{feature.description}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="home-feedback-section">
+        <div className="home-feedback-inner">
+          <div className="home-feedback-left">
+            <div className="home-feedback-badge">Comunitate</div>
+            <h2>Ce spun membrii noștri?</h2>
+            <p>
+              Alătură-te celor 3.200+ utilizatori care și-au împărtășit
+              experiența. Citește recenziile sau lasă propriul tău feedback.
+            </p>
+            <Link to={ROUTES.FEEDBACK} className="btn btn-primary">
+              Vezi Recenziile
+            </Link>
+          </div>
+          <div className="home-feedback-ratings">
+            {[
+              { score: '4.7', label: 'Rating general', stars: 5 },
+              { score: '94%', label: 'Utilizatori mulțumiți', stars: 5 },
+              { score: '3.2K+', label: 'Recenzii scrise', stars: 4 },
+            ].map((item, i) => (
+              <div key={i} className="home-feedback-rating-card">
+                <div className="home-feedback-score">{item.score}</div>
+                <div className="home-feedback-stars">
+                  {'★'.repeat(item.stars)}
+                </div>
+                <div className="home-feedback-rating-label">{item.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

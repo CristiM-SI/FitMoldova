@@ -1,5 +1,49 @@
 import type { RecommendedActivity } from '../../types/Activity';  // ← type import
 
+// Utilizatori prestabiliți pentru autentificare mock
+export interface MockUser {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    avatar: string;
+    registeredAt: string;
+}
+
+export const MOCK_USERS: MockUser[] = [
+    {
+        id: 1,
+        username: "ion.popescu",
+        firstName: "Ion",
+        lastName: "Popescu",
+        email: "ion.popescu@fitmoldova.md",
+        password: "FitMold202445!!!@@@@",   // 16 chars, 6 litere, 6 cifre, 4 speciale
+        avatar: "IP",
+        registeredAt: "2024-01-15T10:00:00.000Z",
+    },
+    {
+        id: 2,
+        username: "maria.ionescu",
+        firstName: "Maria",
+        lastName: "Ionescu",
+        email: "maria.ionescu@fitmoldova.md",
+        password: "SportLife202445!!!@@",
+        avatar: "MI",
+        registeredAt: "2024-02-20T09:00:00.000Z",
+    },
+    {
+        id: 3,
+        username: "alex.rusu",
+        firstName: "Alexandru",
+        lastName: "Rusu",
+        email: "alex.rusu@fitmoldova.md",
+        password: "Fitness202445!!!@@@@",
+        avatar: "AR",
+        registeredAt: "2024-03-10T08:00:00.000Z",
+    },
+];
 export const RECOMMENDED_ACTIVITIES: RecommendedActivity[] = [
     {
         id: 1,

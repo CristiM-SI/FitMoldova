@@ -17,6 +17,7 @@ import Provocari from './pages/Provocari'
 import EVENTS from './pages/Evenimente'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
+import LoginPage from './pages/LoginPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -74,6 +75,10 @@ function App() {
                                             <SignUp />
                                         </PublicRoute>
                                     }
+                                />
+                                <Route
+                                    path={ROUTES.LOGIN}
+                                    element={<LoginPage />}
                                 />
 
                                 {/* Rute protejate */}

@@ -1,6 +1,6 @@
 ﻿import { LoginFormErrors, LoginForm } from "../types/login.types";
+import { PasswordStrength } from "../hooks/useLoginForm";
 
-// Iconița de ochi deschis (parolă vizibilă)
 function EyeOpenIcon() {
     return (
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -10,7 +10,6 @@ function EyeOpenIcon() {
     );
 }
 
-// Iconița de ochi tăiat (parolă ascunsă)
 function EyeOffIcon() {
     return (
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -19,7 +18,6 @@ function EyeOffIcon() {
     );
 }
 
-// Logoul Google (SVG inline — fără dependință externă)
 function GoogleIcon() {
     return (
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -31,10 +29,11 @@ function GoogleIcon() {
     );
 }
 
-// Props-urile primite de la LoginPage prin hook-ul useLoginForm
 interface LoginFormProps {
     form: LoginForm;
     errors: LoginFormErrors;
+    loginError: string;
+    passwordStrength: PasswordStrength;
     showPassword: boolean;
     isLoading: boolean;
     onChange: (field: keyof LoginForm, value: string | boolean) => void;
@@ -45,8 +44,10 @@ interface LoginFormProps {
 export function LoginForm({
                               form,
                               errors,
+                              loginError,
                               showPassword,
                               isLoading,
+                              passwordStrength,
                               onChange,
                               onSubmit,
                               onTogglePassword,
@@ -54,65 +55,68 @@ export function LoginForm({
     return (
         <div className="right-panel">
 
-            {/* Header — titlu și subtitlu */}
             <div className="login-header">
                 <h2 className="login-title">Bine ai revenit</h2>
                 <p className="login-subtitle">Autentifică-te în contul tău FitMoldova</p>
             </div>
 
-            {/* Buton login cu Google (OAuth) */}
-            <button
-                className="social-btn"
-                type="button"
-                onClick={() => alert("Google OAuth — conectează cu backend")}
-            >
+            <button className="social-btn" type="button" onClick={() => alert("Google OAuth")}>
                 <GoogleIcon />
                 Continuă cu Google
             </button>
 
-            {/* Separator vizual între OAuth și form clasic */}
             <div className="divider">
                 <div className="divider-line" />
-                <span className="divider-text">sau cu email</span>
+                <span className="divider-text">sau cu cont</span>
                 <div className="divider-line" />
             </div>
 
-            {/* ---- CÂMPURI FORMULAR ---- */}
-            <div>
+            {loginError && (
+                <div style={{
+                    background: "rgba(255,77,109,0.1)",
+                    border: "1px solid rgba(255,77,109,0.4)",
+                    borderRadius: "8px",
+                    padding: "12px 16px",
+                    marginBottom: "20px",
+                    color: "#ff4d6d",
+                    fontSize: "14px",
+                }}>
+                    ⚠ {loginError}
+                </div>
+            )}
 
-                {/* Câmp Email */}
+            <div>
+                {/* Câmp username */}
                 <div className="form-group">
-                    <label className="form-label" htmlFor="email">Adresă Email</label>
+                    <label className="form-label" htmlFor="username">Nume utilizator</label>
                     <div className="input-wrapper">
                         <input
-                            id="email"
-                            type="email"
-                            placeholder="exemplu@email.com"
-                            className={`form-input${errors.email ? " error" : ""}`}
-                            value={form.email}
-                            onChange={(e) => onChange("email", e.target.value)}
-                            autoComplete="email"
+                            id="username"
+                            type="text"
+                            placeholder="ex: ion.popescu"
+                            className={`form-input${errors.username ? " error" : ""}`}
+                            value={form.username}
+                            onChange={(e) => onChange("username", e.target.value)}
+                            autoComplete="username"
                         />
                     </div>
-                    {/* Mesaj eroare email — afișat condiționat */}
-                    {errors.email && <div className="error-msg">⚠ {errors.email}</div>}
+                    {errors.username && <div className="error-msg">⚠ {errors.username}</div>}
                 </div>
 
-                {/* Câmp Parolă cu toggle vizibilitate */}
+                {/* Câmp parolă */}
                 <div className="form-group">
                     <label className="form-label" htmlFor="password">Parolă</label>
                     <div className="input-wrapper">
                         <input
                             id="password"
-                            type={showPassword ? "text" : "password"} // comutăm tipul
+                            type={showPassword ? "text" : "password"}
                             placeholder="Introdu parola"
                             className={`form-input${errors.password ? " error" : ""}`}
-                            style={{ paddingRight: "46px" }} // spațiu pentru iconița de ochi
+                            style={{ paddingRight: "46px" }}
                             value={form.password}
                             onChange={(e) => onChange("password", e.target.value)}
                             autoComplete="current-password"
                         />
-                        {/* Buton ochi — alternează între arată/ascunde parolă */}
                         <button
                             className="password-toggle"
                             type="button"
@@ -122,11 +126,47 @@ export function LoginForm({
                             {showPassword ? <EyeOffIcon /> : <EyeOpenIcon />}
                         </button>
                     </div>
-                    {/* Mesaj eroare parolă — afișat condiționat */}
                     {errors.password && <div className="error-msg">⚠ {errors.password}</div>}
+
+                    {form.password.length > 0 && (
+                        <div style={{ marginTop: "12px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                                <div style={{ flex: 1, height: "4px", background: "rgba(255,255,255,0.1)", borderRadius: "2px" }}>
+                                    <div style={{
+                                        height: "100%",
+                                        width: `${(passwordStrength.score / 4) * 100}%`,
+                                        background: passwordStrength.color,
+                                        borderRadius: "2px",
+                                        transition: "all 0.3s ease",
+                                    }} />
+                                </div>
+                                <span style={{
+                                    fontSize: "11px", fontWeight: 700,
+                                    letterSpacing: "1px", textTransform: "uppercase",
+                                    color: passwordStrength.color, whiteSpace: "nowrap",
+                                }}>
+                                    {passwordStrength.label}
+                                </span>
+                            </div>
+                            {[
+                                { ok: passwordStrength.checks.minChars,   text: `Minim 16 caractere (${form.password.length}/16)` },
+                                { ok: passwordStrength.checks.minLetters, text: `Cel puțin 6 litere (${(form.password.match(/[a-zA-Z]/g) || []).length}/6)` },
+                                { ok: passwordStrength.checks.minDigits,  text: `Cel puțin 6 cifre (${(form.password.match(/[0-9]/g) || []).length}/6)` },
+                                { ok: passwordStrength.checks.minSpecial, text: `Cel puțin 4 caractere speciale (${(form.password.match(/[^a-zA-Z0-9]/g) || []).length}/4)` },
+                            ].map((item, i) => (
+                                <div key={i} style={{
+                                    display: "flex", alignItems: "center", gap: "8px",
+                                    fontSize: "13px", color: item.ok ? "#22c55e" : "#8ba4c8", marginBottom: "4px",
+                                }}>
+                                    <span>{item.ok ? "✓" : "○"}</span>
+                                    {item.text}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* Rând: checkbox "Ține-mă conectat" + link "Ai uitat parola?" */}
+                {/* Remember me + Ai uitat parola */}
                 <div className="form-row">
                     <label className="checkbox-label">
                         <input
@@ -139,19 +179,12 @@ export function LoginForm({
                     <a href="/forgot-password" className="forgot-link">Ai uitat parola?</a>
                 </div>
 
-                {/* Buton principal submit — dezactivat cât timp se încarcă */}
-                <button
-                    className="submit-btn"
-                    type="button"
-                    onClick={onSubmit}
-                    disabled={isLoading}
-                >
-                    {/* Spinner vizibil doar în starea de loading */}
+                {/* Submit */}
+                <button className="submit-btn" type="button" onClick={onSubmit} disabled={isLoading}>
                     {isLoading && <span className="spinner" />}
                     {isLoading ? "Se conectează..." : "Intră în cont"}
                 </button>
 
-                {/* Link spre pagina de înregistrare */}
                 <div className="register-link">
                     Nu ai cont?{" "}
                     <a href="/register">Creează cont gratuit</a>

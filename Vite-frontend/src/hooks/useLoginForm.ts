@@ -1,95 +1,112 @@
 ﻿import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { LoginForm, LoginFormErrors } from "../types/login.types";
+import { ROUTES } from "../routes/paths";
 
-// Valorile inițiale ale formularului
 const INITIAL_FORM: LoginForm = {
-    email: "",
+    username: "",
     password: "",
     rememberMe: false,
 };
 
+// Validare putere parolă — aceleași reguli ca la SignUp
+export interface PasswordStrength {
+    score: number;           // 0-4
+    label: string;           // "Slabă" | "Medie" | "Bună" | "Excelentă"
+    color: string;
+    checks: {
+        minChars: boolean;     // minim 16 caractere
+        minLetters: boolean;   // cel puțin 6 litere
+        minDigits: boolean;    // cel puțin 6 cifre
+        minSpecial: boolean;   // cel puțin 4 caractere speciale
+    };
+}
+
+export function getPasswordStrength(password: string): PasswordStrength {
+    const checks = {
+        minChars: password.length >= 16,
+        minLetters: (password.match(/[a-zA-Z]/g) || []).length >= 6,
+        minDigits: (password.match(/[0-9]/g) || []).length >= 6,
+        minSpecial: (password.match(/[^a-zA-Z0-9]/g) || []).length >= 4,
+    };
+
+    const score = Object.values(checks).filter(Boolean).length;
+
+    const labels = ["Slabă", "Slabă", "Medie", "Bună", "Excelentă"];
+    const colors = ["#ff4d6d", "#ff4d6d", "#f59e0b", "#3b82f6", "#22c55e"];
+
+    return { score, label: labels[score], color: colors[score], checks };
+}
+
 export function useLoginForm() {
-    // Starea principală a formularului (email, parolă, ține-mă conectat)
     const [form, setForm] = useState<LoginForm>(INITIAL_FORM);
-
-    // Controlează dacă parola este vizibilă sau ascunsă (tip text/password)
     const [showPassword, setShowPassword] = useState<boolean>(false);
-
-    // Controlează afișarea spinner-ului de loading la submit
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
-    // Stochează erorile de validare per câmp
     const [errors, setErrors] = useState<LoginFormErrors>({});
+    const [loginError, setLoginError] = useState<string>("");
 
-    // ----------------------------------------------------------
-    // validate() — verifică câmpurile și populează `errors`
-    // Returnează true dacă totul e valid, false dacă există erori
-    // ----------------------------------------------------------
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
+    const passwordStrength = getPasswordStrength(form.password);
+
     const validate = (): boolean => {
         const newErrors: LoginFormErrors = {};
 
-        // Validare email
-        if (!form.email) {
-            newErrors.email = "Email-ul este obligatoriu";
-        } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-            newErrors.email = "Email invalid";
+        if (!form.username) {
+            newErrors.username = "Numele de utilizator este obligatoriu";
+        } else if (form.username.length < 3) {
+            newErrors.username = "Minim 3 caractere";
         }
 
-        // Validare parolă
         if (!form.password) {
             newErrors.password = "Parola este obligatorie";
-        } else if (form.password.length < 6) {
-            newErrors.password = "Parola trebuie să aibă cel puțin 6 caractere";
+        } else if (!passwordStrength.checks.minChars) {
+            newErrors.password = "Parola trebuie să aibă cel puțin 16 caractere";
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    // ----------------------------------------------------------
-    // handleSubmit() — apelat la click pe butonul "Intră în cont"
-    // Validează, simulează un request API și arată rezultatul
-    // ----------------------------------------------------------
     const handleSubmit = async (): Promise<void> => {
-        if (!validate()) return; // oprește dacă există erori
+        setLoginError("");
+        if (!validate()) return;
 
         setIsLoading(true);
-        // Simulare request API (1.5 secunde)
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        const result = login(form.username, form.password);
+
         setIsLoading(false);
 
-        alert("Autentificare reușită!");
-    };
-
-    // ----------------------------------------------------------
-    // handleChange() — actualizează un câmp din formular
-    // Șterge și eroarea câmpului respectiv când utilizatorul scrie
-    // ----------------------------------------------------------
-    const handleChange = (
-        field: keyof LoginForm,
-        value: string | boolean
-    ): void => {
-        setForm((prev) => ({ ...prev, [field]: value }));
-
-        // Dacă exista o eroare pe câmpul editat, o ștergem imediat
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: undefined }));
+        if (result.success) {
+            navigate(ROUTES.HOME);   // ← redirecționează la homepage cu iconița de profil
+        } else {
+            setLoginError("Utilizator sau parolă incorectă");
         }
     };
 
-    // ----------------------------------------------------------
-    // toggleShowPassword() — comută vizibilitatea parolei
-    // ----------------------------------------------------------
+    const handleChange = (field: keyof LoginForm, value: string | boolean): void => {
+        setForm((prev) => ({ ...prev, [field]: value }));
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: undefined }));
+        }
+        if (loginError) setLoginError("");
+    };
+
     const toggleShowPassword = (): void => {
         setShowPassword((prev) => !prev);
     };
 
-    // Returnăm tot ce are nevoie componenta UI
     return {
         form,
         errors,
+        loginError,
         showPassword,
         isLoading,
+        passwordStrength,
         handleChange,
         handleSubmit,
         toggleShowPassword,

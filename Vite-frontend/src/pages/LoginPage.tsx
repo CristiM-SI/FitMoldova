@@ -38,8 +38,10 @@ export default function LoginPage() {
                 <LoginForm
                     form={form}
                     errors={errors}
+                    loginError={loginError}
                     showPassword={showPassword}
                     isLoading={isLoading}
+                    passwordStrength={passwordStrength}
                     onChange={handleChange}
                     onSubmit={handleSubmit}
                     onTogglePassword={toggleShowPassword}

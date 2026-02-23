@@ -1,5 +1,5 @@
 ﻿import { LoginFormErrors, LoginForm } from "../types/login.types";
-
+import { PasswordStrength } from "../hooks/useLoginForm";
 // Iconița de ochi deschis (parolă vizibilă)
 function EyeOpenIcon() {
     return (
@@ -35,6 +35,8 @@ function GoogleIcon() {
 interface LoginFormProps {
     form: LoginForm;
     errors: LoginFormErrors;
+    loginError: string;              
+    passwordStrength: PasswordStrength;
     showPassword: boolean;
     isLoading: boolean;
     onChange: (field: keyof LoginForm, value: string | boolean) => void;
@@ -45,8 +47,10 @@ interface LoginFormProps {
 export function LoginForm({
                               form,
                               errors,
+                              loginError,
                               showPassword,
                               isLoading,
+                              passwordStrength,
                               onChange,
                               onSubmit,
                               onTogglePassword,
@@ -76,28 +80,36 @@ export function LoginForm({
                 <span className="divider-text">sau cu email</span>
                 <div className="divider-line" />
             </div>
-
+            {loginError && (
+                <div style={{
+                    background: "rgba(255,77,109,0.1)",
+                    border: "1px solid rgba(255,77,109,0.4)",
+                    borderRadius: "8px", padding: "12px 16px", marginBottom: "20px",
+                    color: "#ff4d6d", fontSize: "14px"
+                }}>
+                    ⚠ {loginError}
+                </div>
+            )}
             {/* ---- CÂMPURI FORMULAR ---- */}
             <div>
 
                 {/* Câmp Email */}
                 <div className="form-group">
-                    <label className="form-label" htmlFor="email">Adresă Email</label>
+                    <label className="form-label" htmlFor="username">Nume utilizator</label>
                     <div className="input-wrapper">
                         <input
-                            id="email"
-                            type="email"
-                            placeholder="exemplu@email.com"
-                            className={`form-input${errors.email ? " error" : ""}`}
-                            value={form.email}
-                            onChange={(e) => onChange("email", e.target.value)}
-                            autoComplete="email"
+                            id="username"
+                            type="text"
+                            placeholder="ex: ion.popa"
+                            className={`form-input${errors.username ? " error" : ""}`}
+                            value={form.username}
+                            onChange={(e) => onChange("username", e.target.value)}
+                            autoComplete="username"
                         />
                     </div>
                     {/* Mesaj eroare email — afișat condiționat */}
-                    {errors.email && <div className="error-msg">⚠ {errors.email}</div>}
+                    {errors.username && <div className="error-msg">⚠ {errors.username}</div>}
                 </div>
-
                 {/* Câmp Parolă cu toggle vizibilitate */}
                 <div className="form-group">
                     <label className="form-label" htmlFor="password">Parolă</label>
@@ -123,7 +135,36 @@ export function LoginForm({
                         </button>
                     </div>
                     {/* Mesaj eroare parolă — afișat condiționat */}
-                    {errors.password && <div className="error-msg">⚠ {errors.password}</div>}
+                {errors.password && <div className="error-msg">⚠ {errors.password}</div>}
+                {form.password.length > 0 && (
+                    <div style={{ marginTop: "12px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                            <div style={{ flex: 1, height: "4px", background: "rgba(255,255,255,0.1)", borderRadius: "2px" }}>
+                                <div style={{
+                                    height: "100%",
+                                    width: `${(passwordStrength.score / 4) * 100}%`,
+                                    background: passwordStrength.color,
+                                    borderRadius: "2px", transition: "all 0.3s ease",
+                                }} />
+                            </div>
+                            <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px",
+                                textTransform: "uppercase", color: passwordStrength.color }}>
+        {passwordStrength.label}
+      </span></div>
+                        {[
+                            { ok: passwordStrength.checks.minChars,   text: `Minim 16 caractere (${form.password.length}/16)` },
+                            { ok: passwordStrength.checks.minLetters, text: `Cel puțin 6 litere (${(form.password.match(/[a-zA-Z]/g)||[]).length}/6)` },
+                            { ok: passwordStrength.checks.minDigits,  text: `Cel puțin 6 cifre (${(form.password.match(/[0-9]/g)||[]).length}/6)` },
+                            { ok: passwordStrength.checks.minSpecial, text: `Cel puțin 4 caractere speciale (${(form.password.match(/[^a-zA-Z0-9]/g)||[]).length}/4)` },
+                        ].map((item, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px",
+                                fontSize: "13px", color: item.ok ? "#22c55e" : "#8ba4c8", marginBottom: "4px" }}>
+                                <span>{item.ok ? "✓" : "○"}</span>
+                                {item.text}
+                            </div>
+                        ))}
+                    </div>
+                )}
                 </div>
 
                 {/* Rând: checkbox "Ține-mă conectat" + link "Ai uitat parola?" */}

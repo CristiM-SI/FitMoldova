@@ -9,6 +9,7 @@ import Home from './pages/Home'
 import Clubs from './pages/Clubs'
 import { ROUTES } from './routes/paths'
 import SignUp from './pages/SignUp'
+import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
@@ -60,92 +61,99 @@ function App() {
         <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
-                <UserProvider>  {/* ← adaugă */}
-                    <Routes>
-                        {/* Rute publice */}
-                        <Route path={ROUTES.HOME} element={<Home />} />
-                        <Route path={ROUTES.CLUBS} element={<Clubs />} />
-                        <Route
-                            path={ROUTES.REGISTER}
-                            element={
-                                <PublicRoute>
-                                    <SignUp />
-                                </PublicRoute>
-                            }
-                        />
+                <UserProvider>
+                    <ProgressProvider>
+                        <DashboardDataProvider>
+                            <Routes>
+                                {/* Rute publice */}
+                                <Route path={ROUTES.HOME} element={<Home />} />
+                                <Route path={ROUTES.CLUBS} element={<Clubs />} />
+                                <Route
+                                    path={ROUTES.LOGIN}
+                                    element={
+                                        <PublicRoute>
+                                            <LoginPage />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route
+                                    path={ROUTES.REGISTER}
+                                    element={
+                                        <PublicRoute>
+                                            <SignUp />
+                                        </PublicRoute>
+                                    }
+                                />
 
-                        {/* Rute protejate */}
-                        <Route
-                            path={ROUTES.DASHBOARD}
-                            element={
-                                <ProtectedRoute>
-                                    <Dashboard />
-                                </ProtectedRoute>
-                            }
-                        />
+                                {/* Rute protejate */}
+                                <Route
+                                    path={ROUTES.DASHBOARD}
+                                    element={
+                                        <ProtectedRoute>
+                                            <Dashboard />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path={ROUTES.PROFILE}
+                                    element={
+                                        <ProtectedRoute>
+                                            <Profile />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path={ROUTES.COMMUNITY}
+                                    element={
+                                        <ProtectedRoute>
+                                            <CommunityPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path={ROUTES.ACTIVITIES}
+                                    element={
+                                        <ProtectedRoute>
+                                            <Activitati />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path={ROUTES.CHALLENGES}
+                                    element={
+                                        <ProtectedRoute>
+                                            <Provocari />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path={ROUTES.EVENTS}
+                                    element={
+                                        <ProtectedRoute>
+                                            <EVENTS />
+                                        </ProtectedRoute>
+                                    }
+                                />
 
-                        <Route
-                            path={ROUTES.PROFILE}
-                            element={
-                                <ProtectedRoute>
-                                    <Profile/>
-                                </ProtectedRoute>
-                            }
-                        />
+                                {/* Rută publică Contact */}
+                                <Route path={ROUTES.CONTACT} element={<Contact />} />
 
-                        <Route
-                            path={ROUTES.COMMUNITY}
-                            element={
-                                <ProtectedRoute>
-                                    <CommunityPage />
-                                </ProtectedRoute>
-                            }
-                        />
+                                {/* Rută protejată Feedback */}
+                                <Route
+                                    path={ROUTES.FEEDBACK}
+                                    element={
+                                        <ProtectedRoute>
+                                            <Feedback />
+                                        </ProtectedRoute>
+                                    }
+                                />
 
-                        <Route
-                            path={ROUTES.ACTIVITIES}
-                            element={
-                                <ProtectedRoute>
-                                    <Activitati />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.CHALLENGES}
-                            element={
-                                <ProtectedRoute>
-                                    <Provocari />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.EVENTS}
-                            element={
-                                <ProtectedRoute>
-                                    <EVENTS />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        {/* Rută publică Contact */}
-                        <Route path={ROUTES.CONTACT} element={<Contact />} />
-
-                        {/* Rută protejată Feedback */}
-                        <Route
-                            path={ROUTES.FEEDBACK}
-                            element={
-                                <ProtectedRoute>
-                                    <Feedback />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        {/* Fallback */}
-                        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
-                    </Routes>
-                </UserProvider>  {/* ← închide */}
+                                {/* Fallback */}
+                                <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+                            </Routes>
+                        </DashboardDataProvider>
+                    </ProgressProvider>
+                </UserProvider>
             </AuthProvider>
         </BrowserRouter>
     )

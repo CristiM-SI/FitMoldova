@@ -9,6 +9,7 @@ import Home from './pages/Home'
 import Clubs from './pages/Clubs'
 import { ROUTES } from './routes/paths'
 import SignUp from './pages/SignUp'
+import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
@@ -69,6 +70,14 @@ function App() {
                                 {/* Rute publice */}
                                 <Route path={ROUTES.HOME} element={<Home />} />
                                 <Route path={ROUTES.CLUBS} element={<Clubs />} />
+                                <Route
+                                    path={ROUTES.LOGIN}
+                                    element={
+                                        <PublicRoute>
+                                            <LoginPage />
+                                        </PublicRoute>
+                                    }
+                                />
                                 <Route
                                     path={ROUTES.REGISTER}
                                     element={

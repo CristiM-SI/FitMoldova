@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { MOCK_TRASEE } from '../services/mock/trasee';
@@ -178,7 +178,7 @@ const RoutesPage: React.FC = () => {
                   <p className="rdc-stat-value">{selectedRoute.estimatedDuration} min</p>
                 </div>
                 <div className="rdc-stat">
-                  <p className="rdc-stat-label">Elevanție</p>
+                  <p className="rdc-stat-label">Elevație</p>
                   <p className="rdc-stat-value">{selectedRoute.elevationGain} m</p>
                 </div>
                 <div className="rdc-stat">
@@ -220,6 +220,11 @@ const RoutesPage: React.FC = () => {
         <span className="routes-toast-icon">{toast.icon}</span>
         <span>{toast.msg}</span>
       </div>
+
+      {/* Buton Home rapid */}
+      <Link to={ROUTES.HOME} className="routes-home-btn" aria-label="Înapoi la Home">
+        🏠
+      </Link>
       </div>
     </div>
   );

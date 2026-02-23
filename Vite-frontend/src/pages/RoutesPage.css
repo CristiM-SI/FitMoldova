@@ -71,6 +71,7 @@
   font-weight: 700;
   color: var(--primary-light);
   font-family: 'Rajdhani', sans-serif;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
 }
 
 .routes-stat-label {
@@ -142,6 +143,11 @@
   transform: translateY(-1px) scale(1.01);
 }
 
+.routes-cta-btn:focus-visible {
+  outline: 2px solid rgba(104, 168, 255, 0.9);
+  outline-offset: 2px;
+}
+
 .routes-layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -158,6 +164,45 @@
     position: static;
     max-height: none;
     box-shadow: none;
+  }
+}
+
+/* ---- Buton Home (Commit 10) ---- */
+.routes-home-btn {
+  position: fixed;
+  left: 22px;
+  bottom: 92px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1a7fff, #00d884);
+  color: #0d111a;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+  transition: transform 0.14s ease, box-shadow 0.2s ease;
+  z-index: 320;
+}
+
+.routes-home-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.42);
+}
+
+.routes-home-btn:focus-visible {
+  outline: 3px solid rgba(104, 168, 255, 0.9);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .routes-home-btn {
+    left: 16px;
+    bottom: 86px;
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -237,6 +282,11 @@
   color: #68a8ff;
 }
 
+.leaflet-control-zoom a:focus-visible {
+  outline: 2px solid rgba(104, 168, 255, 0.9);
+  outline-offset: 2px;
+}
+
 .routes-map-placeholder {
   display: flex;
   flex-direction: column;
@@ -307,6 +357,11 @@
 .rsb-chip:hover {
   border-color: rgba(255, 255, 255, 0.18);
   color: var(--text-primary);
+}
+
+.rsb-chip:focus-visible {
+  outline: 2px solid rgba(104, 168, 255, 0.8);
+  outline-offset: 2px;
 }
 
 .rsb-chip--active {
@@ -588,6 +643,7 @@
   border-radius: 10px;
   font-size: 0.82rem;
   font-weight: 700;
+  box-shadow: 0 8px 20px rgba(26, 127, 255, 0.12);
 }
 
 .rdc-stats {
@@ -642,6 +698,7 @@
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.82rem;
+  box-shadow: 0 6px 16px rgba(0, 216, 132, 0.18);
 }
 
 .rdc-empty {

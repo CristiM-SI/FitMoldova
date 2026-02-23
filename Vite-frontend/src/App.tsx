@@ -78,11 +78,7 @@ function App() {
                                 />
                                 <Route
                                     path={ROUTES.LOGIN}
-                                    element={
-                                        <PublicRoute>
-                                            <LoginPage />
-                                        </PublicRoute>
-                                    }
+                                    element={<LoginPage />}
                                 />
 
                                 {/* Rute protejate */}

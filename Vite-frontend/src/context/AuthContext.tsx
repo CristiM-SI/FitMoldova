@@ -15,7 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   register: (data: { firstName: string; lastName: string; email: string; password: string }) => { success: boolean };
-  login: (email: string, password: string) => { success: boolean };
+  login: (username: string, password: string) => { success: boolean };
   logout: () => void;
 }
 

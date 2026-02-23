@@ -15,6 +15,7 @@ import CommunityPage from './pages/CommunityPage'
 import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
 import EVENTS from './pages/Evenimente'
+import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
 import LoginPage from './pages/LoginPage'
@@ -127,8 +128,12 @@ function App() {
                                     }
                                 />
 
+                                {/* Pagina publică de evenimente */}
+                                <Route path={ROUTES.EVENTS} element={<EvenimentePublic />} />
+
+                                {/* Pagina de evenimente din dashboard (protejată) */}
                                 <Route
-                                    path={ROUTES.EVENTS}
+                                    path={ROUTES.EVENTS_DASHBOARD}
                                     element={
                                         <ProtectedRoute>
                                             <EVENTS />

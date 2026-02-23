@@ -121,7 +121,7 @@ const EvenimenteDashboard: React.FC = () => {
                     <Link to={ROUTES.CLUBS} className="db-nav-item">
                         <span className="db-nav-icon">👥</span> Cluburi
                     </Link>
-                    <Link to={ROUTES.EVENTS} className="db-nav-item db-nav-item--active">
+                    <Link to={ROUTES.EVENTS_DASHBOARD} className="db-nav-item db-nav-item--active">
                         <span className="db-nav-icon">📅</span> Evenimente
                     </Link>
                     <Link to={ROUTES.PROFILE} className="db-nav-item">
@@ -396,9 +396,8 @@ const EvenimenteDashboard: React.FC = () => {
 
                 {/* Back */}
                 <div className="ov-back-wrap">
-                    <Link to={ROUTES.DASHBOARD} className="ov-btn-back">
-                        ← Înapoi la Dashboard
-                    </Link>
+                    <Link to={ROUTES.DASHBOARD} className="ov-btn-back">← Înapoi la Dashboard</Link>
+                    <Link to={ROUTES.EVENTS} className="ov-btn-back" style={{ marginLeft: '1rem' }}>🌐 Evenimente Publice</Link>
                 </div>
             </main>
         </div>

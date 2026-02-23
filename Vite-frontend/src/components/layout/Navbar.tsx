@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
 import { ROUTES } from '../../routes/paths';
 import { scrollToSection } from '../../utils/navigation';
-import { UserCircleIcon, Squares2X2Icon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
+import { UserCircleIcon, Squares2X2Icon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
 import '../../styles/Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -40,11 +40,6 @@ const Navbar: React.FC = () => {
     navigate(ROUTES.HOME);
   };
 
-  const handleSectionClick = (sectionId: string) => (e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.preventDefault();
-    scrollToSection(sectionId);
-  };
-
   const closeMenu = () => setMenuOpen(false);
 
   const displayName = userCtx
@@ -58,9 +53,9 @@ const Navbar: React.FC = () => {
         <Link to={ROUTES.HOME} className="logo">FitMoldova</Link>
 
         <ul className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
-          <li><button onClick={() => { handleSectionClick('features')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Features</button></li>
+          <li><button onClick={() => { scrollToSection('features'); closeMenu(); }} className="nav-link-btn">Features</button></li>
           <li><button onClick={() => { navigate(ROUTES.COMMUNITY); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
-          <li><button onClick={() => { handleSectionClick('events')(new MouseEvent('click') as any); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
+          <li><button onClick={() => { navigate(ROUTES.EVENTS); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
           <li>
             <NavLink
               to={ROUTES.CONTACT}
@@ -120,7 +115,7 @@ const Navbar: React.FC = () => {
                     className="nav-dropdown-item nav-dropdown-item--danger"
                     onClick={handleLogout}
                   >
-                    <ArrowRightOnRectangleIcon className="nav-dropdown-icon" />
+                    <ArrowRightEndOnRectangleIcon className="nav-dropdown-icon" />
                     Logout
                   </button>
                 </div>

@@ -177,6 +177,7 @@ export default function CommunityPage() {
                         {tab === 'feed' && (
                             <>
                                 {/* Create Post */}
+                            {isAuthenticated ? (
                                 <div className="card">
                                     <div className="create-row">
                                         <div className="user-ava">{userAvatar}</div>
@@ -221,7 +222,6 @@ export default function CommunityPage() {
                                     </button>
                                 </div>
                             )}
-                        </div>
 
                         {/* Sport filter */}
                         <div className="db-section-card ov-section" style={{ padding: '1rem 1.25rem' }}>
@@ -360,7 +360,9 @@ export default function CommunityPage() {
                     )}
                 </div>
 
-            </main>
+                    </div>
+                </div>
+            </div>
 
             {/* Toast */}
             <div style={{
@@ -378,6 +380,6 @@ export default function CommunityPage() {
                 <span style={{ color: '#e8f0fe' }}>{toast.msg}</span>
             </div>
 
-        </div>
+        </>
     );
 }

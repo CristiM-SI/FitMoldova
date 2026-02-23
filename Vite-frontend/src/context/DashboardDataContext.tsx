@@ -7,6 +7,7 @@ import { MOCK_CLUBURI } from '../services/mock/cluburi';
 import type { Club } from '../services/mock/cluburi';
 import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
+import type { Traseu } from '../types/Route';
 
 interface DashboardData {
     activitatiCurente: Activitate[];
@@ -17,6 +18,7 @@ interface DashboardData {
     cluburiDisponibile: Club[];
     evenimenteInscrise: Eveniment[];
     evenimenteDisponibile: Eveniment[];
+    traseeSalvate: Traseu[];
 }
 
 export interface DashboardDataContextType extends DashboardData {
@@ -28,6 +30,8 @@ export interface DashboardDataContextType extends DashboardData {
     removeClub: (id: number) => void;
     addEveniment: (item: Eveniment) => void;
     removeEveniment: (id: number) => void;
+    addTraseu: (item: Traseu) => void;
+    removeTraseu: (id: number) => void;
     resetAll: () => void;
 }
 
@@ -42,6 +46,7 @@ const DEFAULT_DATA: DashboardData = {
     cluburiDisponibile: MOCK_CLUBURI,
     evenimenteInscrise: [],
     evenimenteDisponibile: MOCK_EVENIMENTE,
+    traseeSalvate: [],
 };
 
 export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
@@ -165,6 +170,21 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         });
     }, []);
 
+    /* ---- Trasee ---- */
+    const addTraseu = useCallback((item: Traseu) => {
+        setData((p) => {
+            if (p.traseeSalvate.some((t) => t.id === item.id)) return p;
+            return { ...p, traseeSalvate: [...p.traseeSalvate, item] };
+        });
+    }, []);
+
+    const removeTraseu = useCallback((id: number) => {
+        setData((p) => ({
+            ...p,
+            traseeSalvate: p.traseeSalvate.filter((t) => t.id !== id),
+        }));
+    }, []);
+
     const resetAll = useCallback(() => {
         setData(DEFAULT_DATA);
         localStorage.removeItem(STORAGE_KEY);
@@ -177,6 +197,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             addProvocare, removeProvocare,
             addClub, removeClub,
             addEveniment, removeEveniment,
+            addTraseu, removeTraseu,
             resetAll,
         }}>
             {children}

@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import { MOCK_TRASEE } from '../services/mock/trasee';
 import MoldovaRoutesMap from '../components/MoldovaRoutesMap';
+import RoutesSidebar from '../components/RoutesSidebar';
+import type { RouteDifficulty, RouteType } from '../types/Route';
 import './RoutesPage.css';
 
 const RoutesPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [filterType, setFilterType] = useState<RouteType | null>(null);
+  const [filterDiff, setFilterDiff] = useState<RouteDifficulty | null>(null);
+
+  const filteredTrasee = useMemo(
+    () => MOCK_TRASEE.filter((t) => {
+      if (filterType && t.type !== filterType) return false;
+      if (filterDiff && t.difficulty !== filterDiff) return false;
+      return true;
+    }),
+    [filterType, filterDiff],
+  );
+
+  // Dacă traseul selectat dispare după filtrare, resetăm selecția
+  useEffect(() => {
+    if (selectedId && !filteredTrasee.some((t) => t.id === selectedId)) {
+      setSelectedId(null);
+    }
+  }, [filteredTrasee, selectedId]);
 
   return (
     <div className="routes-page">
@@ -43,18 +63,22 @@ const RoutesPage: React.FC = () => {
       </div>
 
       <div className="routes-main">
-        {/* Sidebar + Hartă — se completează în commit-urile 4 și 5 */}
         <div className="routes-layout">
           <aside className="routes-sidebar">
-            <div className="routes-sidebar-placeholder">
-              <span>📋 Lista traseelor</span>
-              <p>Se încarcă în curând…</p>
-            </div>
+            <RoutesSidebar
+              trasee={MOCK_TRASEE}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              filterType={filterType}
+              setFilterType={setFilterType}
+              filterDiff={filterDiff}
+              setFilterDiff={setFilterDiff}
+            />
           </aside>
 
           <div className="routes-map-container">
             <MoldovaRoutesMap
-              trasee={MOCK_TRASEE}
+              trasee={filteredTrasee}
               selectedId={selectedId}
               onSelect={setSelectedId}
             />

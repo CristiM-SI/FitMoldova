@@ -143,3 +143,170 @@
   font-size: 0.82rem;
   opacity: 0.6;
 }
+
+/* ---- Routes Sidebar (Commit 5) ---- */
+.rsb {
+  padding: 1.1rem 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  height: 100%;
+}
+
+.rsb-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.rsb-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.rsb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rsb-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rsb-chip:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--text-primary);
+}
+
+.rsb-chip--active {
+  background: rgba(26, 127, 255, 0.08);
+  border-color: rgba(26, 127, 255, 0.4);
+  color: #68a8ff;
+}
+
+.rsb-count {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rsb-reset {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #68a8ff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.rsb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rsb-empty {
+  color: var(--text-secondary);
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.rsb-card {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.rsb-card:hover {
+  border-color: rgba(104, 168, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.rsb-card--selected {
+  border-color: rgba(104, 168, 255, 0.8);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.24);
+}
+
+.rsb-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rsb-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.rsb-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.rsb-card-name {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.rsb-card-region {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.rsb-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.rsb-meta-item strong {
+  color: var(--text-primary);
+}
+
+.rsb-diff-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .rsb {
+    padding: 1rem;
+  }
+}

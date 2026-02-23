@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
+import { MOCK_USERS } from '../services/mock/Mockdata';
 export interface User {
   id: number;
+  username: string;
   firstName: string;
   lastName: string;
   email: string;

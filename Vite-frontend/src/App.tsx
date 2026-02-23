@@ -102,14 +102,7 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route
-                                    path={ROUTES.COMMUNITY}
-                                    element={
-                                        <ProtectedRoute>
-                                            <CommunityPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
                                 <Route
                                     path={ROUTES.ACTIVITIES}
                                     element={
@@ -126,14 +119,7 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route
-                                    path={ROUTES.EVENTS}
-                                    element={
-                                        <ProtectedRoute>
-                                            <EVENTS />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                <Route path={ROUTES.EVENTS} element={<EVENTS />} />
 
                                 {/* Rută publică Contact */}
                                 <Route path={ROUTES.CONTACT} element={<Contact />} />

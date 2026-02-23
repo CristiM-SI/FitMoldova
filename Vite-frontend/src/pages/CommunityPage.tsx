@@ -1,6 +1,7 @@
 ﻿import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../routes/paths'; // adjust path to your routes file
 
 // ─────────────────────────────────────────────
@@ -445,6 +446,7 @@ const CSS = `
 export default function CommunityPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
 
     const [tab, setTab]               = useState<FeedTab>('feed');
     const [filter, setFilter]         = useState<Sport | 'all'>('all');
@@ -460,6 +462,7 @@ export default function CommunityPage() {
     }, []);
 
     const handlePublish = useCallback((): void => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: location } }); return; }
         if (!postInput.trim()) { showToast('⚠️', 'Scrie ceva înainte de a publica!'); return; }
         const newPost: Post = {
             id:       Date.now(),
@@ -486,6 +489,7 @@ export default function CommunityPage() {
     }, []);
 
     const handleJoin = useCallback((id: number): void => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: location } }); return; }
         setChallenges((prev) =>
             prev.map((c) => {
                 if (c.id !== id) return c;

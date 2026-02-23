@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../routes/paths';
 import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
@@ -38,8 +38,9 @@ const capacityClass = (pct: number) => {
 };
 
 const EvenimenteDashboard: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [inscrise, setInscrise] = useState<Eveniment[]>([]);
     const [disponibile, setDisponibile] = useState<Eveniment[]>(MOCK_EVENIMENTE);
@@ -54,6 +55,7 @@ const EvenimenteDashboard: React.FC = () => {
     };
 
     const register = (ev: Eveniment) => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: location } }); return; }
         setInscrise((prev) => [...prev, ev]);
         setDisponibile((prev) => prev.filter((e) => e.id !== ev.id));
         setDetail(null);
@@ -130,9 +132,15 @@ const EvenimenteDashboard: React.FC = () => {
                         <span className="db-nav-icon">👤</span> Profil
                     </Link>
                 </nav>
-                <button className="db-logout-btn" onClick={handleLogout}>
-                    <span>↩</span> Deconectare
-                </button>
+                {isAuthenticated ? (
+                    <button className="db-logout-btn" onClick={handleLogout}>
+                        <span>↩</span> Deconectare
+                    </button>
+                ) : (
+                    <button className="db-logout-btn" onClick={() => navigate(ROUTES.LOGIN)}>
+                        <span>→</span> Autentifică-te
+                    </button>
+                )}
             </aside>
 
             {/* Main */}
@@ -144,13 +152,20 @@ const EvenimenteDashboard: React.FC = () => {
                             Descoperă și participă la evenimente sportive din Moldova
                         </p>
                     </div>
-                    <div className="db-user-chip">
-                        <div className="db-avatar">{user?.avatar}</div>
-                        <div className="db-user-info">
-                            <div className="db-user-name">{user?.firstName} {user?.lastName}</div>
-                            <div className="db-user-email">{user?.email}</div>
+                    {isAuthenticated && user && (
+                        <div className="db-user-chip">
+                            <div className="db-avatar">{user.avatar}</div>
+                            <div className="db-user-info">
+                                <div className="db-user-name">{user.firstName} {user.lastName}</div>
+                                <div className="db-user-email">{user.email}</div>
+                            </div>
                         </div>
-                    </div>
+                    )}
+                    {!isAuthenticated && (
+                        <button className="db-logout-btn" onClick={() => navigate(ROUTES.LOGIN)}>
+                            <span>→</span> Autentifică-te
+                        </button>
+                    )}
                 </div>
 
                 {/* Stats */}

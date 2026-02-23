@@ -188,7 +188,6 @@ export default function CommunityPage() {
     }, [isAuthenticated, navigate, location, showToast]);
 
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
-    const joinedCount   = challenges.filter((c) => c.joined).length;
 
     return (
         <div className="db-page">
@@ -251,25 +250,6 @@ export default function CommunityPage() {
                             → Autentifică-te
                         </button>
                     )}
-                </div>
-
-                {/* Stats */}
-                <div className="db-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                    <div className="db-stat-card">
-                        <div className="db-stat-label">Postări</div>
-                        <div className="db-stat-value">{posts.length}</div>
-                        <div className="db-stat-hint">Publicate de comunitate</div>
-                    </div>
-                    <div className="db-stat-card">
-                        <div className="db-stat-label">Provocări Active</div>
-                        <div className="db-stat-value">{joinedCount}</div>
-                        <div className="db-stat-hint">La care participi</div>
-                    </div>
-                    <div className="db-stat-card">
-                        <div className="db-stat-label">Membri</div>
-                        <div className="db-stat-value">{MEMBERS.length}</div>
-                        <div className="db-stat-hint">Sportivi activi din Moldova</div>
-                    </div>
                 </div>
 
                 {/* Tab bar */}

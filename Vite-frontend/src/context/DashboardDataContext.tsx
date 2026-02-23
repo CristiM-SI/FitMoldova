@@ -52,7 +52,16 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved) as DashboardData;
-                if (parsed.activitatiCurente && parsed.activitatiDisponibile) return parsed;
+                if (parsed.activitatiCurente && parsed.activitatiDisponibile) {
+                    // Deduplică provocări inscrise (fix pentru date corupte din versiuni anterioare)
+                    const seenIds = new Set<number>();
+                    const deduped = (parsed.provocariInscrise || []).filter((p) => {
+                        if (seenIds.has(p.id)) return false;
+                        seenIds.add(p.id);
+                        return true;
+                    });
+                    return { ...parsed, provocariInscrise: deduped };
+                }
             }
         } catch { /* ignore */ }
         return DEFAULT_DATA;
@@ -89,17 +98,23 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
 
     /* ---- Provocari ---- */
     const addProvocare = useCallback((item: Provocare) => {
-        setData((p) => ({
-            ...p,
-            provocariInscrise: [...p.provocariInscrise, { ...item, progress: 0 }],
-            provocariDisponibile: p.provocariDisponibile.filter((x) => x.id !== item.id),
-        }));
+        setData((p) => {
+            // Previne duplicatele — dacă deja există cu același id, nu adăuga din nou
+            if (p.provocariInscrise.some((x) => x.id === item.id)) return p;
+            return {
+                ...p,
+                provocariInscrise: [...p.provocariInscrise, { ...item, progress: 0 }],
+                provocariDisponibile: p.provocariDisponibile.filter((x) => x.id !== item.id),
+            };
+        });
     }, []);
 
     const removeProvocare = useCallback((id: number) => {
         setData((p) => {
             const rm = p.provocariInscrise.find((x) => x.id === id);
-            const orig = rm ? MOCK_PROVOCARI.find((m) => m.name === rm.name) : null;
+            if (!rm) return p;
+            // Doar provocările din mock se restaurează în lista disponibilă
+            const orig = MOCK_PROVOCARI.find((m) => m.id === id);
             return {
                 ...p,
                 provocariInscrise: p.provocariInscrise.filter((x) => x.id !== id),

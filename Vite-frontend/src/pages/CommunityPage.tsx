@@ -1,7 +1,10 @@
 ﻿import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { ROUTES } from '../routes/paths'; // adjust path to your routes file
+import { ROUTES } from '../routes/paths';
+import { useDashboardData } from '../context/DashboardDataContext';
+import { useProgress } from '../context/ProgressContext';
+import { useAuth } from '../context/AuthContext';
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -445,6 +448,7 @@ const CSS = `
 export default function CommunityPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
 
     const [tab, setTab]               = useState<FeedTab>('feed');
     const [filter, setFilter]         = useState<Sport | 'all'>('all');
@@ -453,6 +457,10 @@ export default function CommunityPage() {
     const [postInput, setPostInput]   = useState<string>('');
     const [postSport, setPostSport]   = useState<Sport>('Fotbal');
     const [toast, setToast]           = useState<ToastState>({ icon: '', msg: '', visible: false });
+
+    // Dashboard sync — adaugă/scoate provocări în dashboard când user-ul e logat
+    const { addProvocare, removeProvocare } = useDashboardData();
+    const { completeChallenge } = useProgress();
 
     const showToast = useCallback((icon: string, msg: string): void => {
         setToast({ icon, msg, visible: true });
@@ -491,10 +499,32 @@ export default function CommunityPage() {
                 if (c.id !== id) return c;
                 const joining = !c.joined;
                 showToast(joining ? '🏆' : '👋', joining ? 'Te-ai alăturat provocării!' : 'Ai ieșit din provocare.');
+
+                // Sincronizare cu Dashboard-ul
+                if (isAuthenticated) {
+                    if (joining) {
+                        // Convertim Challenge → Provocare și adăugăm în dashboard
+                        const difficulty = c.days <= 7 ? 'Ușor' : c.days <= 30 ? 'Mediu' : 'Greu';
+                        addProvocare({
+                            id: 10000 + c.id, // ID unic (offset pentru a evita coliziuni cu mock)
+                            name: c.title,
+                            description: c.desc,
+                            participants: c.participants + 1,
+                            duration: `${c.days} zile`,
+                            difficulty: difficulty as 'Ușor' | 'Mediu' | 'Greu',
+                            progress: 0,
+                        });
+                        completeChallenge();
+                    } else {
+                        // Scoatem din dashboard
+                        removeProvocare(10000 + c.id);
+                    }
+                }
+
                 return { ...c, joined: joining, participants: joining ? c.participants + 1 : c.participants - 1 };
             }),
         );
-    }, [showToast]);
+    }, [showToast, isAuthenticated, addProvocare, removeProvocare, completeChallenge]);
 
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
@@ -519,10 +549,10 @@ export default function CommunityPage() {
             <style>{CSS}</style>
             <Navbar/>
             <div className="fm">
-                
+
 
                 {/* ── TOP NAV ── */}
-                
+
 
                 {/* ── BODY ── */}
                 <div className="fm-body">

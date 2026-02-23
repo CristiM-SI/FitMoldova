@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProgress } from '../context/ProgressContext';
+import { useDashboardData } from '../context/useDashboardData';
 import { ROUTES } from '../routes/paths';
-import { MOCK_CLUBURI } from '../services/mock/cluburi';
 import type { Club } from '../services/mock/cluburi';
 import './Dashboard.css';
 import './DashboardOverlays.css';
@@ -19,10 +20,15 @@ const renderStars = (rating: number) => {
 
 const ClubsDashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const { completeJoinClub } = useProgress();
+  const {
+    cluburiJoined: joined,
+    cluburiDisponibile: available,
+    addClub,
+    removeClub,
+  } = useDashboardData();
   const navigate = useNavigate();
 
-  const [joined, setJoined] = useState<Club[]>([]);
-  const [available, setAvailable] = useState<Club[]>(MOCK_CLUBURI);
   const [activeTab, setActiveTab] = useState<TabType>('explore');
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState<string>('Toate');
@@ -34,18 +40,13 @@ const ClubsDashboard: React.FC = () => {
   };
 
   const joinClub = (club: Club) => {
-    setJoined((prev) => [...prev, club]);
-    setAvailable((prev) => prev.filter((c) => c.id !== club.id));
+    addClub(club);
+    completeJoinClub();
     setDetailClub(null);
   };
 
   const leaveClub = (id: number) => {
-    const club = joined.find((c) => c.id === id);
-    setJoined((prev) => prev.filter((c) => c.id !== id));
-    if (club) {
-      const orig = MOCK_CLUBURI.find((c) => c.name === club.name);
-      if (orig) setAvailable((prev) => [...prev, orig]);
-    }
+    removeClub(id);
     setDetailClub(null);
   };
 

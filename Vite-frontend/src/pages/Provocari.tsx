@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProgress } from '../context/ProgressContext';
-import { useDashboardData } from '../context/DashboardDataContext';
+import { useDashboardData } from '../context/useDashboardData';
 import { ROUTES } from '../routes/paths';
 import type { Provocare } from '../services/mock/provocari';
 import './Dashboard.css';

@@ -50,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = (data: { firstName: string; lastName: string; email: string; password: string }) => {
     const newUser: User = {
       id: Date.now(),
+      username: `${data.firstName.toLowerCase()}.${data.lastName.toLowerCase()}`,
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
@@ -62,19 +63,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
-  const login = (email: string, _password: string) => {
+  const login = (username: string, password: string) => {
+    // Caută în utilizatorii mock
+    const mockUser = MOCK_USERS.find(
+        (u) => u.username === username && u.password === password
+    );
+
+    if (mockUser) {
+      const loggedUser: User = {
+        id: mockUser.id,
+        username: mockUser.username,
+        firstName: mockUser.firstName,
+        lastName: mockUser.lastName,
+        email: mockUser.email,
+        avatar: mockUser.avatar,
+        registeredAt: mockUser.registeredAt,
+      };
+      setUser(loggedUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('fitmoldova_user', JSON.stringify(loggedUser));
+      return { success: true };
+    }
+
+    // Caută în utilizatorii înregistrați din localStorage
     const saved = localStorage.getItem('fitmoldova_user');
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as User;
-        if (parsed.email === email) {
+        if (parsed.username === username) {
           setUser(parsed);
           setIsAuthenticated(true);
           return { success: true };
         }
       } catch { /* ignore */ }
     }
-    return { success: false };
+
+    return { success: false, error: "Utilizator sau parolă incorectă" };
   };
 
   const logout = () => {

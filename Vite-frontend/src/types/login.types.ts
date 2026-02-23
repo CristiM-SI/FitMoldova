@@ -1,6 +1,6 @@
 ﻿// Structura principală a formularului de login
 export interface LoginForm {
-    email: string;
+    username: string;
     password: string;
     rememberMe: boolean;
 }

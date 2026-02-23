@@ -148,6 +148,67 @@ const RoutesPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Panou detalii traseu */}
+        <div className="route-details-card">
+          {selectedRoute ? (
+            <>
+              <div className="rdc-header">
+                <div>
+                  <p className="rdc-kicker">Traseu selectat</p>
+                  <h3 className="rdc-title">{selectedRoute.icon} {selectedRoute.name}</h3>
+                  <p className="rdc-sub">{selectedRoute.description}</p>
+                </div>
+                <div className="rdc-tags">
+                  <span className="rdc-tag">📍 {selectedRoute.region}</span>
+                  <span className="rdc-tag">Tip: {selectedRoute.type}</span>
+                  <span className="rdc-tag">Dificultate: {selectedRoute.difficulty}</span>
+                  <span className="rdc-tag">Suprafață: {selectedRoute.surface}</span>
+                  <span className="rdc-tag">Sezon: {selectedRoute.bestSeason}</span>
+                  <span className="rdc-tag">{selectedRoute.isLoop ? 'Circuit' : 'Linear'}</span>
+                </div>
+              </div>
+
+              <div className="rdc-stats">
+                <div className="rdc-stat">
+                  <p className="rdc-stat-label">Distanță</p>
+                  <p className="rdc-stat-value">{selectedRoute.distance} km</p>
+                </div>
+                <div className="rdc-stat">
+                  <p className="rdc-stat-label">Durată estimată</p>
+                  <p className="rdc-stat-value">{selectedRoute.estimatedDuration} min</p>
+                </div>
+                <div className="rdc-stat">
+                  <p className="rdc-stat-label">Elevanție</p>
+                  <p className="rdc-stat-value">{selectedRoute.elevationGain} m</p>
+                </div>
+                <div className="rdc-stat">
+                  <p className="rdc-stat-label">Punct Start</p>
+                  <p className="rdc-stat-value">{selectedRoute.startPoint.lat.toFixed(4)}, {selectedRoute.startPoint.lng.toFixed(4)}</p>
+                </div>
+                <div className="rdc-stat">
+                  <p className="rdc-stat-label">Punct Finish</p>
+                  <p className="rdc-stat-value">{selectedRoute.endPoint.lat.toFixed(4)}, {selectedRoute.endPoint.lng.toFixed(4)}</p>
+                </div>
+              </div>
+
+              <div className="rdc-highlights">
+                <p className="rdc-highlights-title">Repere de pe traseu</p>
+                <div className="rdc-highlights-grid">
+                  {selectedRoute.highlights.map((h) => (
+                    <span key={h} className="rdc-chip">{h}</span>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="rdc-empty">
+              <div className="rdc-empty-icon">🗺️</div>
+              <p className="rdc-empty-title">Selectează un traseu din listă sau de pe hartă</p>
+              <p className="rdc-empty-sub">Vezi detaliile, reperele și adaugă-l ca țintă în Dashboard.</p>
+            </div>
+          )}
+        </div>
+
       {/* Toast */}
       <div
         className="routes-toast"

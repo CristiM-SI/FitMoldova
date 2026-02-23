@@ -445,3 +445,140 @@
 .routes-toast-icon {
   font-size: 1.1rem;
 }
+
+/* ---- Route Details Panel (Commit 8) ---- */
+.route-details-card {
+  margin-top: 1.25rem;
+  background: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.15rem 1.25rem 1.2rem;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28);
+}
+
+.rdc-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.rdc-kicker {
+  margin: 0;
+  color: #7ea7ff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rdc-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #e8f0ff;
+}
+
+.rdc-sub {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.rdc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.rdc-tag {
+  background: rgba(104, 168, 255, 0.08);
+  border: 1px solid rgba(104, 168, 255, 0.28);
+  color: #d6e6ff;
+  padding: 5px 9px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.rdc-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.9rem;
+  margin: 0.6rem 0 1.1rem;
+}
+
+.rdc-stat {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+}
+
+.rdc-stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.rdc-stat-value {
+  margin: 2px 0 0;
+  color: #e8f0ff;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.rdc-highlights {
+  margin-top: 0.4rem;
+}
+
+.rdc-highlights-title {
+  margin: 0 0 0.5rem;
+  color: #cde4ff;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.rdc-highlights-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rdc-chip {
+  background: rgba(0, 216, 132, 0.14);
+  border: 1px solid rgba(0, 216, 132, 0.38);
+  color: #bbffdf;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.rdc-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 1.4rem 0.5rem;
+}
+
+.rdc-empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
+}
+
+.rdc-empty-title {
+  margin: 0 0 0.3rem;
+  color: #e8f0ff;
+  font-weight: 800;
+}
+
+.rdc-empty-sub {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 700px) {
+  .route-details-card {
+    padding: 1rem;
+  }
+}

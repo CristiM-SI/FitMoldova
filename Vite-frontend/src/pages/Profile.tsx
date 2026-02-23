@@ -117,7 +117,7 @@ const Profile: React.FC = () => {
                     <Link to={ROUTES.CLUBS} className="db-nav-item">
                         <span className="db-nav-icon">👥</span> Cluburi
                     </Link>
-                    <Link to={ROUTES.EVENTS} className="db-nav-item">
+                    <Link to={ROUTES.EVENTS_DASHBOARD} className="db-nav-item">
                         <span className="db-nav-icon">📅</span> Evenimente
                     </Link>
                     <Link to={ROUTES.PROFILE} className="db-nav-item db-nav-item--active">

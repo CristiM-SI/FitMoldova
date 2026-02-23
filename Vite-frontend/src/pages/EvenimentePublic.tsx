@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import EventMap from '../components/EventMap';
 import { useAuth } from '../context/AuthContext';
 import { useDashboardData } from '../context/useDashboardData';
 import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
@@ -59,6 +60,17 @@ const EvenimentePublic: React.FC = () => {
     const [diffFilter, setDiffFilter] = useState<string>('Toate');
     const [priceFilter, setPriceFilter] = useState<string>('Toate');
     const [detail, setDetail] = useState<Eveniment | null>(null);
+    const [showMap, setShowMap] = useState(false);
+
+    const openDetail = (ev: Eveniment) => {
+        setDetail(ev);
+        setShowMap(false);
+    };
+
+    const closeDetail = () => {
+        setDetail(null);
+        setShowMap(false);
+    };
 
     const isJoined = (id: number) => inscrise.some((e) => e.id === id);
 
@@ -252,10 +264,10 @@ const EvenimentePublic: React.FC = () => {
                                     <div
                                         key={ev.id}
                                         className={`ep-card ${joined ? 'ep-card--joined' : ''}`}
-                                        onClick={() => setDetail(ev)}
+                                        onClick={() => openDetail(ev)}
                                         role="button"
                                         tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && setDetail(ev)}
+                                        onKeyDown={(e) => e.key === 'Enter' && openDetail(ev)}
                                     >
                                         {/* ── IMAGE AREA ── */}
                                         <div className="ep-card-img" style={{ background: getGradient(ev.category) }}>
@@ -321,10 +333,10 @@ const EvenimentePublic: React.FC = () => {
 
             {/* ── DETAIL OVERLAY ──────────────────────────────── */}
             {detail && (
-                <div className="ep-overlay-backdrop" onClick={() => setDetail(null)}>
+                <div className="ep-overlay-backdrop" onClick={closeDetail}>
                     <div className="ep-overlay" onClick={(e) => e.stopPropagation()}>
 
-                        <button className="ep-overlay-close" onClick={() => setDetail(null)} aria-label="Închide">✕</button>
+                        <button className="ep-overlay-close" onClick={closeDetail} aria-label="Închide">✕</button>
 
                         {/* Hero banner */}
                         <div className="ep-overlay-hero" style={{ background: getGradient(detail.category) }}>
@@ -354,12 +366,19 @@ const EvenimentePublic: React.FC = () => {
                                         <div className="ep-overlay-meta-val">{formatDateFull(detail.date)} la {detail.time}</div>
                                     </div>
                                 </div>
-                                <div className="ep-overlay-meta-item">
+                                <div
+                                    className="ep-overlay-meta-item ep-overlay-meta-item--clickable"
+                                    onClick={() => setShowMap((v) => !v)}
+                                    title="Click pentru hartă"
+                                >
                                     <span className="ep-overlay-meta-icon">📍</span>
-                                    <div>
+                                    <div style={{ flex: 1 }}>
                                         <div className="ep-overlay-meta-label">Locație</div>
                                         <div className="ep-overlay-meta-val">{detail.location}, {detail.city}</div>
                                     </div>
+                                    <span className="ep-map-toggle-hint">
+                                        {showMap ? '▲ Închide harta' : '🗺 Vezi pe hartă'}
+                                    </span>
                                 </div>
                                 <div className="ep-overlay-meta-item">
                                     <span className="ep-overlay-meta-icon">👤</span>
@@ -376,6 +395,19 @@ const EvenimentePublic: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Map */}
+                            {showMap && (
+                                <div className="ep-overlay-map-wrap">
+                                    <EventMap
+                                        lat={detail.lat}
+                                        lng={detail.lng}
+                                        name={detail.name}
+                                        location={detail.location}
+                                        city={detail.city}
+                                    />
+                                </div>
+                            )}
 
                             {/* Description */}
                             <p className="ep-overlay-desc">{detail.description}</p>

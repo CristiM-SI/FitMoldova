@@ -684,6 +684,45 @@
     line-height: 1.35;
 }
 
+/* Clickable location meta item */
+.ep-overlay-meta-item--clickable {
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.ep-overlay-meta-item--clickable:hover {
+    background: rgba(26,127,255,0.1);
+    border-color: rgba(26,127,255,0.3);
+}
+
+.ep-map-toggle-hint {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #1a7fff;
+    white-space: nowrap;
+    align-self: center;
+    flex-shrink: 0;
+}
+
+/* Map wrapper inside overlay */
+.ep-overlay-map-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    animation: epMapIn 0.2s ease;
+}
+
+@keyframes epMapIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Override Leaflet z-index inside overlay */
+.ep-overlay-map-wrap .leaflet-pane,
+.ep-overlay-map-wrap .leaflet-top,
+.ep-overlay-map-wrap .leaflet-bottom {
+    z-index: 1 !important;
+}
+
 /* Description */
 .ep-overlay-desc {
     font-size: 0.95rem;

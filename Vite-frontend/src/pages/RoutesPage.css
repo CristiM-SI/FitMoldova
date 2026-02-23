@@ -1,0 +1,145 @@
+/* RoutesPage — stiluri de bază, completate în commit 9 */
+
+.routes-page {
+  min-height: 100vh;
+  background: var(--dark);
+  color: var(--text-primary);
+}
+
+/* ---- Hero ---- */
+.routes-hero {
+  padding: 120px 1.5rem 3rem;
+  text-align: center;
+  background: linear-gradient(180deg, var(--dark-elevated) 0%, var(--dark) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.routes-hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.routes-hero-title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  font-family: 'Rajdhani', sans-serif;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.routes-hero-highlight {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.routes-hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+
+.routes-hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.routes-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.routes-stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-light);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.routes-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Layout principal ---- */
+.routes-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.routes-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  min-height: 70vh;
+}
+
+@media (max-width: 900px) {
+  .routes-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Placeholder sidebar ---- */
+.routes-sidebar {
+  background: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.routes-sidebar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ---- Placeholder hartă ---- */
+.routes-map-container {
+  background: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+.routes-map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 500px;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.routes-map-placeholder-icon {
+  font-size: 3rem;
+}
+
+.routes-map-placeholder p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.routes-map-placeholder small {
+  font-size: 0.82rem;
+  opacity: 0.6;
+}

@@ -58,6 +58,15 @@ const Navbar: React.FC = () => {
           <li><button onClick={() => { navigate(ROUTES.EVENTS); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
           <li>
             <NavLink
+              to={ROUTES.ROUTES_MAP}
+              className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+              onClick={closeMenu}
+            >
+              🗺️ Trasee
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
               to={ROUTES.CONTACT}
               className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
               onClick={closeMenu}

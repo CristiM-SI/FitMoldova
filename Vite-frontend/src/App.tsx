@@ -19,6 +19,7 @@ import EVENTS from './pages/Evenimente'
 import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
+import RoutesPage from './pages/RoutesPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -148,6 +149,9 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
+
+                                {/* Rută publică Trasee */}
+                                <Route path={ROUTES.ROUTES_MAP} element={<RoutesPage />} />
 
                                 {/* Rută publică Contact */}
                                 <Route path={ROUTES.CONTACT} element={<Contact />} />

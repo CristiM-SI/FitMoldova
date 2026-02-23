@@ -6,7 +6,7 @@ import { StatItem } from "../types/login.types";
 // Datele statistice afișate în panoul stâng
 // Le definim aici pentru a le putea schimba ușor sau a le lua dintr-un API
 const STATS: StatItem[] = [
-    { value: "12K+", label: "Membri activi" },
+    { value: "50K+", label: "Membri activi" },
     { value: "340+", label: "Antrenori" },
     { value: "98%",  label: "Satisfacție" },
 ];
@@ -16,8 +16,10 @@ export default function LoginPage() {
     const {
         form,
         errors,
+        loginError,
         showPassword,
         isLoading,
+        passwordStrength,
         handleChange,
         handleSubmit,
         toggleShowPassword,

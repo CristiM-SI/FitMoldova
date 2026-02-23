@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { MOCK_ACTIVITATI } from '../services/mock/activitati';
 import type { Activitate } from '../services/mock/activitati';
 import { MOCK_PROVOCARI } from '../services/mock/provocari';
@@ -19,7 +19,7 @@ interface DashboardData {
     evenimenteDisponibile: Eveniment[];
 }
 
-interface DashboardDataContextType extends DashboardData {
+export interface DashboardDataContextType extends DashboardData {
     addActivitate: (item: Activitate) => void;
     removeActivitate: (id: number) => void;
     addProvocare: (item: Provocare) => void;
@@ -44,7 +44,7 @@ const DEFAULT_DATA: DashboardData = {
     evenimenteDisponibile: MOCK_EVENIMENTE,
 };
 
-const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
+export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
 
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
     const [data, setData] = useState<DashboardData>(() => {
@@ -182,10 +182,4 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             {children}
         </DashboardDataContext.Provider>
     );
-};
-
-export const useDashboardData = (): DashboardDataContextType => {
-    const ctx = useContext(DashboardDataContext);
-    if (!ctx) throw new Error('useDashboardData must be used within DashboardDataProvider');
-    return ctx;
 };

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useDashboardData } from '../context/DashboardDataContext';
+import { useDashboardData } from '../context/useDashboardData';
 import { ROUTES } from '../routes/paths';
 import type { Eveniment } from '../services/mock/evenimente';
 import './Dashboard.css';

@@ -14,6 +14,8 @@ export interface Eveniment {
   organizer: string;
   difficulty: 'Ușor' | 'Mediu' | 'Avansat' | 'Toate';
   tags: string[];
+  lat: number;
+  lng: number;
 }
 
 export const MOCK_EVENIMENTE: Eveniment[] = [
@@ -33,6 +35,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'FitMoldova & Primăria Chișinău',
     difficulty: 'Toate',
     tags: ['5K', '10K', '21K', '42K', 'Medalie'],
+    lat: 47.02657, lng: 28.83293,
   },
   {
     id: 302,
@@ -50,6 +53,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'CycleMD',
     difficulty: 'Mediu',
     tags: ['60km', 'Crame', 'Degustare'],
+    lat: 47.12878, lng: 28.85735,
   },
   {
     id: 303,
@@ -67,6 +71,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'Yoga & Wellness MD',
     difficulty: 'Ușor',
     tags: ['Aer liber', 'Începători', 'Gratis'],
+    lat: 47.00411, lng: 28.84903,
   },
   {
     id: 304,
@@ -84,6 +89,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'CrossFit Chișinău',
     difficulty: 'Toate',
     tags: ['Porți deschise', 'Nutriție', 'Gratis'],
+    lat: 47.02283, lng: 28.83455,
   },
   {
     id: 305,
@@ -101,6 +107,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'Trail Moldova',
     difficulty: 'Mediu',
     tags: ['15km', 'Natură', 'Off-road'],
+    lat: 47.11740, lng: 28.46700,
   },
   {
     id: 306,
@@ -118,6 +125,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'Aqua Chișinău',
     difficulty: 'Toate',
     tags: ['50m', '100m', '200m', 'Premii'],
+    lat: 47.02139, lng: 28.83800,
   },
   {
     id: 307,
@@ -135,6 +143,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'FitMoldova',
     difficulty: 'Ușor',
     tags: ['5km', 'Social', 'Mic dejun', 'Gratis'],
+    lat: 47.01808, lng: 28.85300,
   },
   {
     id: 308,
@@ -152,5 +161,6 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     organizer: 'Night Runners MD',
     difficulty: 'Ușor',
     tags: ['Nocturn', '20km', 'Urban'],
+    lat: 47.02327, lng: 28.83319,
   },
 ];

@@ -9,12 +9,14 @@ import Home from './pages/Home'
 import Clubs from './pages/Clubs'
 import { ROUTES } from './routes/paths'
 import SignUp from './pages/SignUp'
+import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import Activitati from './pages/Activitati'
 import CommunityPage from './pages/CommunityPage'
 import Profile from './pages/Profile'
 import Provocari from './pages/Provocari'
 import EVENTS from './pages/Evenimente'
+import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
 import LoginPage from './pages/LoginPage'
@@ -68,6 +70,14 @@ function App() {
                                 {/* Rute publice */}
                                 <Route path={ROUTES.HOME} element={<Home />} />
                                 <Route path={ROUTES.CLUBS} element={<Clubs />} />
+                                <Route
+                                    path={ROUTES.LOGIN}
+                                    element={
+                                        <PublicRoute>
+                                            <LoginPage />
+                                        </PublicRoute>
+                                    }
+                                />
                                 <Route
                                     path={ROUTES.REGISTER}
                                     element={
@@ -127,8 +137,12 @@ function App() {
                                     }
                                 />
 
+                                {/* Pagina publică de evenimente */}
+                                <Route path={ROUTES.EVENTS} element={<EvenimentePublic />} />
+
+                                {/* Pagina de evenimente din dashboard (protejată) */}
                                 <Route
-                                    path={ROUTES.EVENTS}
+                                    path={ROUTES.EVENTS_DASHBOARD}
                                     element={
                                         <ProtectedRoute>
                                             <EVENTS />

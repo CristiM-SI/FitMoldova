@@ -19,7 +19,6 @@ import EVENTS from './pages/Evenimente'
 import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
-import LoginPage from './pages/LoginPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)

@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import { MOCK_TRASEE } from '../services/mock/trasee';
+import MoldovaRoutesMap from '../components/MoldovaRoutesMap';
 import './RoutesPage.css';
 
 const RoutesPage: React.FC = () => {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
   return (
     <div className="routes-page">
       <Navbar />
@@ -50,11 +53,11 @@ const RoutesPage: React.FC = () => {
           </aside>
 
           <div className="routes-map-container">
-            <div className="routes-map-placeholder">
-              <span className="routes-map-placeholder-icon">🗺️</span>
-              <p>Harta interactivă Moldova</p>
-              <small>Se încarcă în curând…</small>
-            </div>
+            <MoldovaRoutesMap
+              trasee={MOCK_TRASEE}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
           </div>
         </div>
       </div>

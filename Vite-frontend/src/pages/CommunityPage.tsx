@@ -343,7 +343,11 @@ const CSS = `
 export default function CommunityPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { isAuthenticated } = useAuth();
+    const { user, isAuthenticated } = useAuth();
+
+    const userName = user ? `${user.firstName} ${user.lastName}` : 'Oaspete';
+    const userAvatar = user?.avatar ?? '?';
+    const userTag = user ? `@${user.email.split('@')[0]}` : '';
 
     const [tab, setTab]               = useState<FeedTab>('feed');
     const [filter, setFilter]         = useState<Sport | 'all'>('all');
@@ -366,7 +370,7 @@ export default function CommunityPage() {
         if (!postInput.trim()) { showToast('⚠️', 'Scrie ceva înainte de a publica!'); return; }
         const newPost: Post = {
             id:       Date.now(),
-            author:   'Alexandru Mihai',
+            author:   userName,
             color:    '#1a6fff',
             sport:    postSport,
             time:     'acum câteva secunde',
@@ -378,7 +382,7 @@ export default function CommunityPage() {
         setPosts((prev) => [newPost, ...prev]);
         setPostInput('');
         showToast('✅', 'Postare publicată!');
-    }, [postInput, postSport, showToast]);
+    }, [postInput, postSport, showToast, userName]);
 
     const handleLike = useCallback((id: number): void => {
         setPosts((prev) =>
@@ -456,10 +460,10 @@ export default function CommunityPage() {
                     <aside className="fm-leftnav">
                         {/* Profile chip */}
                         <div className="profile-chip" onClick={() => navigate(ROUTES.PROFILE)}>
-                            <div className="profile-chip-ava">AM</div>
+                            <div className="profile-chip-ava">{userAvatar}</div>
                             <div>
-                                <div className="profile-chip-name">Alexandru Mihai</div>
-                                <div className="profile-chip-tag">@alex.mihai</div>
+                                <div className="profile-chip-name">{userName}</div>
+                                <div className="profile-chip-tag">{userTag}</div>
                             </div>
                         </div>
 
@@ -500,7 +504,7 @@ export default function CommunityPage() {
                                 {/* Create Post */}
                                 <div className="card">
                                     <div className="create-row">
-                                        <div className="user-ava">AM</div>
+                                        <div className="user-ava">{userAvatar}</div>
                                         <div className="create-body">
                       <textarea
                           className="create-textarea"

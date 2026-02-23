@@ -64,6 +64,10 @@ const Activitati: React.FC = () => {
               <span className="db-nav-icon">👥</span>
               Cluburi
             </Link>
+            <Link to={ROUTES.COMMUNITY} className="db-nav-item">
+              <span className="db-nav-icon">🌍</span>
+              Comunitate
+            </Link>
             <Link to={ROUTES.EVENTS} className="db-nav-item">
               <span className="db-nav-icon">📅</span>
               Evenimente

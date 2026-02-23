@@ -310,3 +310,53 @@
     padding: 1rem;
   }
 }
+
+/* ---- Popup hartă trasee (Commit 6) ---- */
+.route-popup {
+  background: #0e1524;
+  color: #e8f0ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(104, 168, 255, 0.35);
+}
+
+.route-popup__title {
+  font-weight: 800;
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+}
+
+.route-popup__meta {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  color: #b6c6e2;
+  font-size: 0.84rem;
+  margin-bottom: 6px;
+}
+
+.route-popup__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.route-popup__tags .tag {
+  background: rgba(104, 168, 255, 0.12);
+  border: 1px solid rgba(104, 168, 255, 0.4);
+  color: #d6e6ff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.route-popup__desc {
+  margin: 0;
+  color: #c5d3ec;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-width: 320px;
+}

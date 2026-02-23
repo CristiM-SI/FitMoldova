@@ -1,5 +1,5 @@
-import React from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Tooltip } from 'react-leaflet';
+import React, { useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Tooltip, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Traseu, RouteType } from '../types/Route';
@@ -37,6 +37,19 @@ interface MoldovaRoutesMapProps {
   onSelect: (id: number) => void;
 }
 
+/* ---- Zoom pe traseul selectat ---- */
+const FitOnSelect: React.FC<{ route: Traseu | undefined }> = ({ route }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!route) return;
+    const bounds = L.latLngBounds(route.path.map((p) => [p.lat, p.lng]));
+    map.flyToBounds(bounds, { padding: [48, 48], maxZoom: 12, duration: 0.8 });
+  }, [map, route]);
+
+  return null;
+};
+
 const MoldovaRoutesMap: React.FC<MoldovaRoutesMapProps> = ({
   trasee,
   selectedId,
@@ -44,6 +57,7 @@ const MoldovaRoutesMap: React.FC<MoldovaRoutesMapProps> = ({
 }) => {
   /* Centrul geografic aproximativ al Moldovei */
   const CENTER: [number, number] = [47.2, 28.6];
+  const activeRoute = useMemo(() => trasee.find((t) => t.id === selectedId), [trasee, selectedId]);
 
   return (
     <MapContainer
@@ -52,6 +66,7 @@ const MoldovaRoutesMap: React.FC<MoldovaRoutesMapProps> = ({
       scrollWheelZoom={true}
       style={{ height: '100%', width: '100%', minHeight: '500px', borderRadius: '16px' }}
     >
+      <FitOnSelect route={activeRoute} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -73,6 +88,7 @@ const MoldovaRoutesMap: React.FC<MoldovaRoutesMapProps> = ({
                 color,
                 weight: isSelected ? SELECTED_WEIGHT : TYPE_WEIGHT,
                 opacity: isSelected ? 1 : 0.72,
+                dashArray: isSelected ? undefined : '6 8',
               }}
               eventHandlers={{ click: () => onSelect(traseu.id) }}
             >
@@ -90,7 +106,26 @@ const MoldovaRoutesMap: React.FC<MoldovaRoutesMapProps> = ({
               position={[traseu.startPoint.lat, traseu.startPoint.lng]}
               icon={makeStartIcon(color, isSelected)}
               eventHandlers={{ click: () => onSelect(traseu.id) }}
-            />
+            >
+              {isSelected && (
+                <Popup className="route-popup" offset={[0, -4]} closeButton={false}>
+                  <div className="route-popup__title">
+                    {traseu.icon} {traseu.name}
+                  </div>
+                  <div className="route-popup__meta">
+                    <span>📏 {traseu.distance} km</span>
+                    <span>⏱️ {traseu.estimatedDuration} min</span>
+                    <span>⬆️ {traseu.elevationGain} m</span>
+                  </div>
+                  <div className="route-popup__tags">
+                    <span className="tag">{traseu.region}</span>
+                    <span className="tag">Dificultate: {traseu.difficulty}</span>
+                    <span className="tag">Tip: {traseu.type}</span>
+                  </div>
+                  <p className="route-popup__desc">{traseu.description}</p>
+                </Popup>
+              )}
+            </Marker>
           </React.Fragment>
         );
       })}

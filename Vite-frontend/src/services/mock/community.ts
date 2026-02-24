@@ -7,7 +7,7 @@ export type Sport =
     | 'Baschet' | 'Rugby' | 'Caiac-Canoe' | 'Haltere' | 'Volei'
     | 'Atletism' | 'Tenis de Masă' | 'Ciclism' | 'Înot' | 'Handbal';
 
-export type FeedTab = 'feed' | 'challenges' | 'members';
+export type FeedTab = 'feed' | 'challenges' | 'members' | 'clubs';
 
 export interface Post {
     id:       number;

@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+﻿import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
@@ -433,7 +433,89 @@ const CSS = `
 
   @keyframes mpFadeIn   { from { opacity: 0; } to { opacity: 1; } }
   @keyframes mpSlideUp  { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+
+  /* ── CLUBS TAB ── */
+  .cv-layout { display: grid; grid-template-columns: 248px 1fr; gap: 18px; align-items: start; }
+
+  /* Left: joined */
+  .cv-joined { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: 80px; }
+  .cv-joined-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .cv-joined-title { font-family: 'Barlow Condensed', sans-serif; font-size: .88rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; flex: 1; }
+  .cv-joined-badge { background: var(--cdim); color: var(--cyan); border-radius: 100px; padding: 2px 9px; font-size: .68rem; font-weight: 700; }
+  .cv-joined-list { display: flex; flex-direction: column; }
+  .cv-jclub { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--border); position: relative; transition: background .15s; }
+  .cv-jclub:last-child { border-bottom: none; }
+  .cv-jclub:hover { background: rgba(255,255,255,.025); }
+  .cv-jclub-bar { width: 3px; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 2px 2px 0; }
+  .cv-jclub-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .cv-jclub-info { flex: 1; min-width: 0; }
+  .cv-jclub-name { font-weight: 700; font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cv-jclub-meta { font-size: .67rem; color: var(--muted); margin-top: 2px; }
+  .cv-jclub-leave { background: none; border: 1px solid rgba(255,77,109,.3); color: #ff4d6d; border-radius: 6px; padding: 3px 8px; font-size: .65rem; font-weight: 700; cursor: pointer; transition: all .2s; white-space: nowrap; flex-shrink: 0; }
+  .cv-jclub-leave:hover { background: rgba(255,77,109,.1); border-color: #ff4d6d; }
+  .cv-joined-empty { padding: 28px 16px; text-align: center; }
+  .cv-joined-empty-icon { font-size: 1.8rem; opacity: .4; margin-bottom: 8px; }
+  .cv-joined-empty-text { font-size: .74rem; color: var(--muted); line-height: 1.65; }
+
+  /* Right: explore */
+  .cv-explore { display: flex; flex-direction: column; gap: 12px; }
+  .cv-search-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px; transition: border-color .2s; }
+  .cv-search-row:focus-within { border-color: rgba(0,200,255,.4); }
+  .cv-search-icon { color: var(--muted); font-size: .95rem; flex-shrink: 0; }
+  .cv-search-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'Barlow', sans-serif; font-size: .87rem; }
+  .cv-search-input::placeholder { color: var(--muted); }
+  .cv-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cv-cat { padding: 5px 13px; border-radius: 100px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .72rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .cv-cat:hover { border-color: rgba(0,200,255,.35); color: var(--cyan); }
+  .cv-cat--active { background: var(--cdim); border-color: rgba(0,200,255,.4); color: var(--cyan); }
+
+  /* Grid */
+  .cv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .cv-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: transform .22s, border-color .22s, box-shadow .22s; display: flex; flex-direction: column; }
+  .cv-card:hover { transform: translateY(-5px); border-color: rgba(0,200,255,.3); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
+  .cv-card--joined { border-color: rgba(0,200,255,.28); }
+  .cv-card-hero { height: 90px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .cv-card-hero-icon { font-size: 2.6rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
+  .cv-hero-joined { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); color: var(--cyan); border: 1px solid rgba(0,200,255,.4); border-radius: 100px; padding: 2px 10px; font-size: .64rem; font-weight: 700; }
+  .cv-card-body { padding: 13px 14px; display: flex; flex-direction: column; flex: 1; }
+  .cv-card-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .cv-card-loc { font-size: .69rem; color: var(--muted); margin-bottom: 8px; }
+  .cv-card-desc { font-size: .77rem; color: #8a9bbc; line-height: 1.55; margin-bottom: 9px; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cv-next-event { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(26,111,255,.1); border: 1px solid rgba(26,111,255,.2); border-radius: 8px; margin-bottom: 9px; font-size: .7rem; color: #c0d0ff; }
+  .cv-card-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .cv-chip { padding: 2px 8px; border-radius: 100px; font-size: .62rem; font-weight: 700; border: 1px solid rgba(255,255,255,.1); color: #aaa; background: rgba(255,255,255,.06); }
+  .cv-chip--cat { background: var(--cdim); color: var(--cyan); border-color: rgba(0,200,255,.2); }
+  .cv-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); margin-top: auto; }
+  .cv-card-stats { display: flex; flex-direction: column; gap: 1px; }
+  .cv-card-members { font-size: .69rem; color: var(--muted); }
+  .cv-card-rating { font-size: .69rem; color: #fbbf24; }
+  .cv-join-btn { padding: 6px 13px; border-radius: 7px; background: var(--blue); color: #fff; border: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .76rem; letter-spacing: .5px; cursor: pointer; transition: all .2s; }
+  .cv-join-btn:hover { background: #2a7fff; box-shadow: 0 0 16px rgba(26,111,255,.5); }
+  .cv-join-btn--leave { background: transparent; border: 1px solid rgba(255,77,109,.4); color: #ff4d6d; }
+  .cv-join-btn--leave:hover { background: rgba(255,77,109,.1); border-color: #ff4d6d; box-shadow: none; }
+
+  /* empty */
+  .cv-empty { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .cv-empty-icon { font-size: 2.2rem; margin-bottom: 12px; opacity: .45; }
+  .cv-empty-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .cv-empty-sub { font-size: .82rem; line-height: 1.6; }
 `;
+
+// ─────────────────────────────────────────────
+// CLUBS HELPERS
+// ─────────────────────────────────────────────
+
+const CLUB_CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Înot', 'Trail'] as const;
+
+const CLUB_CAT_GRADIENTS: Record<string, string> = {
+    Alergare: 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)',
+    Ciclism:  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    Fitness:  'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+    Yoga:     'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+    Înot:     'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
+    Trail:    'linear-gradient(135deg, #22c55e 0%, #15803d 100%)',
+    default:  'linear-gradient(135deg, #1a6fff 0%, #7c3aed 100%)',
+};
 
 // ─────────────────────────────────────────────
 // COMPONENT
@@ -457,10 +539,12 @@ export default function CommunityPage() {
     const [toast, setToast]           = useState<ToastState>({ icon: '', msg: '', visible: false });
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [following, setFollowing]           = useState<Set<string>>(new Set());
+    const [clubSearch, setClubSearch]         = useState('');
+    const [clubCat, setClubCat]               = useState('Toate');
 
-    // Dashboard sync — adaugă/scoate provocări în dashboard când user-ul e logat
-    const { addProvocare, removeProvocare } = useDashboardData();
-    const { completeChallenge } = useProgress();
+    // Dashboard sync
+    const { addProvocare, removeProvocare, cluburiJoined, cluburiDisponibile, addClub, removeClub } = useDashboardData();
+    const { completeChallenge, completeJoinClub } = useProgress();
 
     const showToast = useCallback((icon: string, msg: string): void => {
         setToast({ icon, msg, visible: true });
@@ -544,6 +628,26 @@ export default function CommunityPage() {
         }
     }, [following, showToast]);
 
+    const handleJoinClub = useCallback((club: Parameters<typeof addClub>[0]): void => {
+        addClub(club);
+        completeJoinClub();
+        showToast('🏟️', `Te-ai alăturat clubului ${club.name}!`);
+    }, [addClub, completeJoinClub, showToast]);
+
+    const handleLeaveClub = useCallback((id: number): void => {
+        removeClub(id);
+        showToast('👋', 'Ai ieșit din club.');
+    }, [removeClub, showToast]);
+
+    const filteredClubs = useMemo(() => {
+        const q = clubSearch.toLowerCase();
+        return cluburiDisponibile.filter((c) => {
+            const matchSearch = c.name.toLowerCase().includes(q) || c.location.toLowerCase().includes(q);
+            const matchCat = clubCat === 'Toate' || c.category === clubCat;
+            return matchSearch && matchCat;
+        });
+    }, [cluburiDisponibile, clubSearch, clubCat]);
+
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
     // Left nav items — internal tabs + route-based items
@@ -552,14 +656,14 @@ export default function CommunityPage() {
         { id: 'challenges', icon: '🏆', label: 'Provocări', badge: { text: '15', type: 'count' as const }, action: () => setTab('challenges'), isTab: true  },
         { id: 'members',    icon: '👥', label: 'Membri',    badge: null,                   action: () => setTab('members'),    isTab: true  },
         { divider: true },
-        { id: 'clubs',      icon: '🏟️', label: 'Cluburi',   badge: { text: 'În curând', type: 'soon' as const },  action: () => navigate(ROUTES.CLUBS),  isTab: false },
+        { id: 'clubs',      icon: '🏟️', label: 'Cluburi',   badge: null,                                          action: () => setTab('clubs'),         isTab: true  },
         { id: 'forum',      icon: '💬', label: 'Forum',     badge: { text: 'În curând', type: 'soon' as const },  action: () => navigate(ROUTES.FORUM),  isTab: false },
     ] as const;
 
     const isNavActive = (item: (typeof NAV_ITEMS)[number]): boolean => {
         if (!('id' in item)) return false;
         if (item.isTab) return tab === item.id;
-        return location.pathname === (item.id === 'clubs' ? ROUTES.CLUBS : ROUTES.FORUM);
+        return location.pathname === ROUTES.FORUM;
     };
 
     return (
@@ -782,6 +886,149 @@ export default function CommunityPage() {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+                            </>
+                        )}
+
+                        {/* ════ CLUBURI ════ */}
+                        {tab === 'clubs' && (
+                            <>
+                                <div>
+                                    <div className="sec-title">Cluburi Sportive 🏟️</div>
+                                    <div className="sec-sub">Cluburile tale și toate opțiunile disponibile în Moldova</div>
+                                </div>
+
+                                <div className="cv-layout">
+
+                                    {/* ── Left: joined clubs ── */}
+                                    <aside className="cv-joined">
+                                        <div className="cv-joined-head">
+                                            <span className="cv-joined-title">Cluburile mele</span>
+                                            <span className="cv-joined-badge">{cluburiJoined.length}</span>
+                                        </div>
+                                        <div className="cv-joined-list">
+                                            {cluburiJoined.length === 0 ? (
+                                                <div className="cv-joined-empty">
+                                                    <div className="cv-joined-empty-icon">🏟️</div>
+                                                    <div className="cv-joined-empty-text">
+                                                        Nu ești în niciun club.<br />Explorează și alătură-te!
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                cluburiJoined.map((c) => (
+                                                    <div className="cv-jclub" key={c.id}>
+                                                        <div
+                                                            className="cv-jclub-bar"
+                                                            style={{ background: CLUB_CAT_GRADIENTS[c.category] ?? CLUB_CAT_GRADIENTS.default }}
+                                                        />
+                                                        <span className="cv-jclub-icon">{c.icon}</span>
+                                                        <div className="cv-jclub-info">
+                                                            <div className="cv-jclub-name">{c.name}</div>
+                                                            <div className="cv-jclub-meta">
+                                                                📍 {c.location.split(',')[0]} · {c.members} membri
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            className="cv-jclub-leave"
+                                                            onClick={() => handleLeaveClub(c.id)}
+                                                        >
+                                                            Ieși
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </aside>
+
+                                    {/* ── Right: explore ── */}
+                                    <div className="cv-explore">
+
+                                        {/* Search bar */}
+                                        <div className="cv-search-row">
+                                            <span className="cv-search-icon">🔍</span>
+                                            <input
+                                                className="cv-search-input"
+                                                placeholder="Caută cluburi după nume sau oraș…"
+                                                value={clubSearch}
+                                                onChange={(e) => setClubSearch(e.target.value)}
+                                            />
+                                        </div>
+
+                                        {/* Category filter chips */}
+                                        <div className="cv-cats">
+                                            {CLUB_CATEGORIES.map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    className={`cv-cat${clubCat === cat ? ' cv-cat--active' : ''}`}
+                                                    onClick={() => setClubCat(cat)}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Results count */}
+                                        <div style={{ fontSize: '.78rem', color: 'var(--muted)' }}>
+                                            {filteredClubs.length} club{filteredClubs.length !== 1 ? 'uri' : ''} găsite
+                                        </div>
+
+                                        {/* Grid or empty state */}
+                                        {filteredClubs.length === 0 ? (
+                                            <div className="cv-empty">
+                                                <div className="cv-empty-icon">🔍</div>
+                                                <div className="cv-empty-title">Niciun club găsit</div>
+                                                <div className="cv-empty-sub">
+                                                    Încearcă alt termen de căutare sau o altă categorie.
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="cv-grid">
+                                                {filteredClubs.map((c) => {
+                                                    const isJoined = cluburiJoined.some((j) => j.id === c.id);
+                                                    const gradient = CLUB_CAT_GRADIENTS[c.category] ?? CLUB_CAT_GRADIENTS.default;
+                                                    return (
+                                                        <div
+                                                            className={`cv-card${isJoined ? ' cv-card--joined' : ''}`}
+                                                            key={c.id}
+                                                        >
+                                                            <div className="cv-card-hero" style={{ background: gradient }}>
+                                                                <span className="cv-card-hero-icon">{c.icon}</span>
+                                                                {isJoined && <span className="cv-hero-joined">✓ Membru</span>}
+                                                            </div>
+                                                            <div className="cv-card-body">
+                                                                <div className="cv-card-name">{c.name}</div>
+                                                                <div className="cv-card-loc">📍 {c.location}</div>
+                                                                <div className="cv-card-desc">{c.description}</div>
+                                                                {c.nextEvent && (
+                                                                    <div className="cv-next-event">
+                                                                        <span>📅</span>
+                                                                        <span>{c.nextEvent}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="cv-card-chips">
+                                                                    <span className="cv-chip cv-chip--cat">{c.category}</span>
+                                                                    <span className="cv-chip">{c.level}</span>
+                                                                    <span className="cv-chip">{c.schedule}</span>
+                                                                </div>
+                                                                <div className="cv-card-footer">
+                                                                    <div className="cv-card-stats">
+                                                                        <div className="cv-card-members">👥 {c.members} membri</div>
+                                                                        <div className="cv-card-rating">★ {c.rating.toFixed(1)}</div>
+                                                                    </div>
+                                                                    <button
+                                                                        className={`cv-join-btn${isJoined ? ' cv-join-btn--leave' : ''}`}
+                                                                        onClick={() => isJoined ? handleLeaveClub(c.id) : handleJoinClub(c)}
+                                                                    >
+                                                                        {isJoined ? 'Ieși' : 'Alătură-te'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </>
                         )}

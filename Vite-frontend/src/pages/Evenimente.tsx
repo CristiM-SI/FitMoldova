@@ -38,7 +38,7 @@ const capacityClass = (pct: number) => {
 };
 
 const EvenimenteDashboard: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, isAuthenticated } = useAuth();
     const {
         evenimenteInscrise: inscrise,
         evenimenteDisponibile: disponibile,

@@ -20,6 +20,7 @@ import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
 import ForumPage from './pages/ForumPage'
+import RoutesPage from './pages/RoutesPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)

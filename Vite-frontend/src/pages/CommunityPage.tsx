@@ -6,10 +6,10 @@ import { useDashboardData } from '../context/useDashboardData';
 import { useProgress } from '../context/ProgressContext';
 import { useAuth } from '../context/AuthContext';
 import {
-    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS,
+    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS, MEMBER_POSTS,
 } from '../services/mock/community';
 import type {
-    Sport, FeedTab, Post, Challenge, ToastState,
+    Sport, FeedTab, Post, Challenge, ToastState, Member,
 } from '../services/mock/community';
 
 // ─────────────────────────────────────────────
@@ -331,9 +331,108 @@ const CSS = `
   .fm ::-webkit-scrollbar { width: 5px; }
   .fm ::-webkit-scrollbar-thumb { background: rgba(0,200,255,.2); border-radius: 100px; }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  @keyframes pulse  { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes pulse   { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
   .pulse { animation: pulse 1.5s infinite; }
+
+  /* ── MEMBER MODAL ── */
+  .mp-backdrop {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: mpFadeIn .2s ease;
+  }
+  .mp-panel {
+    background: var(--card); border: 1px solid rgba(0,200,255,.22);
+    border-radius: 20px; width: 100%; max-width: 460px;
+    max-height: 88vh; overflow-y: auto; position: relative;
+    animation: mpSlideUp .25s ease;
+  }
+  .mp-panel::-webkit-scrollbar { width: 4px; }
+  .mp-panel::-webkit-scrollbar-thumb { background: rgba(0,200,255,.2); border-radius: 100px; }
+  .mp-close {
+    position: absolute; top: 14px; right: 14px; z-index: 10;
+    background: rgba(255,255,255,.06); border: none; color: var(--muted);
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    font-size: .9rem; display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .mp-close:hover { background: rgba(255,255,255,.14); color: #fff; }
+
+  /* hero */
+  .mp-hero {
+    padding: 36px 24px 22px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .mp-ava {
+    width: 82px; height: 82px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+    font-size: 1.9rem; color: #fff; margin-bottom: 14px;
+    box-shadow: 0 0 32px color-mix(in srgb, currentColor 30%, transparent);
+  }
+  .mp-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.55rem; font-weight: 900; letter-spacing: -.5px; }
+  .mp-meta { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+  .mp-rank {
+    background: var(--cdim); color: var(--cyan);
+    border: 1px solid rgba(0,200,255,.2);
+    border-radius: 100px; padding: 4px 16px; font-size: .74rem; font-weight: 700;
+    margin: 10px 0 14px;
+  }
+  .mp-follow-btn {
+    padding: 9px 28px; border-radius: 9px; border: 1.5px solid var(--cyan);
+    color: var(--cyan); background: transparent; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase;
+    transition: all .2s;
+  }
+  .mp-follow-btn:hover { background: var(--cdim); }
+  .mp-follow-btn--active { background: var(--cdim); color: #fff; border-color: rgba(0,200,255,.4); }
+  .mp-follow-btn--active:hover { background: rgba(255,77,109,.1); border-color: #ff4d6d; color: #ff4d6d; }
+
+  /* stats bar */
+  .mp-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 18px 20px; gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mp-stat { text-align: center; }
+  .mp-stat-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.35rem; font-weight: 900; color: var(--cyan);
+  }
+  .mp-stat-lbl { font-size: .62rem; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* sections */
+  .mp-section { padding: 18px 22px; border-bottom: 1px solid var(--border); }
+  .mp-section:last-child { border-bottom: none; }
+  .mp-section-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: .75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+  .mp-bio { font-size: .85rem; line-height: 1.7; color: #c8d8f0; }
+
+  /* achievements */
+  .mp-achievements { display: flex; flex-direction: column; gap: 9px; }
+  .mp-ach {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    background: var(--card2); border: 1px solid var(--border);
+    animation: fadeUp .2s ease both;
+  }
+  .mp-ach-icon { font-size: 1.35rem; flex-shrink: 0; }
+  .mp-ach-info { flex: 1; }
+  .mp-ach-title { font-weight: 700; font-size: .84rem; }
+  .mp-ach-date  { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+
+  /* footer */
+  .mp-footer { padding: 14px 22px; text-align: center; font-size: .75rem; color: var(--muted); }
+
+  @keyframes mpFadeIn   { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes mpSlideUp  { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 `;
 
 // ─────────────────────────────────────────────
@@ -356,6 +455,8 @@ export default function CommunityPage() {
     const [postInput, setPostInput]   = useState<string>('');
     const [postSport, setPostSport]   = useState<Sport>('Fotbal');
     const [toast, setToast]           = useState<ToastState>({ icon: '', msg: '', visible: false });
+    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+    const [following, setFollowing]           = useState<Set<string>>(new Set());
 
     // Dashboard sync — adaugă/scoate provocări în dashboard când user-ul e logat
     const { addProvocare, removeProvocare } = useDashboardData();
@@ -424,6 +525,24 @@ export default function CommunityPage() {
             }),
         );
     }, [showToast, isAuthenticated, addProvocare, removeProvocare, completeChallenge]);
+
+    const handleFollow = useCallback((member: Member): void => {
+        const isFollowing = following.has(member.name);
+        setFollowing((prev) => {
+            const next = new Set(prev);
+            if (isFollowing) next.delete(member.name);
+            else next.add(member.name);
+            return next;
+        });
+        if (isFollowing) {
+            setPosts((prev) => prev.filter((p) => p.author !== member.name));
+            showToast('👋', `Ai încetat să urmărești pe ${member.name}`);
+        } else {
+            const newPosts = MEMBER_POSTS.filter((p) => p.author === member.name);
+            setPosts((prev) => [...prev, ...newPosts]);
+            showToast('👤', `Urmărești acum pe ${member.name}!`);
+        }
+    }, [following, showToast]);
 
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
@@ -553,11 +672,16 @@ export default function CommunityPage() {
                                 <div className="feed">
                                     {filteredPosts.length === 0 ? (
                                         <div className="empty">
-                                            <div className="empty__icon">📭</div>
-                                            <div className="empty__title">Nicio postare încă</div>
+                                            <div className="empty__icon">{following.size === 0 ? '👥' : '📭'}</div>
+                                            <div className="empty__title">
+                                                {following.size === 0 ? 'Urmărește membri' : 'Nicio postare încă'}
+                                            </div>
                                             <div className="empty__sub">
-                                                Fii primul care distribuie ceva cu comunitatea!<br />
-                                                Scrie mai sus și apasă Publică.
+                                                {following.size === 0 ? (
+                                                    <>Mergi la tabul <strong>Membri</strong> și urmărește sportivi<br />pentru a le vedea postările aici în feed.</>
+                                                ) : (
+                                                    <>Membrii urmăriți nu au postări la acest filtru.<br />Scrie tu ceva sau schimbă filtrul de sport.</>
+                                                )}
                                             </div>
                                         </div>
                                     ) : (
@@ -640,7 +764,12 @@ export default function CommunityPage() {
                                 </div>
                                 <div className="member-grid">
                                     {MEMBERS.map((m) => (
-                                        <div className="member-card" key={m.name}>
+                                        <div
+                                            className="member-card"
+                                            key={m.name}
+                                            onClick={() => setSelectedMember(m)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
                                             <div className="m__ava" style={{ background: m.color, boxShadow: `0 0 14px ${m.color}44` }}>
                                                 {getInitials(m.name)}
                                             </div>
@@ -648,13 +777,9 @@ export default function CommunityPage() {
                                             <div className="m__sub">📍 {m.city} · {m.sport}</div>
                                             <div className="m__rank">{m.rank}</div>
                                             <div className="m__pts">{m.points.toLocaleString()} <span>pts</span></div>
-                                            <button
-                                                className="btn btn-outline"
-                                                style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: '.73rem', padding: '6px' }}
-                                                onClick={() => showToast('👤', 'Profil în curând!')}
-                                            >
-                                                Urmărește
-                                            </button>
+                                            <div style={{ marginTop: 10, fontSize: '.72rem', color: 'var(--cyan)', textAlign: 'center', opacity: .7 }}>
+                                                Vezi profil →
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -663,6 +788,76 @@ export default function CommunityPage() {
 
                     </div>
                 </div>
+
+                {/* ── MEMBER MODAL ── */}
+                {selectedMember && (
+                    <div className="mp-backdrop" onClick={() => setSelectedMember(null)}>
+                        <div className="mp-panel" onClick={(e) => e.stopPropagation()}>
+                            <button className="mp-close" onClick={() => setSelectedMember(null)} aria-label="Închide">✕</button>
+
+                            {/* Hero */}
+                            <div className="mp-hero">
+                                <div className="mp-ava" style={{ background: selectedMember.color, boxShadow: `0 0 32px ${selectedMember.color}55` }}>
+                                    {getInitials(selectedMember.name)}
+                                </div>
+                                <div className="mp-name">{selectedMember.name}</div>
+                                <div className="mp-meta">📍 {selectedMember.city} · {selectedMember.sport}</div>
+                                <div className="mp-rank">{selectedMember.rank}</div>
+                                <button
+                                    className={`mp-follow-btn${following.has(selectedMember.name) ? ' mp-follow-btn--active' : ''}`}
+                                    onClick={() => handleFollow(selectedMember)}
+                                >
+                                    {following.has(selectedMember.name) ? '✓ Urmăresc' : '+ Urmărește'}
+                                </button>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="mp-stats">
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.points.toLocaleString()}</div>
+                                    <div className="mp-stat-lbl">Puncte</div>
+                                </div>
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.activities}</div>
+                                    <div className="mp-stat-lbl">Activități</div>
+                                </div>
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.daysActive}</div>
+                                    <div className="mp-stat-lbl">Zile Active</div>
+                                </div>
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.challenges}</div>
+                                    <div className="mp-stat-lbl">Provocări</div>
+                                </div>
+                            </div>
+
+                            {/* Bio */}
+                            <div className="mp-section">
+                                <div className="mp-section-title">Despre</div>
+                                <div className="mp-bio">{selectedMember.bio}</div>
+                            </div>
+
+                            {/* Achievements */}
+                            <div className="mp-section">
+                                <div className="mp-section-title">🏆 Realizări ({selectedMember.achievements.length})</div>
+                                <div className="mp-achievements">
+                                    {selectedMember.achievements.map((ach, i) => (
+                                        <div className="mp-ach" key={i} style={{ animationDelay: `${i * 50}ms` }}>
+                                            <span className="mp-ach-icon">{ach.icon}</span>
+                                            <div className="mp-ach-info">
+                                                <div className="mp-ach-title">{ach.title}</div>
+                                                <div className="mp-ach-date">{ach.date}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="mp-footer">Activ din {selectedMember.joinedDate}</div>
+                        </div>
+                    </div>
+                )}
 
                 {/* ── TOAST ── */}
                 <div className={`toast${toast.visible ? ' toast--show' : ''}`}>

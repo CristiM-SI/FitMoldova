@@ -44,7 +44,7 @@ const DEFAULT_DATA: DashboardData = {
     evenimenteDisponibile: MOCK_EVENIMENTE,
 };
 
-export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
+export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined); // eslint-disable-line react-refresh/only-export-components
 
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
     const [data, setData] = useState<DashboardData>(() => {

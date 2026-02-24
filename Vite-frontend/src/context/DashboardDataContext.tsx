@@ -7,6 +7,7 @@ import { MOCK_CLUBURI } from '../services/mock/cluburi';
 import type { Club } from '../services/mock/cluburi';
 import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
+import type { Traseu } from '../types/Route';
 
 interface DashboardData {
     activitatiCurente: Activitate[];
@@ -17,6 +18,7 @@ interface DashboardData {
     cluburiDisponibile: Club[];
     evenimenteInscrise: Eveniment[];
     evenimenteDisponibile: Eveniment[];
+    traseeSalvate: Traseu[];
 }
 
 export interface DashboardDataContextType extends DashboardData {
@@ -28,6 +30,8 @@ export interface DashboardDataContextType extends DashboardData {
     removeClub: (id: number) => void;
     addEveniment: (item: Eveniment) => void;
     removeEveniment: (id: number) => void;
+    addTraseu: (item: Traseu) => void;
+    removeTraseu: (id: number) => void;
     resetAll: () => void;
 }
 
@@ -42,33 +46,46 @@ const DEFAULT_DATA: DashboardData = {
     cluburiDisponibile: MOCK_CLUBURI,
     evenimenteInscrise: [],
     evenimenteDisponibile: MOCK_EVENIMENTE,
+    traseeSalvate: [],
 };
 
-export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined); // eslint-disable-line react-refresh/only-export-components
+export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
+
+/* ── Helpers ── */
+const ensureArray = <T,>(val: unknown, fallback: T[]): T[] => (Array.isArray(val) ? val as T[] : fallback);
+
+const sanitizeData = (raw: any): DashboardData => {
+    if (!raw || typeof raw !== 'object') return DEFAULT_DATA;
+
+    // Deduplicate provocări înscrise
+    const seen = new Set<number>();
+    const provocariInscrise = ensureArray(raw.provocariInscrise, []).filter((p: Provocare) => {
+        if (!p || typeof p.id !== 'number') return false;
+        if (seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+    });
+
+    return {
+        activitatiCurente:      ensureArray(raw.activitatiCurente,      []),
+        activitatiDisponibile:  ensureArray(raw.activitatiDisponibile,  MOCK_ACTIVITATI),
+        provocariInscrise,
+        provocariDisponibile:   ensureArray(raw.provocariDisponibile,   MOCK_PROVOCARI),
+        cluburiJoined:          ensureArray(raw.cluburiJoined,          []),
+        cluburiDisponibile:     ensureArray(raw.cluburiDisponibile,     MOCK_CLUBURI),
+        evenimenteInscrise:     ensureArray(raw.evenimenteInscrise,     []),
+        evenimenteDisponibile:  ensureArray(raw.evenimenteDisponibile,  MOCK_EVENIMENTE),
+        traseeSalvate:          ensureArray(raw.traseeSalvate,          []),
+    };
+};
 
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
     const [data, setData] = useState<DashboardData>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
-                const parsed = JSON.parse(saved) as DashboardData;
-                if (parsed.activitatiCurente && parsed.activitatiDisponibile) {
-                    // Deduplică provocări inscrise (fix pentru date corupte din versiuni anterioare)
-                    const seenIds = new Set<number>();
-                    const deduped = (parsed.provocariInscrise || []).filter((p) => {
-                        if (seenIds.has(p.id)) return false;
-                        seenIds.add(p.id);
-                        return true;
-                    });
-                    return {
-                        ...parsed,
-                        provocariInscrise:     deduped,
-                        evenimenteInscrise:    parsed.evenimenteInscrise    ?? [],
-                        evenimenteDisponibile: parsed.evenimenteDisponibile ?? MOCK_EVENIMENTE,
-                        cluburiJoined:         parsed.cluburiJoined         ?? [],
-                        cluburiDisponibile:    parsed.cluburiDisponibile    ?? MOCK_CLUBURI,
-                    };
-                }
+                const parsed = JSON.parse(saved);
+                return sanitizeData(parsed);
             }
         } catch { /* ignore */ }
         return DEFAULT_DATA;
@@ -172,6 +189,21 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         });
     }, []);
 
+    /* ---- Trasee ---- */
+    const addTraseu = useCallback((item: Traseu) => {
+        setData((p) => {
+            if (p.traseeSalvate.some((t) => t.id === item.id)) return p;
+            return { ...p, traseeSalvate: [...p.traseeSalvate, item] };
+        });
+    }, []);
+
+    const removeTraseu = useCallback((id: number) => {
+        setData((p) => ({
+            ...p,
+            traseeSalvate: p.traseeSalvate.filter((t) => t.id !== id),
+        }));
+    }, []);
+
     const resetAll = useCallback(() => {
         setData(DEFAULT_DATA);
         localStorage.removeItem(STORAGE_KEY);
@@ -184,6 +216,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             addProvocare, removeProvocare,
             addClub, removeClub,
             addEveniment, removeEveniment,
+            addTraseu, removeTraseu,
             resetAll,
         }}>
             {children}

@@ -51,22 +51,41 @@ const DEFAULT_DATA: DashboardData = {
 
 export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
 
+/* ── Helpers ── */
+const ensureArray = <T,>(val: unknown, fallback: T[]): T[] => (Array.isArray(val) ? val as T[] : fallback);
+
+const sanitizeData = (raw: any): DashboardData => {
+    if (!raw || typeof raw !== 'object') return DEFAULT_DATA;
+
+    // Deduplicate provocări înscrise
+    const seen = new Set<number>();
+    const provocariInscrise = ensureArray(raw.provocariInscrise, []).filter((p: Provocare) => {
+        if (!p || typeof p.id !== 'number') return false;
+        if (seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+    });
+
+    return {
+        activitatiCurente:      ensureArray(raw.activitatiCurente,      []),
+        activitatiDisponibile:  ensureArray(raw.activitatiDisponibile,  MOCK_ACTIVITATI),
+        provocariInscrise,
+        provocariDisponibile:   ensureArray(raw.provocariDisponibile,   MOCK_PROVOCARI),
+        cluburiJoined:          ensureArray(raw.cluburiJoined,          []),
+        cluburiDisponibile:     ensureArray(raw.cluburiDisponibile,     MOCK_CLUBURI),
+        evenimenteInscrise:     ensureArray(raw.evenimenteInscrise,     []),
+        evenimenteDisponibile:  ensureArray(raw.evenimenteDisponibile,  MOCK_EVENIMENTE),
+        traseeSalvate:          ensureArray(raw.traseeSalvate,          []),
+    };
+};
+
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
     const [data, setData] = useState<DashboardData>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
-                const parsed = JSON.parse(saved) as DashboardData;
-                if (parsed.activitatiCurente && parsed.activitatiDisponibile) {
-                    // Deduplică provocări inscrise (fix pentru date corupte din versiuni anterioare)
-                    const seenIds = new Set<number>();
-                    const deduped = (parsed.provocariInscrise || []).filter((p) => {
-                        if (seenIds.has(p.id)) return false;
-                        seenIds.add(p.id);
-                        return true;
-                    });
-                    return { ...parsed, provocariInscrise: deduped };
-                }
+                const parsed = JSON.parse(saved);
+                return sanitizeData(parsed);
             }
         } catch { /* ignore */ }
         return DEFAULT_DATA;

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { scrollToSection } from '../utils/navigation';
@@ -14,6 +14,13 @@ interface Feature {
 
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === '#features') {
+      setTimeout(() => scrollToSection('features'), 100);
+    }
+  }, [location.hash]);
 
   const features: Feature[] = [
     {

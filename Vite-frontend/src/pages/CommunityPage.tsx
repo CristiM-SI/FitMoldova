@@ -512,7 +512,7 @@ const CLUB_CAT_GRADIENTS: Record<string, string> = {
     Ciclism:  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     Fitness:  'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
     Yoga:     'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
-    Înot:     'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
+    Inot:     'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
     Trail:    'linear-gradient(135deg, #22c55e 0%, #15803d 100%)',
     default:  'linear-gradient(135deg, #1a6fff 0%, #7c3aed 100%)',
 };

@@ -19,6 +19,7 @@ import EVENTS from './pages/Evenimente'
 import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
+import ForumPage from './pages/ForumPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -149,6 +150,9 @@ function App() {
                                     }
                                 />
 
+                                {/* Rută publică Trasee */}
+                                <Route path={ROUTES.ROUTES_MAP} element={<RoutesPage />} />
+
                                 {/* Rută publică Contact */}
                                 <Route path={ROUTES.CONTACT} element={<Contact />} />
 
@@ -158,6 +162,16 @@ function App() {
                                     element={
                                         <ProtectedRoute>
                                             <Feedback />
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                {/* Rută protejată Forum */}
+                                <Route
+                                    path={ROUTES.FORUM}
+                                    element={
+                                        <ProtectedRoute>
+                                            <ForumPage />
                                         </ProtectedRoute>
                                     }
                                 />

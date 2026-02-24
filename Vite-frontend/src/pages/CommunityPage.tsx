@@ -1,11 +1,11 @@
-﻿import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useDashboardData } from '../context/useDashboardData';
 import { useProgress } from '../context/ProgressContext';
 import { useAuth } from '../context/AuthContext';
-import {
+import { 
     SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS, MEMBER_POSTS,
 } from '../services/mock/community';
 import type {
@@ -521,6 +521,12 @@ const CLUB_CAT_GRADIENTS: Record<string, string> = {
 // COMPONENT
 // ─────────────────────────────────────────────
 
+const TABS: { id: FeedTab; label: string }[] = [
+    { id: 'feed',       label: '📰 Feed' },
+    { id: 'challenges', label: '🏆 Provocări' },
+    { id: 'members',    label: '👥 Membri' },
+];
+
 export default function CommunityPage() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -552,6 +558,7 @@ export default function CommunityPage() {
     }, []);
 
     const handlePublish = useCallback((): void => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: location } }); return; }
         if (!postInput.trim()) { showToast('⚠️', 'Scrie ceva înainte de a publica!'); return; }
         const newPost: Post = {
             id:       Date.now(),
@@ -578,6 +585,7 @@ export default function CommunityPage() {
     }, []);
 
     const handleJoin = useCallback((id: number): void => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: location } }); return; }
         setChallenges((prev) =>
             prev.map((c) => {
                 if (c.id !== id) return c;
@@ -650,22 +658,6 @@ export default function CommunityPage() {
 
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
-    // Left nav items — internal tabs + route-based items
-    const NAV_ITEMS = [
-        { id: 'feed',       icon: '📰', label: 'Feed',      badge: null,                   action: () => setTab('feed'),       isTab: true  },
-        { id: 'challenges', icon: '🏆', label: 'Provocări', badge: { text: '15', type: 'count' as const }, action: () => setTab('challenges'), isTab: true  },
-        { id: 'members',    icon: '👥', label: 'Membri',    badge: null,                   action: () => setTab('members'),    isTab: true  },
-        { divider: true },
-        { id: 'clubs',      icon: '🏟️', label: 'Cluburi',   badge: null,                                          action: () => setTab('clubs'),         isTab: true  },
-        { id: 'forum',      icon: '💬', label: 'Forum',     badge: { text: 'În curând', type: 'soon' as const },  action: () => navigate(ROUTES.FORUM),  isTab: false },
-    ] as const;
-
-    const isNavActive = (item: (typeof NAV_ITEMS)[number]): boolean => {
-        if (!('id' in item)) return false;
-        if (item.isTab) return tab === item.id;
-        return location.pathname === ROUTES.FORUM;
-    };
-
     return (
         <>
             <style>{CSS}</style>
@@ -725,6 +717,7 @@ export default function CommunityPage() {
                         {tab === 'feed' && (
                             <>
                                 {/* Create Post */}
+                            {isAuthenticated ? (
                                 <div className="card">
                                     <div className="create-row">
                                         <div className="user-ava">{userAvatar}</div>
@@ -756,363 +749,177 @@ export default function CommunityPage() {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Sport filter */}
-                                <div className="card" style={{ padding: '14px 18px' }}>
-                                    <div className="chips">
-                                        {SPORT_CHIPS.map((c) => (
-                                            <button
-                                                key={c.value}
-                                                className={`chip${filter === c.value ? ' chip--active' : ''}`}
-                                                onClick={() => setFilter(c.value)}
-                                            >
-                                                {c.emoji} {c.label}
-                                            </button>
-                                        ))}
-                                    </div>
+                            ) : (
+                                <div className="ov-empty">
+                                    <div className="ov-empty-icon">✍️</div>
+                                    <p className="ov-empty-text">Autentifică-te pentru a publica postări</p>
+                                    <button
+                                        className="ov-btn-join"
+                                        style={{ marginTop: '1rem' }}
+                                        onClick={() => navigate(ROUTES.LOGIN, { state: { from: location } })}
+                                    >
+                                        → Autentifică-te
+                                    </button>
                                 </div>
+                            )}
 
-                                {/* Posts */}
-                                <div className="feed">
-                                    {filteredPosts.length === 0 ? (
-                                        <div className="empty">
-                                            <div className="empty__icon">{following.size === 0 ? '👥' : '📭'}</div>
-                                            <div className="empty__title">
-                                                {following.size === 0 ? 'Urmărește membri' : 'Nicio postare încă'}
-                                            </div>
-                                            <div className="empty__sub">
-                                                {following.size === 0 ? (
-                                                    <>Mergi la tabul <strong>Membri</strong> și urmărește sportivi<br />pentru a le vedea postările aici în feed.</>
-                                                ) : (
-                                                    <>Membrii urmăriți nu au postări la acest filtru.<br />Scrie tu ceva sau schimbă filtrul de sport.</>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        filteredPosts.map((p) => (
-                                            <div className="post" key={p.id}>
-                                                <div className="post__header">
-                                                    <div className="post__ava" style={{ background: p.color }}>
-                                                        {getInitials(p.author)}
-                                                    </div>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div className="post__author">{p.author}</div>
-                                                        <div className="post__time">{p.time}</div>
-                                                    </div>
-                                                    <span className="post__badge">{p.sport}</span>
-                                                </div>
-                                                <div className="post__tag">#{p.sport}</div>
-                                                <div className="post__content">{p.content}</div>
-                                                <div className="post__actions">
-                                                    <button
-                                                        className={`post-btn${p.liked ? ' post-btn--liked' : ''}`}
-                                                        onClick={() => handleLike(p.id)}
-                                                    >
-                                                        {p.liked ? '❤️' : '🤍'} {p.likes}
-                                                    </button>
-                                                    <button className="post-btn">💬 {p.comments}</button>
-                                                    <button className="post-btn">🔗 Distribuie</button>
-                                                    <button className="post-btn" style={{ marginLeft: 'auto' }}>🔖 Salvează</button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </>
-                        )}
+                        {/* Sport filter */}
+                        <div className="db-section-card ov-section" style={{ padding: '1rem 1.25rem' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                                {SPORT_CHIPS.map((c) => (
+                                    <button
+                                        key={c.value}
+                                        onClick={() => setFilter(c.value)}
+                                        style={{
+                                            padding: '5px 12px', borderRadius: 100, cursor: 'pointer',
+                                            border: `1px solid ${filter === c.value ? '#1a7fff' : 'rgba(26, 127, 255, 0.15)'}`,
+                                            background: filter === c.value ? '#1a7fff' : 'transparent',
+                                            color: filter === c.value ? '#fff' : '#7a8baa',
+                                            fontSize: '0.74rem', fontWeight: 600, whiteSpace: 'nowrap',
+                                            transition: 'all 0.15s',
+                                        }}
+                                    >
+                                        {c.emoji} {c.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
-                        {/* ════ PROVOCĂRI ════ */}
-                        {tab === 'challenges' && (
-                            <>
-                                <div>
-                                    <div className="sec-title">Provocări Active 🔥</div>
-                                    <div className="sec-sub">Alătură-te și câștigă puncte în clasament</div>
+                        {/* Posts */}
+                        <div className="db-section-card ov-section">
+                            {filteredPosts.length === 0 ? (
+                                <div className="ov-empty">
+                                    <div className="ov-empty-icon">📭</div>
+                                    <p className="ov-empty-text">Nicio postare încă</p>
+                                    <p className="ov-empty-hint">Fii primul care distribuie ceva cu comunitatea!</p>
                                 </div>
-                                <div className="feed">
-                                    {challenges.map((c) => (
-                                        <div className="challenge" key={c.id}>
-                                            <div>
-                                                <div className="ch__emoji">{c.sport}</div>
-                                                <div className="ch__title">{c.title}</div>
-                                                <div className="ch__desc">{c.desc}</div>
-                                                <div className="ch__meta">
-                                                    <div className="ch__pill">
-                                                        <div className="ch__dot" style={{ background: '#00e676' }} />
-                                                        {c.participants.toLocaleString()} participanți
-                                                    </div>
-                                                    <div className="ch__pill">
-                                                        <div className="ch__dot" style={{ background: '#ff9100' }} />
-                                                        {c.days} zile rămase
-                                                    </div>
+                            ) : (
+                                <div className="ov-list">
+                                    {filteredPosts.map((p) => (
+                                        <div className="ov-item" key={p.id} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                                                <div className="db-avatar" style={{ background: p.color }}>{getInitials(p.author)}</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="ov-item-name">{p.author}</div>
+                                                    <div style={{ fontSize: '0.72rem', color: '#7a8baa' }}>{p.time}</div>
                                                 </div>
+                                                <span className="ov-tag">{p.sport}</span>
+                                            </div>
+                                            <div style={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, marginBottom: 12 }}>
+                                                {p.content}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 4, borderTop: '1px solid rgba(26, 127, 255, 0.1)', paddingTop: 10 }}>
                                                 <button
-                                                    className={`ch__join ${c.joined ? 'ch__join--joined' : 'ch__join--default'}`}
-                                                    onClick={() => handleJoin(c.id)}
+                                                    onClick={() => handleLike(p.id)}
+                                                    style={{ background: 'transparent', border: 'none', color: p.liked ? '#ff4d6d' : '#7a8baa', cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, padding: '4px 8px', borderRadius: 6 }}
                                                 >
-                                                    {c.joined ? '✓ Înrolat' : 'Alătură-te'}
+                                                    {p.liked ? '❤️' : '🤍'} {p.likes}
+                                                </button>
+                                                <button style={{ background: 'transparent', border: 'none', color: '#7a8baa', cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, padding: '4px 8px', borderRadius: 6 }}>
+                                                    💬 {p.comments}
                                                 </button>
                                             </div>
-                                            <CircleProgress pct={c.progress} uid={String(c.id)} />
                                         </div>
                                     ))}
                                 </div>
-                            </>
-                        )}
+                            )}
+                        </div>
+                    </>
+                )}
 
-                        {/* ════ MEMBRI ════ */}
-                        {tab === 'members' && (
-                            <>
-                                <div>
-                                    <div className="sec-title">Membri Comunitate 👥</div>
-                                    <div className="sec-sub">Sportivi activi din Moldova</div>
-                                </div>
-                                <div className="member-grid">
-                                    {MEMBERS.map((m) => (
-                                        <div
-                                            className="member-card"
-                                            key={m.name}
-                                            onClick={() => setSelectedMember(m)}
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            <div className="m__ava" style={{ background: m.color, boxShadow: `0 0 14px ${m.color}44` }}>
-                                                {getInitials(m.name)}
-                                            </div>
-                                            <div className="m__name">{m.name}</div>
-                                            <div className="m__sub">📍 {m.city} · {m.sport}</div>
-                                            <div className="m__rank">{m.rank}</div>
-                                            <div className="m__pts">{m.points.toLocaleString()} <span>pts</span></div>
-                                            <div style={{ marginTop: 10, fontSize: '.72rem', color: 'var(--cyan)', textAlign: 'center', opacity: .7 }}>
-                                                Vezi profil →
-                                            </div>
+                {/* ══ PROVOCĂRI ══ */}
+                {tab === 'challenges' && (
+                    <div className="db-section-card ov-section">
+                        <h3 className="db-section-title">Provocări Active 🔥</h3>
+                        <p className="ov-section-desc">Alătură-te și câștigă puncte în clasament</p>
+                        <div className="ov-list">
+                            {challenges.map((c) => (
+                                <div className="ov-item" key={c.id}>
+                                    <div className="ov-item-icon">{c.sport}</div>
+                                    <div className="ov-item-info">
+                                        <div className="ov-item-name">{c.title}</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#7a8baa', margin: '0.2rem 0 0.4rem' }}>{c.desc}</div>
+                                        <div className="ov-item-meta">
+                                            <span>👥 {c.participants.toLocaleString()} participanți</span>
+                                            <span>⏱ {c.days} zile rămase</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* ════ CLUBURI ════ */}
-                        {tab === 'clubs' && (
-                            <>
-                                <div>
-                                    <div className="sec-title">Cluburi Sportive 🏟️</div>
-                                    <div className="sec-sub">Cluburile tale și toate opțiunile disponibile în Moldova</div>
-                                </div>
-
-                                <div className="cv-layout">
-
-                                    {/* ── Left: joined clubs ── */}
-                                    <aside className="cv-joined">
-                                        <div className="cv-joined-head">
-                                            <span className="cv-joined-title">Cluburile mele</span>
-                                            <span className="cv-joined-badge">{cluburiJoined.length}</span>
+                                        <div className="ov-progress-bar">
+                                            <div className="ov-progress-fill" style={{ width: `${c.progress}%` }} />
                                         </div>
-                                        <div className="cv-joined-list">
-                                            {cluburiJoined.length === 0 ? (
-                                                <div className="cv-joined-empty">
-                                                    <div className="cv-joined-empty-icon">🏟️</div>
-                                                    <div className="cv-joined-empty-text">
-                                                        Nu ești în niciun club.<br />Explorează și alătură-te!
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                cluburiJoined.map((c) => (
-                                                    <div className="cv-jclub" key={c.id}>
-                                                        <div
-                                                            className="cv-jclub-bar"
-                                                            style={{ background: CLUB_CAT_GRADIENTS[c.category] ?? CLUB_CAT_GRADIENTS.default }}
-                                                        />
-                                                        <span className="cv-jclub-icon">{c.icon}</span>
-                                                        <div className="cv-jclub-info">
-                                                            <div className="cv-jclub-name">{c.name}</div>
-                                                            <div className="cv-jclub-meta">
-                                                                📍 {c.location.split(',')[0]} · {c.members} membri
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            className="cv-jclub-leave"
-                                                            onClick={() => handleLeaveClub(c.id)}
-                                                        >
-                                                            Ieși
-                                                        </button>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    </aside>
-
-                                    {/* ── Right: explore ── */}
-                                    <div className="cv-explore">
-
-                                        {/* Search bar */}
-                                        <div className="cv-search-row">
-                                            <span className="cv-search-icon">🔍</span>
-                                            <input
-                                                className="cv-search-input"
-                                                placeholder="Caută cluburi după nume sau oraș…"
-                                                value={clubSearch}
-                                                onChange={(e) => setClubSearch(e.target.value)}
-                                            />
-                                        </div>
-
-                                        {/* Category filter chips */}
-                                        <div className="cv-cats">
-                                            {CLUB_CATEGORIES.map((cat) => (
-                                                <button
-                                                    key={cat}
-                                                    className={`cv-cat${clubCat === cat ? ' cv-cat--active' : ''}`}
-                                                    onClick={() => setClubCat(cat)}
-                                                >
-                                                    {cat}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        {/* Results count */}
-                                        <div style={{ fontSize: '.78rem', color: 'var(--muted)' }}>
-                                            {filteredClubs.length} club{filteredClubs.length !== 1 ? 'uri' : ''} găsite
-                                        </div>
-
-                                        {/* Grid or empty state */}
-                                        {filteredClubs.length === 0 ? (
-                                            <div className="cv-empty">
-                                                <div className="cv-empty-icon">🔍</div>
-                                                <div className="cv-empty-title">Niciun club găsit</div>
-                                                <div className="cv-empty-sub">
-                                                    Încearcă alt termen de căutare sau o altă categorie.
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="cv-grid">
-                                                {filteredClubs.map((c) => {
-                                                    const isJoined = cluburiJoined.some((j) => j.id === c.id);
-                                                    const gradient = CLUB_CAT_GRADIENTS[c.category] ?? CLUB_CAT_GRADIENTS.default;
-                                                    return (
-                                                        <div
-                                                            className={`cv-card${isJoined ? ' cv-card--joined' : ''}`}
-                                                            key={c.id}
-                                                        >
-                                                            <div className="cv-card-hero" style={{ background: gradient }}>
-                                                                <span className="cv-card-hero-icon">{c.icon}</span>
-                                                                {isJoined && <span className="cv-hero-joined">✓ Membru</span>}
-                                                            </div>
-                                                            <div className="cv-card-body">
-                                                                <div className="cv-card-name">{c.name}</div>
-                                                                <div className="cv-card-loc">📍 {c.location}</div>
-                                                                <div className="cv-card-desc">{c.description}</div>
-                                                                {c.nextEvent && (
-                                                                    <div className="cv-next-event">
-                                                                        <span>📅</span>
-                                                                        <span>{c.nextEvent}</span>
-                                                                    </div>
-                                                                )}
-                                                                <div className="cv-card-chips">
-                                                                    <span className="cv-chip cv-chip--cat">{c.category}</span>
-                                                                    <span className="cv-chip">{c.level}</span>
-                                                                    <span className="cv-chip">{c.schedule}</span>
-                                                                </div>
-                                                                <div className="cv-card-footer">
-                                                                    <div className="cv-card-stats">
-                                                                        <div className="cv-card-members">👥 {c.members} membri</div>
-                                                                        <div className="cv-card-rating">★ {c.rating.toFixed(1)}</div>
-                                                                    </div>
-                                                                    <button
-                                                                        className={`cv-join-btn${isJoined ? ' cv-join-btn--leave' : ''}`}
-                                                                        onClick={() => isJoined ? handleLeaveClub(c.id) : handleJoinClub(c)}
-                                                                    >
-                                                                        {isJoined ? 'Ieși' : 'Alătură-te'}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
                                     </div>
+                                    <button
+                                        className={c.joined ? 'ov-btn-leave' : 'ov-btn-join'}
+                                        onClick={() => handleJoin(c.id)}
+                                    >
+                                        {c.joined ? 'Părăsește' : 'Alătură-te'}
+                                    </button>
                                 </div>
-                            </>
-                        )}
-
-                    </div>
-                </div>
-
-                {/* ── MEMBER MODAL ── */}
-                {selectedMember && (
-                    <div className="mp-backdrop" onClick={() => setSelectedMember(null)}>
-                        <div className="mp-panel" onClick={(e) => e.stopPropagation()}>
-                            <button className="mp-close" onClick={() => setSelectedMember(null)} aria-label="Închide">✕</button>
-
-                            {/* Hero */}
-                            <div className="mp-hero">
-                                <div className="mp-ava" style={{ background: selectedMember.color, boxShadow: `0 0 32px ${selectedMember.color}55` }}>
-                                    {getInitials(selectedMember.name)}
-                                </div>
-                                <div className="mp-name">{selectedMember.name}</div>
-                                <div className="mp-meta">📍 {selectedMember.city} · {selectedMember.sport}</div>
-                                <div className="mp-rank">{selectedMember.rank}</div>
-                                <button
-                                    className={`mp-follow-btn${following.has(selectedMember.name) ? ' mp-follow-btn--active' : ''}`}
-                                    onClick={() => handleFollow(selectedMember)}
-                                >
-                                    {following.has(selectedMember.name) ? '✓ Urmăresc' : '+ Urmărește'}
-                                </button>
-                            </div>
-
-                            {/* Stats */}
-                            <div className="mp-stats">
-                                <div className="mp-stat">
-                                    <div className="mp-stat-val">{selectedMember.points.toLocaleString()}</div>
-                                    <div className="mp-stat-lbl">Puncte</div>
-                                </div>
-                                <div className="mp-stat">
-                                    <div className="mp-stat-val">{selectedMember.activities}</div>
-                                    <div className="mp-stat-lbl">Activități</div>
-                                </div>
-                                <div className="mp-stat">
-                                    <div className="mp-stat-val">{selectedMember.daysActive}</div>
-                                    <div className="mp-stat-lbl">Zile Active</div>
-                                </div>
-                                <div className="mp-stat">
-                                    <div className="mp-stat-val">{selectedMember.challenges}</div>
-                                    <div className="mp-stat-lbl">Provocări</div>
-                                </div>
-                            </div>
-
-                            {/* Bio */}
-                            <div className="mp-section">
-                                <div className="mp-section-title">Despre</div>
-                                <div className="mp-bio">{selectedMember.bio}</div>
-                            </div>
-
-                            {/* Achievements */}
-                            <div className="mp-section">
-                                <div className="mp-section-title">🏆 Realizări ({selectedMember.achievements.length})</div>
-                                <div className="mp-achievements">
-                                    {selectedMember.achievements.map((ach, i) => (
-                                        <div className="mp-ach" key={i} style={{ animationDelay: `${i * 50}ms` }}>
-                                            <span className="mp-ach-icon">{ach.icon}</span>
-                                            <div className="mp-ach-info">
-                                                <div className="mp-ach-title">{ach.title}</div>
-                                                <div className="mp-ach-date">{ach.date}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="mp-footer">Activ din {selectedMember.joinedDate}</div>
+                            ))}
                         </div>
                     </div>
                 )}
 
-                {/* ── TOAST ── */}
-                <div className={`toast${toast.visible ? ' toast--show' : ''}`}>
-                    <span style={{ fontSize: '1.2rem' }}>{toast.icon}</span>
-                    <span>{toast.msg}</span>
+                {/* ══ MEMBRI ══ */}
+                {tab === 'members' && (
+                    <div className="db-section-card ov-section">
+                        <h3 className="db-section-title">Membri Comunitate 👥</h3>
+                        <p className="ov-section-desc">Sportivi activi din Moldova</p>
+                        <div className="ov-list">
+                            {MEMBERS.map((m) => (
+                                <div className="ov-item" key={m.name}>
+                                    <div
+                                        className="db-avatar"
+                                        style={{ background: m.color, boxShadow: `0 0 12px ${m.color}55`, flexShrink: 0 }}
+                                    >
+                                        {getInitials(m.name)}
+                                    </div>
+                                    <div className="ov-item-info">
+                                        <div className="ov-item-name">{m.name}</div>
+                                        <div className="ov-item-meta">
+                                            <span className="ov-tag">{m.rank}</span>
+                                            <span>📍 {m.city}</span>
+                                            <span>{m.sport}</span>
+                                            <span style={{ color: '#1a7fff', fontWeight: 700 }}>{m.points.toLocaleString()} pts</span>
+                                        </div>
+                                    </div>
+                                    <button className="ov-btn-join" onClick={() => showToast('👤', 'Profil în curând!')}>
+                                        Urmărește
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Back */}
+                <div className="ov-back-wrap">
+                    {isAuthenticated ? (
+                        <Link to={ROUTES.DASHBOARD} className="ov-btn-back">← Înapoi la Dashboard</Link>
+                    ) : (
+                        <Link to={ROUTES.HOME} className="ov-btn-back">← Înapoi Acasă</Link>
+                    )}
                 </div>
 
+                    </div>
+                </div>
             </div>
+
+            {/* Toast */}
+            <div style={{
+                position: 'fixed', bottom: 28, right: 28, zIndex: 300,
+                background: '#0d1526', border: '1px solid rgba(26, 127, 255, 0.3)',
+                borderRadius: 12, padding: '13px 18px',
+                display: 'flex', alignItems: 'center', gap: 10,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)', fontSize: '0.86rem',
+                transform: toast.visible ? 'translateY(0)' : 'translateY(80px)',
+                opacity: toast.visible ? 1 : 0,
+                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                pointerEvents: 'none',
+            }}>
+                <span style={{ fontSize: '1.2rem' }}>{toast.icon}</span>
+                <span style={{ color: '#e8f0fe' }}>{toast.msg}</span>
+            </div>
+
         </>
     );
 }

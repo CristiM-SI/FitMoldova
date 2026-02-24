@@ -46,6 +46,10 @@ const Dashboard: React.FC = () => {
               <span className="db-nav-icon">🏆</span>
               Provocări
             </Link>
+            <Link to={ROUTES.COMMUNITY} className="db-nav-item">
+              <span className="db-nav-icon">💬</span>
+              Comunitate
+            </Link>
             <Link to={ROUTES.CLUBS} className="db-nav-item">
               <span className="db-nav-icon">👥</span>
               Cluburi

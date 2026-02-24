@@ -60,7 +60,14 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
                         seenIds.add(p.id);
                         return true;
                     });
-                    return { ...parsed, provocariInscrise: deduped };
+                    return {
+                        ...parsed,
+                        provocariInscrise:     deduped,
+                        evenimenteInscrise:    parsed.evenimenteInscrise    ?? [],
+                        evenimenteDisponibile: parsed.evenimenteDisponibile ?? MOCK_EVENIMENTE,
+                        cluburiJoined:         parsed.cluburiJoined         ?? [],
+                        cluburiDisponibile:    parsed.cluburiDisponibile    ?? MOCK_CLUBURI,
+                    };
                 }
             }
         } catch { /* ignore */ }

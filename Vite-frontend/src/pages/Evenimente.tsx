@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDashboardData } from '../context/useDashboardData';
 import { ROUTES } from '../routes/paths';
@@ -38,7 +38,7 @@ const capacityClass = (pct: number) => {
 };
 
 const EvenimenteDashboard: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, isAuthenticated } = useAuth();
     const {
         evenimenteInscrise: inscrise,
         evenimenteDisponibile: disponibile,
@@ -46,7 +46,6 @@ const EvenimenteDashboard: React.FC = () => {
         removeEveniment,
     } = useDashboardData();
     const navigate = useNavigate();
-    const location = useLocation();
 
     const [view, setView] = useState<ViewType>('all');
     const [search, setSearch] = useState('');

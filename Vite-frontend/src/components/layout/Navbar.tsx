@@ -3,7 +3,6 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
 import { ROUTES } from '../../routes/paths';
-import { scrollToSection } from '../../utils/navigation';
 import { UserCircleIcon, Squares2X2Icon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
 import '../../styles/Navbar.css';
 
@@ -53,7 +52,7 @@ const Navbar: React.FC = () => {
         <Link to={ROUTES.HOME} className="logo">FitMoldova</Link>
 
         <ul className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
-          <li><button onClick={() => { scrollToSection('features'); closeMenu(); }} className="nav-link-btn">Features</button></li>
+          <li><button onClick={() => { navigate({ pathname: ROUTES.HOME, hash: '#features' }); closeMenu(); }} className="nav-link-btn">Features</button></li>
           <li><button onClick={() => { navigate(ROUTES.COMMUNITY); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
           <li><button onClick={() => { navigate(ROUTES.EVENTS); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
           <li>

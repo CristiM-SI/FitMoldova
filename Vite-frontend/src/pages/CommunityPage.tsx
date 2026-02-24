@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+﻿import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
@@ -6,10 +6,10 @@ import { useDashboardData } from '../context/useDashboardData';
 import { useProgress } from '../context/ProgressContext';
 import { useAuth } from '../context/AuthContext';
 import {
-    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS,
+    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS, MEMBER_POSTS,
 } from '../services/mock/community';
 import type {
-    Sport, FeedTab, Post, Challenge, ToastState,
+    Sport, FeedTab, Post, Challenge, ToastState, Member,
 } from '../services/mock/community';
 
 // ─────────────────────────────────────────────
@@ -331,10 +331,191 @@ const CSS = `
   .fm ::-webkit-scrollbar { width: 5px; }
   .fm ::-webkit-scrollbar-thumb { background: rgba(0,200,255,.2); border-radius: 100px; }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  @keyframes pulse  { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes pulse   { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
   .pulse { animation: pulse 1.5s infinite; }
+
+  /* ── MEMBER MODAL ── */
+  .mp-backdrop {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: mpFadeIn .2s ease;
+  }
+  .mp-panel {
+    background: var(--card); border: 1px solid rgba(0,200,255,.22);
+    border-radius: 20px; width: 100%; max-width: 460px;
+    max-height: 88vh; overflow-y: auto; position: relative;
+    animation: mpSlideUp .25s ease;
+  }
+  .mp-panel::-webkit-scrollbar { width: 4px; }
+  .mp-panel::-webkit-scrollbar-thumb { background: rgba(0,200,255,.2); border-radius: 100px; }
+  .mp-close {
+    position: absolute; top: 14px; right: 14px; z-index: 10;
+    background: rgba(255,255,255,.06); border: none; color: var(--muted);
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    font-size: .9rem; display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .mp-close:hover { background: rgba(255,255,255,.14); color: #fff; }
+
+  /* hero */
+  .mp-hero {
+    padding: 36px 24px 22px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .mp-ava {
+    width: 82px; height: 82px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+    font-size: 1.9rem; color: #fff; margin-bottom: 14px;
+    box-shadow: 0 0 32px color-mix(in srgb, currentColor 30%, transparent);
+  }
+  .mp-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.55rem; font-weight: 900; letter-spacing: -.5px; }
+  .mp-meta { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+  .mp-rank {
+    background: var(--cdim); color: var(--cyan);
+    border: 1px solid rgba(0,200,255,.2);
+    border-radius: 100px; padding: 4px 16px; font-size: .74rem; font-weight: 700;
+    margin: 10px 0 14px;
+  }
+  .mp-follow-btn {
+    padding: 9px 28px; border-radius: 9px; border: 1.5px solid var(--cyan);
+    color: var(--cyan); background: transparent; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase;
+    transition: all .2s;
+  }
+  .mp-follow-btn:hover { background: var(--cdim); }
+  .mp-follow-btn--active { background: var(--cdim); color: #fff; border-color: rgba(0,200,255,.4); }
+  .mp-follow-btn--active:hover { background: rgba(255,77,109,.1); border-color: #ff4d6d; color: #ff4d6d; }
+
+  /* stats bar */
+  .mp-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 18px 20px; gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mp-stat { text-align: center; }
+  .mp-stat-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.35rem; font-weight: 900; color: var(--cyan);
+  }
+  .mp-stat-lbl { font-size: .62rem; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* sections */
+  .mp-section { padding: 18px 22px; border-bottom: 1px solid var(--border); }
+  .mp-section:last-child { border-bottom: none; }
+  .mp-section-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: .75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+  .mp-bio { font-size: .85rem; line-height: 1.7; color: #c8d8f0; }
+
+  /* achievements */
+  .mp-achievements { display: flex; flex-direction: column; gap: 9px; }
+  .mp-ach {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    background: var(--card2); border: 1px solid var(--border);
+    animation: fadeUp .2s ease both;
+  }
+  .mp-ach-icon { font-size: 1.35rem; flex-shrink: 0; }
+  .mp-ach-info { flex: 1; }
+  .mp-ach-title { font-weight: 700; font-size: .84rem; }
+  .mp-ach-date  { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+
+  /* footer */
+  .mp-footer { padding: 14px 22px; text-align: center; font-size: .75rem; color: var(--muted); }
+
+  @keyframes mpFadeIn   { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes mpSlideUp  { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+
+  /* ── CLUBS TAB ── */
+  .cv-layout { display: grid; grid-template-columns: 248px 1fr; gap: 18px; align-items: start; }
+
+  /* Left: joined */
+  .cv-joined { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: 80px; }
+  .cv-joined-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .cv-joined-title { font-family: 'Barlow Condensed', sans-serif; font-size: .88rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; flex: 1; }
+  .cv-joined-badge { background: var(--cdim); color: var(--cyan); border-radius: 100px; padding: 2px 9px; font-size: .68rem; font-weight: 700; }
+  .cv-joined-list { display: flex; flex-direction: column; }
+  .cv-jclub { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--border); position: relative; transition: background .15s; }
+  .cv-jclub:last-child { border-bottom: none; }
+  .cv-jclub:hover { background: rgba(255,255,255,.025); }
+  .cv-jclub-bar { width: 3px; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 2px 2px 0; }
+  .cv-jclub-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .cv-jclub-info { flex: 1; min-width: 0; }
+  .cv-jclub-name { font-weight: 700; font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cv-jclub-meta { font-size: .67rem; color: var(--muted); margin-top: 2px; }
+  .cv-jclub-leave { background: none; border: 1px solid rgba(255,77,109,.3); color: #ff4d6d; border-radius: 6px; padding: 3px 8px; font-size: .65rem; font-weight: 700; cursor: pointer; transition: all .2s; white-space: nowrap; flex-shrink: 0; }
+  .cv-jclub-leave:hover { background: rgba(255,77,109,.1); border-color: #ff4d6d; }
+  .cv-joined-empty { padding: 28px 16px; text-align: center; }
+  .cv-joined-empty-icon { font-size: 1.8rem; opacity: .4; margin-bottom: 8px; }
+  .cv-joined-empty-text { font-size: .74rem; color: var(--muted); line-height: 1.65; }
+
+  /* Right: explore */
+  .cv-explore { display: flex; flex-direction: column; gap: 12px; }
+  .cv-search-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px; transition: border-color .2s; }
+  .cv-search-row:focus-within { border-color: rgba(0,200,255,.4); }
+  .cv-search-icon { color: var(--muted); font-size: .95rem; flex-shrink: 0; }
+  .cv-search-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'Barlow', sans-serif; font-size: .87rem; }
+  .cv-search-input::placeholder { color: var(--muted); }
+  .cv-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cv-cat { padding: 5px 13px; border-radius: 100px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .72rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .cv-cat:hover { border-color: rgba(0,200,255,.35); color: var(--cyan); }
+  .cv-cat--active { background: var(--cdim); border-color: rgba(0,200,255,.4); color: var(--cyan); }
+
+  /* Grid */
+  .cv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .cv-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: transform .22s, border-color .22s, box-shadow .22s; display: flex; flex-direction: column; }
+  .cv-card:hover { transform: translateY(-5px); border-color: rgba(0,200,255,.3); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
+  .cv-card--joined { border-color: rgba(0,200,255,.28); }
+  .cv-card-hero { height: 90px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .cv-card-hero-icon { font-size: 2.6rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
+  .cv-hero-joined { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); color: var(--cyan); border: 1px solid rgba(0,200,255,.4); border-radius: 100px; padding: 2px 10px; font-size: .64rem; font-weight: 700; }
+  .cv-card-body { padding: 13px 14px; display: flex; flex-direction: column; flex: 1; }
+  .cv-card-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .cv-card-loc { font-size: .69rem; color: var(--muted); margin-bottom: 8px; }
+  .cv-card-desc { font-size: .77rem; color: #8a9bbc; line-height: 1.55; margin-bottom: 9px; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cv-next-event { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(26,111,255,.1); border: 1px solid rgba(26,111,255,.2); border-radius: 8px; margin-bottom: 9px; font-size: .7rem; color: #c0d0ff; }
+  .cv-card-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .cv-chip { padding: 2px 8px; border-radius: 100px; font-size: .62rem; font-weight: 700; border: 1px solid rgba(255,255,255,.1); color: #aaa; background: rgba(255,255,255,.06); }
+  .cv-chip--cat { background: var(--cdim); color: var(--cyan); border-color: rgba(0,200,255,.2); }
+  .cv-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); margin-top: auto; }
+  .cv-card-stats { display: flex; flex-direction: column; gap: 1px; }
+  .cv-card-members { font-size: .69rem; color: var(--muted); }
+  .cv-card-rating { font-size: .69rem; color: #fbbf24; }
+  .cv-join-btn { padding: 6px 13px; border-radius: 7px; background: var(--blue); color: #fff; border: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .76rem; letter-spacing: .5px; cursor: pointer; transition: all .2s; }
+  .cv-join-btn:hover { background: #2a7fff; box-shadow: 0 0 16px rgba(26,111,255,.5); }
+  .cv-join-btn--leave { background: transparent; border: 1px solid rgba(255,77,109,.4); color: #ff4d6d; }
+  .cv-join-btn--leave:hover { background: rgba(255,77,109,.1); border-color: #ff4d6d; box-shadow: none; }
+
+  /* empty */
+  .cv-empty { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .cv-empty-icon { font-size: 2.2rem; margin-bottom: 12px; opacity: .45; }
+  .cv-empty-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .cv-empty-sub { font-size: .82rem; line-height: 1.6; }
 `;
+
+// ─────────────────────────────────────────────
+// CLUBS HELPERS
+// ─────────────────────────────────────────────
+
+const CLUB_CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Înot', 'Trail'] as const;
+
+const CLUB_CAT_GRADIENTS: Record<string, string> = {
+    Alergare: 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)',
+    Ciclism:  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    Fitness:  'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+    Yoga:     'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+    Înot:     'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
+    Trail:    'linear-gradient(135deg, #22c55e 0%, #15803d 100%)',
+    default:  'linear-gradient(135deg, #1a6fff 0%, #7c3aed 100%)',
+};
 
 // ─────────────────────────────────────────────
 // COMPONENT
@@ -356,10 +537,14 @@ export default function CommunityPage() {
     const [postInput, setPostInput]   = useState<string>('');
     const [postSport, setPostSport]   = useState<Sport>('Fotbal');
     const [toast, setToast]           = useState<ToastState>({ icon: '', msg: '', visible: false });
+    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+    const [following, setFollowing]           = useState<Set<string>>(new Set());
+    const [clubSearch, setClubSearch]         = useState('');
+    const [clubCat, setClubCat]               = useState('Toate');
 
-    // Dashboard sync — adaugă/scoate provocări în dashboard când user-ul e logat
-    const { addProvocare, removeProvocare } = useDashboardData();
-    const { completeChallenge } = useProgress();
+    // Dashboard sync
+    const { addProvocare, removeProvocare, cluburiJoined, cluburiDisponibile, addClub, removeClub } = useDashboardData();
+    const { completeChallenge, completeJoinClub } = useProgress();
 
     const showToast = useCallback((icon: string, msg: string): void => {
         setToast({ icon, msg, visible: true });
@@ -425,6 +610,44 @@ export default function CommunityPage() {
         );
     }, [showToast, isAuthenticated, addProvocare, removeProvocare, completeChallenge]);
 
+    const handleFollow = useCallback((member: Member): void => {
+        const isFollowing = following.has(member.name);
+        setFollowing((prev) => {
+            const next = new Set(prev);
+            if (isFollowing) next.delete(member.name);
+            else next.add(member.name);
+            return next;
+        });
+        if (isFollowing) {
+            setPosts((prev) => prev.filter((p) => p.author !== member.name));
+            showToast('👋', `Ai încetat să urmărești pe ${member.name}`);
+        } else {
+            const newPosts = MEMBER_POSTS.filter((p) => p.author === member.name);
+            setPosts((prev) => [...prev, ...newPosts]);
+            showToast('👤', `Urmărești acum pe ${member.name}!`);
+        }
+    }, [following, showToast]);
+
+    const handleJoinClub = useCallback((club: Parameters<typeof addClub>[0]): void => {
+        addClub(club);
+        completeJoinClub();
+        showToast('🏟️', `Te-ai alăturat clubului ${club.name}!`);
+    }, [addClub, completeJoinClub, showToast]);
+
+    const handleLeaveClub = useCallback((id: number): void => {
+        removeClub(id);
+        showToast('👋', 'Ai ieșit din club.');
+    }, [removeClub, showToast]);
+
+    const filteredClubs = useMemo(() => {
+        const q = clubSearch.toLowerCase();
+        return cluburiDisponibile.filter((c) => {
+            const matchSearch = c.name.toLowerCase().includes(q) || c.location.toLowerCase().includes(q);
+            const matchCat = clubCat === 'Toate' || c.category === clubCat;
+            return matchSearch && matchCat;
+        });
+    }, [cluburiDisponibile, clubSearch, clubCat]);
+
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
     // Left nav items — internal tabs + route-based items
@@ -433,14 +656,14 @@ export default function CommunityPage() {
         { id: 'challenges', icon: '🏆', label: 'Provocări', badge: { text: '15', type: 'count' as const }, action: () => setTab('challenges'), isTab: true  },
         { id: 'members',    icon: '👥', label: 'Membri',    badge: null,                   action: () => setTab('members'),    isTab: true  },
         { divider: true },
-        { id: 'clubs',      icon: '🏟️', label: 'Cluburi',   badge: { text: 'În curând', type: 'soon' as const },  action: () => navigate(ROUTES.CLUBS),  isTab: false },
+        { id: 'clubs',      icon: '🏟️', label: 'Cluburi',   badge: null,                                          action: () => setTab('clubs'),         isTab: true  },
         { id: 'forum',      icon: '💬', label: 'Forum',     badge: { text: 'În curând', type: 'soon' as const },  action: () => navigate(ROUTES.FORUM),  isTab: false },
     ] as const;
 
     const isNavActive = (item: (typeof NAV_ITEMS)[number]): boolean => {
         if (!('id' in item)) return false;
         if (item.isTab) return tab === item.id;
-        return location.pathname === (item.id === 'clubs' ? ROUTES.CLUBS : ROUTES.FORUM);
+        return location.pathname === ROUTES.FORUM;
     };
 
     return (
@@ -553,11 +776,16 @@ export default function CommunityPage() {
                                 <div className="feed">
                                     {filteredPosts.length === 0 ? (
                                         <div className="empty">
-                                            <div className="empty__icon">📭</div>
-                                            <div className="empty__title">Nicio postare încă</div>
+                                            <div className="empty__icon">{following.size === 0 ? '👥' : '📭'}</div>
+                                            <div className="empty__title">
+                                                {following.size === 0 ? 'Urmărește membri' : 'Nicio postare încă'}
+                                            </div>
                                             <div className="empty__sub">
-                                                Fii primul care distribuie ceva cu comunitatea!<br />
-                                                Scrie mai sus și apasă Publică.
+                                                {following.size === 0 ? (
+                                                    <>Mergi la tabul <strong>Membri</strong> și urmărește sportivi<br />pentru a le vedea postările aici în feed.</>
+                                                ) : (
+                                                    <>Membrii urmăriți nu au postări la acest filtru.<br />Scrie tu ceva sau schimbă filtrul de sport.</>
+                                                )}
                                             </div>
                                         </div>
                                     ) : (
@@ -640,7 +868,12 @@ export default function CommunityPage() {
                                 </div>
                                 <div className="member-grid">
                                     {MEMBERS.map((m) => (
-                                        <div className="member-card" key={m.name}>
+                                        <div
+                                            className="member-card"
+                                            key={m.name}
+                                            onClick={() => setSelectedMember(m)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
                                             <div className="m__ava" style={{ background: m.color, boxShadow: `0 0 14px ${m.color}44` }}>
                                                 {getInitials(m.name)}
                                             </div>
@@ -648,21 +881,230 @@ export default function CommunityPage() {
                                             <div className="m__sub">📍 {m.city} · {m.sport}</div>
                                             <div className="m__rank">{m.rank}</div>
                                             <div className="m__pts">{m.points.toLocaleString()} <span>pts</span></div>
-                                            <button
-                                                className="btn btn-outline"
-                                                style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: '.73rem', padding: '6px' }}
-                                                onClick={() => showToast('👤', 'Profil în curând!')}
-                                            >
-                                                Urmărește
-                                            </button>
+                                            <div style={{ marginTop: 10, fontSize: '.72rem', color: 'var(--cyan)', textAlign: 'center', opacity: .7 }}>
+                                                Vezi profil →
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             </>
                         )}
 
+                        {/* ════ CLUBURI ════ */}
+                        {tab === 'clubs' && (
+                            <>
+                                <div>
+                                    <div className="sec-title">Cluburi Sportive 🏟️</div>
+                                    <div className="sec-sub">Cluburile tale și toate opțiunile disponibile în Moldova</div>
+                                </div>
+
+                                <div className="cv-layout">
+
+                                    {/* ── Left: joined clubs ── */}
+                                    <aside className="cv-joined">
+                                        <div className="cv-joined-head">
+                                            <span className="cv-joined-title">Cluburile mele</span>
+                                            <span className="cv-joined-badge">{cluburiJoined.length}</span>
+                                        </div>
+                                        <div className="cv-joined-list">
+                                            {cluburiJoined.length === 0 ? (
+                                                <div className="cv-joined-empty">
+                                                    <div className="cv-joined-empty-icon">🏟️</div>
+                                                    <div className="cv-joined-empty-text">
+                                                        Nu ești în niciun club.<br />Explorează și alătură-te!
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                cluburiJoined.map((c) => (
+                                                    <div className="cv-jclub" key={c.id}>
+                                                        <div
+                                                            className="cv-jclub-bar"
+                                                            style={{ background: CLUB_CAT_GRADIENTS[c.category] ?? CLUB_CAT_GRADIENTS.default }}
+                                                        />
+                                                        <span className="cv-jclub-icon">{c.icon}</span>
+                                                        <div className="cv-jclub-info">
+                                                            <div className="cv-jclub-name">{c.name}</div>
+                                                            <div className="cv-jclub-meta">
+                                                                📍 {c.location.split(',')[0]} · {c.members} membri
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            className="cv-jclub-leave"
+                                                            onClick={() => handleLeaveClub(c.id)}
+                                                        >
+                                                            Ieși
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </aside>
+
+                                    {/* ── Right: explore ── */}
+                                    <div className="cv-explore">
+
+                                        {/* Search bar */}
+                                        <div className="cv-search-row">
+                                            <span className="cv-search-icon">🔍</span>
+                                            <input
+                                                className="cv-search-input"
+                                                placeholder="Caută cluburi după nume sau oraș…"
+                                                value={clubSearch}
+                                                onChange={(e) => setClubSearch(e.target.value)}
+                                            />
+                                        </div>
+
+                                        {/* Category filter chips */}
+                                        <div className="cv-cats">
+                                            {CLUB_CATEGORIES.map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    className={`cv-cat${clubCat === cat ? ' cv-cat--active' : ''}`}
+                                                    onClick={() => setClubCat(cat)}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Results count */}
+                                        <div style={{ fontSize: '.78rem', color: 'var(--muted)' }}>
+                                            {filteredClubs.length} club{filteredClubs.length !== 1 ? 'uri' : ''} găsite
+                                        </div>
+
+                                        {/* Grid or empty state */}
+                                        {filteredClubs.length === 0 ? (
+                                            <div className="cv-empty">
+                                                <div className="cv-empty-icon">🔍</div>
+                                                <div className="cv-empty-title">Niciun club găsit</div>
+                                                <div className="cv-empty-sub">
+                                                    Încearcă alt termen de căutare sau o altă categorie.
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="cv-grid">
+                                                {filteredClubs.map((c) => {
+                                                    const isJoined = cluburiJoined.some((j) => j.id === c.id);
+                                                    const gradient = CLUB_CAT_GRADIENTS[c.category] ?? CLUB_CAT_GRADIENTS.default;
+                                                    return (
+                                                        <div
+                                                            className={`cv-card${isJoined ? ' cv-card--joined' : ''}`}
+                                                            key={c.id}
+                                                        >
+                                                            <div className="cv-card-hero" style={{ background: gradient }}>
+                                                                <span className="cv-card-hero-icon">{c.icon}</span>
+                                                                {isJoined && <span className="cv-hero-joined">✓ Membru</span>}
+                                                            </div>
+                                                            <div className="cv-card-body">
+                                                                <div className="cv-card-name">{c.name}</div>
+                                                                <div className="cv-card-loc">📍 {c.location}</div>
+                                                                <div className="cv-card-desc">{c.description}</div>
+                                                                {c.nextEvent && (
+                                                                    <div className="cv-next-event">
+                                                                        <span>📅</span>
+                                                                        <span>{c.nextEvent}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="cv-card-chips">
+                                                                    <span className="cv-chip cv-chip--cat">{c.category}</span>
+                                                                    <span className="cv-chip">{c.level}</span>
+                                                                    <span className="cv-chip">{c.schedule}</span>
+                                                                </div>
+                                                                <div className="cv-card-footer">
+                                                                    <div className="cv-card-stats">
+                                                                        <div className="cv-card-members">👥 {c.members} membri</div>
+                                                                        <div className="cv-card-rating">★ {c.rating.toFixed(1)}</div>
+                                                                    </div>
+                                                                    <button
+                                                                        className={`cv-join-btn${isJoined ? ' cv-join-btn--leave' : ''}`}
+                                                                        onClick={() => isJoined ? handleLeaveClub(c.id) : handleJoinClub(c)}
+                                                                    >
+                                                                        {isJoined ? 'Ieși' : 'Alătură-te'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
                     </div>
                 </div>
+
+                {/* ── MEMBER MODAL ── */}
+                {selectedMember && (
+                    <div className="mp-backdrop" onClick={() => setSelectedMember(null)}>
+                        <div className="mp-panel" onClick={(e) => e.stopPropagation()}>
+                            <button className="mp-close" onClick={() => setSelectedMember(null)} aria-label="Închide">✕</button>
+
+                            {/* Hero */}
+                            <div className="mp-hero">
+                                <div className="mp-ava" style={{ background: selectedMember.color, boxShadow: `0 0 32px ${selectedMember.color}55` }}>
+                                    {getInitials(selectedMember.name)}
+                                </div>
+                                <div className="mp-name">{selectedMember.name}</div>
+                                <div className="mp-meta">📍 {selectedMember.city} · {selectedMember.sport}</div>
+                                <div className="mp-rank">{selectedMember.rank}</div>
+                                <button
+                                    className={`mp-follow-btn${following.has(selectedMember.name) ? ' mp-follow-btn--active' : ''}`}
+                                    onClick={() => handleFollow(selectedMember)}
+                                >
+                                    {following.has(selectedMember.name) ? '✓ Urmăresc' : '+ Urmărește'}
+                                </button>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="mp-stats">
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.points.toLocaleString()}</div>
+                                    <div className="mp-stat-lbl">Puncte</div>
+                                </div>
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.activities}</div>
+                                    <div className="mp-stat-lbl">Activități</div>
+                                </div>
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.daysActive}</div>
+                                    <div className="mp-stat-lbl">Zile Active</div>
+                                </div>
+                                <div className="mp-stat">
+                                    <div className="mp-stat-val">{selectedMember.challenges}</div>
+                                    <div className="mp-stat-lbl">Provocări</div>
+                                </div>
+                            </div>
+
+                            {/* Bio */}
+                            <div className="mp-section">
+                                <div className="mp-section-title">Despre</div>
+                                <div className="mp-bio">{selectedMember.bio}</div>
+                            </div>
+
+                            {/* Achievements */}
+                            <div className="mp-section">
+                                <div className="mp-section-title">🏆 Realizări ({selectedMember.achievements.length})</div>
+                                <div className="mp-achievements">
+                                    {selectedMember.achievements.map((ach, i) => (
+                                        <div className="mp-ach" key={i} style={{ animationDelay: `${i * 50}ms` }}>
+                                            <span className="mp-ach-icon">{ach.icon}</span>
+                                            <div className="mp-ach-info">
+                                                <div className="mp-ach-title">{ach.title}</div>
+                                                <div className="mp-ach-date">{ach.date}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="mp-footer">Activ din {selectedMember.joinedDate}</div>
+                        </div>
+                    </div>
+                )}
 
                 {/* ── TOAST ── */}
                 <div className={`toast${toast.visible ? ' toast--show' : ''}`}>

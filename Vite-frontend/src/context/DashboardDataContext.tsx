@@ -44,7 +44,7 @@ const DEFAULT_DATA: DashboardData = {
     evenimenteDisponibile: MOCK_EVENIMENTE,
 };
 
-export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
+export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined); // eslint-disable-line react-refresh/only-export-components
 
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
     const [data, setData] = useState<DashboardData>(() => {
@@ -60,7 +60,14 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
                         seenIds.add(p.id);
                         return true;
                     });
-                    return { ...parsed, provocariInscrise: deduped };
+                    return {
+                        ...parsed,
+                        provocariInscrise:     deduped,
+                        evenimenteInscrise:    parsed.evenimenteInscrise    ?? [],
+                        evenimenteDisponibile: parsed.evenimenteDisponibile ?? MOCK_EVENIMENTE,
+                        cluburiJoined:         parsed.cluburiJoined         ?? [],
+                        cluburiDisponibile:    parsed.cluburiDisponibile    ?? MOCK_CLUBURI,
+                    };
                 }
             }
         } catch { /* ignore */ }

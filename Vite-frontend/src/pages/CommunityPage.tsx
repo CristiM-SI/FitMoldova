@@ -5,7 +5,7 @@ import { ROUTES } from '../routes/paths';
 import { useDashboardData } from '../context/useDashboardData';
 import { useProgress } from '../context/ProgressContext';
 import { useAuth } from '../context/AuthContext';
-import {
+import { 
     SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS, MEMBER_POSTS,
 } from '../services/mock/community';
 import type {

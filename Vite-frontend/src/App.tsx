@@ -150,6 +150,9 @@ function App() {
                                     }
                                 />
 
+                                {/* Rută publică Trasee */}
+                                <Route path={ROUTES.ROUTES_MAP} element={<RoutesPage />} />
+
                                 {/* Rută publică Contact */}
                                 <Route path={ROUTES.CONTACT} element={<Contact />} />
 

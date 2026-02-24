@@ -1,0 +1,730 @@
+/* RoutesPage — stiluri de bază, completate în commit 9 */
+
+.routes-page {
+  min-height: 100vh;
+  background: radial-gradient(1200px at 20% 120px, rgba(26, 127, 255, 0.12), transparent 45%),
+              radial-gradient(900px at 80% 0px, rgba(0, 216, 132, 0.12), transparent 50%),
+              var(--dark);
+  color: var(--text-primary);
+  position: relative;
+}
+
+/* ---- Hero ---- */
+.routes-hero {
+  padding: 120px 1.5rem 3rem;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 25%),
+    linear-gradient(180deg, var(--dark-elevated) 0%, var(--dark) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.routes-hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.routes-hero-title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  font-family: 'Rajdhani', sans-serif;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.routes-hero-highlight {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.routes-hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+
+.routes-hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.routes-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1.1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+}
+
+.routes-stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-light);
+  font-family: 'Rajdhani', sans-serif;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.routes-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Layout principal ---- */
+.routes-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.routes-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, rgba(26, 127, 255, 0.12) 0%, rgba(0, 216, 132, 0.1) 100%);
+  border: 1px solid rgba(104, 168, 255, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+}
+
+.routes-cta-title {
+  margin: 0;
+  font-weight: 800;
+  color: #e8f0ff;
+  font-size: 1.05rem;
+}
+
+.routes-cta-sub {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.routes-cta-selected {
+  margin: 6px 0 0;
+  color: #cde4ff;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.routes-cta-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--gradient-primary);
+  color: #0d111a;
+  font-weight: 800;
+  cursor: pointer;
+  min-width: 190px;
+  transition: transform 0.12s ease, opacity 0.2s;
+}
+
+.routes-cta-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.routes-cta-btn:not(:disabled):hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.routes-cta-btn:focus-visible {
+  outline: 2px solid rgba(104, 168, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.routes-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  min-height: 70vh;
+}
+
+@media (max-width: 900px) {
+  .routes-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .routes-sidebar {
+    position: static;
+    max-height: none;
+    box-shadow: none;
+  }
+}
+
+/* ---- Buton Home (Commit 10) ---- */
+.routes-home-btn {
+  position: fixed;
+  left: 22px;
+  bottom: 92px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1a7fff, #00d884);
+  color: #0d111a;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+  transition: transform 0.14s ease, box-shadow 0.2s ease;
+  z-index: 320;
+}
+
+.routes-home-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.42);
+}
+
+.routes-home-btn:focus-visible {
+  outline: 3px solid rgba(104, 168, 255, 0.9);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .routes-home-btn {
+    left: 16px;
+    bottom: 86px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .routes-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+/* ---- Placeholder sidebar ---- */
+.routes-sidebar {
+  background: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+  position: sticky;
+  top: 110px;
+  max-height: calc(100vh - 140px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.routes-sidebar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ---- Placeholder hartă ---- */
+.routes-map-container {
+  background: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 520px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.leaflet-container {
+  font-family: 'Inter', sans-serif;
+  color: #e8f0ff;
+}
+
+.leaflet-container .leaflet-tooltip {
+  background: #0e1524;
+  color: #d6e6ff;
+  border: 1px solid rgba(104, 168, 255, 0.4);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-container .leaflet-popup-content-wrapper {
+  background: #0e1524;
+  color: #e8f0ff;
+  border-radius: 12px;
+  border: 1px solid rgba(104, 168, 255, 0.35);
+}
+
+.leaflet-container .leaflet-popup-tip {
+  background: #0e1524;
+  border: 1px solid rgba(104, 168, 255, 0.35);
+}
+
+.leaflet-control-zoom a {
+  background: #0e1524;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e8f0ff;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-control-zoom a:hover {
+  background: #152033;
+  color: #68a8ff;
+}
+
+.leaflet-control-zoom a:focus-visible {
+  outline: 2px solid rgba(104, 168, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.routes-map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 500px;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.routes-map-placeholder-icon {
+  font-size: 3rem;
+}
+
+.routes-map-placeholder p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.routes-map-placeholder small {
+  font-size: 0.82rem;
+  opacity: 0.6;
+}
+
+/* ---- Routes Sidebar (Commit 5) ---- */
+.rsb {
+  padding: 1.1rem 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.rsb-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.rsb-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.rsb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rsb-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rsb-chip:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--text-primary);
+}
+
+.rsb-chip:focus-visible {
+  outline: 2px solid rgba(104, 168, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.rsb-chip--active {
+  background: rgba(26, 127, 255, 0.08);
+  border-color: rgba(26, 127, 255, 0.4);
+  color: #68a8ff;
+}
+
+.rsb-count {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rsb-reset {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #68a8ff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.rsb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rsb::-webkit-scrollbar {
+  width: 8px;
+}
+.rsb::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+.rsb::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rsb-empty {
+  color: var(--text-secondary);
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.rsb-card {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.rsb-card:hover {
+  border-color: rgba(104, 168, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.rsb-card--selected {
+  border-color: rgba(104, 168, 255, 0.8);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.24);
+}
+
+.rsb-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rsb-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.rsb-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.rsb-card-name {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.rsb-card-region {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.rsb-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.rsb-meta-item strong {
+  color: var(--text-primary);
+}
+
+.rsb-diff-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .rsb {
+    padding: 1rem;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .routes-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .routes-cta-btn {
+    width: 100%;
+  }
+}
+
+/* ---- Popup hartă trasee (Commit 6) ---- */
+.route-popup {
+  background: #0e1524;
+  color: #e8f0ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(104, 168, 255, 0.35);
+}
+
+.route-popup__title {
+  font-weight: 800;
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+}
+
+.route-popup__meta {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  color: #b6c6e2;
+  font-size: 0.84rem;
+  margin-bottom: 6px;
+}
+
+.route-popup__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.route-popup__tags .tag {
+  background: rgba(104, 168, 255, 0.12);
+  border: 1px solid rgba(104, 168, 255, 0.4);
+  color: #d6e6ff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.route-popup__desc {
+  margin: 0;
+  color: #c5d3ec;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+/* ---- Toast routes page (Commit 7) ---- */
+.routes-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 26px;
+  z-index: 300;
+  background: #0d1526;
+  border: 1px solid rgba(104, 168, 255, 0.35);
+  color: #e8f0ff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.routes-toast-icon {
+  font-size: 1.1rem;
+}
+
+/* ---- Route Details Panel (Commit 8) ---- */
+.route-details-card {
+  margin-top: 1.25rem;
+  background: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.15rem 1.25rem 1.2rem;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.route-details-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(900px at 85% 10%, rgba(26, 127, 255, 0.08), transparent 45%);
+  pointer-events: none;
+}
+
+.rdc-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.rdc-kicker {
+  margin: 0;
+  color: #7ea7ff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rdc-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #e8f0ff;
+}
+
+.rdc-sub {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.rdc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.rdc-tag {
+  background: rgba(104, 168, 255, 0.08);
+  border: 1px solid rgba(104, 168, 255, 0.28);
+  color: #d6e6ff;
+  padding: 5px 9px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(26, 127, 255, 0.12);
+}
+
+.rdc-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.9rem;
+  margin: 0.6rem 0 1.1rem;
+}
+
+.rdc-stat {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+}
+
+.rdc-stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.rdc-stat-value {
+  margin: 2px 0 0;
+  color: #e8f0ff;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.rdc-highlights {
+  margin-top: 0.4rem;
+}
+
+.rdc-highlights-title {
+  margin: 0 0 0.5rem;
+  color: #cde4ff;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.rdc-highlights-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rdc-chip {
+  background: rgba(0, 216, 132, 0.14);
+  border: 1px solid rgba(0, 216, 132, 0.38);
+  color: #bbffdf;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  box-shadow: 0 6px 16px rgba(0, 216, 132, 0.18);
+}
+
+.rdc-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 1.4rem 0.5rem;
+}
+
+.rdc-empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
+}
+
+.rdc-empty-title {
+  margin: 0 0 0.3rem;
+  color: #e8f0ff;
+  font-weight: 800;
+}
+
+.rdc-empty-sub {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 700px) {
+  .route-details-card {
+    padding: 1rem;
+  }
+}

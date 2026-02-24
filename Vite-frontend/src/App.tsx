@@ -19,7 +19,7 @@ import EVENTS from './pages/Evenimente'
 import EvenimentePublic from './pages/EvenimentePublic'
 import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
-import RoutesPage from './pages/RoutesPage'
+import ForumPage from './pages/ForumPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -162,6 +162,16 @@ function App() {
                                     element={
                                         <ProtectedRoute>
                                             <Feedback />
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                {/* Rută protejată Forum */}
+                                <Route
+                                    path={ROUTES.FORUM}
+                                    element={
+                                        <ProtectedRoute>
+                                            <ForumPage />
                                         </ProtectedRoute>
                                     }
                                 />

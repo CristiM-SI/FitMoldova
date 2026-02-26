@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
               className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
               onClick={closeMenu}
             >
-              🗺️ Trasee
+              Trasee
             </NavLink>
           </li>
           <li>

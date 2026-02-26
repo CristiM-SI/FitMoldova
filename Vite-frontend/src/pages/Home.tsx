@@ -89,7 +89,7 @@ const Home: React.FC = () => {
             Transformă-ți <span className="highlight">Fitness-ul</span> într-o Comunitate
           </h1>
           <p>
-            Alătură-te celei mai vibrantă platforme de fitness din România.
+            Alătură-te celei mai vibrantă platforme de fitness din Moldova.
             Urmărește progresul, participă la provocări și conectează-te cu pasionați de sport.
           </p>
           <div className="hero-cta">

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import { ROUTES } from '../routes/paths';
 import { MOCK_TRASEE } from '../services/mock/trasee';
 import MoldovaRoutesMap from '../components/MoldovaRoutesMap';
@@ -226,6 +227,7 @@ const RoutesPage: React.FC = () => {
         🏠
       </Link>
       </div>
+    <Footer />
     </div>
   );
 };

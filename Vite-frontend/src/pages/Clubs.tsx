@@ -329,6 +329,14 @@ const ClubsDashboard: React.FC = () => {
               ← Înapoi la Dashboard
             </Link>
           </div>
+
+          <div className="db-footer">
+            <p className="db-footer-copy">© 2026 FitMoldova. Toate drepturile rezervate.</p>
+            <div className="db-footer-links">
+              <Link to={ROUTES.CONTACT} className="db-footer-link">Contact</Link>
+              <Link to={ROUTES.FEEDBACK} className="db-footer-link">Feedback</Link>
+            </div>
+          </div>
         </main>
       </div>
   );

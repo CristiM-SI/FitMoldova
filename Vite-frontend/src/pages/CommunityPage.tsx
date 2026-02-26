@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import { ROUTES } from '../routes/paths';
 import { useDashboardData } from '../context/useDashboardData';
 import { useProgress } from '../context/ProgressContext';
@@ -993,6 +994,7 @@ export default function CommunityPage() {
                 <span style={{ color: '#e8f0fe' }}>{toast.msg}</span>
             </div>
 
+        <Footer />
         </>
     );
 }

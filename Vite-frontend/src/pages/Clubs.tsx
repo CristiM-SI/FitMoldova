@@ -1,344 +1,207 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import {
+  Box, Typography, Card, CardContent, Grid, Button, Chip, Avatar,
+  TextField, InputAdornment, Tabs, Tab, Rating, IconButton, Dialog,
+  DialogTitle, DialogContent, DialogActions, Divider,
+} from '@mui/material';
+import { Search, Group, Add, ExitToApp, Close, LocationOn } from '@mui/icons-material';
+import DashboardLayout from './DashboardLayout';
 import { useProgress } from '../context/ProgressContext';
 import { useDashboardData } from '../context/useDashboardData';
-import { ROUTES } from '../routes/paths';
 import type { Club } from '../services/mock/cluburi';
-import './Dashboard.css';
-import './DashboardOverlays.css';
-import './Clubs.css';
 
-type TabType = 'mine' | 'explore';
 const CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Înot', 'Trail'] as const;
 
-const renderStars = (rating: number) => {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
+const CAT_COLORS: Record<string, string> = {
+  Alergare: '#3b82f6', Ciclism: '#10b981', Fitness: '#f59e0b',
+  Yoga: '#a855f7', Înot: '#06b6d4', Trail: '#84cc16',
 };
 
 const ClubsDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
   const { completeJoinClub } = useProgress();
-  const {
-    cluburiJoined: joined,
-    cluburiDisponibile: available,
-    addClub,
-    removeClub,
-  } = useDashboardData();
-  const navigate = useNavigate();
+  const { cluburiJoined: joined, cluburiDisponibile: available, addClub, removeClub } = useDashboardData();
 
-  const [activeTab, setActiveTab] = useState<TabType>('explore');
+  const [tabVal, setTabVal] = useState(0);
   const [search, setSearch] = useState('');
-  const [filterCat, setFilterCat] = useState<string>('Toate');
+  const [filterCat, setFilterCat] = useState('Toate');
   const [detailClub, setDetailClub] = useState<Club | null>(null);
 
-  const handleLogout = (): void => {
-    logout();
-    navigate(ROUTES.HOME);
-  };
+  const joinClub = (club: Club) => { addClub(club); completeJoinClub(); setDetailClub(null); };
+  const leaveClub = (id: number) => { removeClub(id); setDetailClub(null); };
+  const isJoined = (id: number) => joined.some((c) => c.id === id);
 
-  const joinClub = (club: Club) => {
-    addClub(club);
-    completeJoinClub();
-    setDetailClub(null);
-  };
+  const displayList = tabVal === 0 ? available : joined;
 
-  const leaveClub = (id: number) => {
-    removeClub(id);
-    setDetailClub(null);
-  };
-
-  const displayList = activeTab === 'mine' ? joined : available;
-
-  const filtered = useMemo(() => {
-    return displayList.filter((c) => {
-      const matchSearch =
-          c.name.toLowerCase().includes(search.toLowerCase()) ||
-          c.location.toLowerCase().includes(search.toLowerCase());
-      const matchCat = filterCat === 'Toate' || c.category === filterCat;
-      return matchSearch && matchCat;
-    });
-  }, [displayList, search, filterCat]);
+  const filtered = useMemo(() => displayList.filter((c) => {
+    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.location.toLowerCase().includes(search.toLowerCase());
+    const matchCat = filterCat === 'Toate' || c.category === filterCat;
+    return matchSearch && matchCat;
+  }), [displayList, search, filterCat]);
 
   const totalMembers = [...joined, ...available].reduce((s, c) => s + c.members, 0);
 
-  const isJoined = (id: number) => joined.some((c) => c.id === id);
-
   return (
-      <div className="db-page">
-        <div className="db-grid" aria-hidden="true" />
+      <DashboardLayout>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" fontWeight={800} color="#0f172a">Cluburi</Typography>
+          <Typography variant="body2" color="text.secondary">Descoperă și alătură-te cluburilor sportive din comunitate</Typography>
+        </Box>
 
-        {/* Sidebar */}
-        <aside className="db-sidebar">
-          <Link to={ROUTES.HOME} className="db-logo">
-            <span className="db-logo-white">FIT</span>
-            <span className="db-logo-blue">MOLDOVA</span>
-          </Link>
-          <nav className="db-nav">
-            <Link to={ROUTES.DASHBOARD} className="db-nav-item">
-              <span className="db-nav-icon">📊</span> Dashboard
-            </Link>
-            <Link to={ROUTES.ACTIVITIES} className="db-nav-item">
-              <span className="db-nav-icon">🏃</span> Activități
-            </Link>
-            <Link to={ROUTES.CHALLENGES} className="db-nav-item">
-              <span className="db-nav-icon">🏆</span> Provocări
-            </Link>
-            <Link to={ROUTES.CLUBS} className="db-nav-item db-nav-item--active">
-              <span className="db-nav-icon">👥</span> Cluburi
-            </Link>
-            <Link to={ROUTES.EVENTS_DASHBOARD} className="db-nav-item">
-              <span className="db-nav-icon">📅</span> Evenimente
-            </Link>
-            <Link to={ROUTES.PROFILE} className="db-nav-item">
-              <span className="db-nav-icon">👤</span> Profil
-            </Link>
-          </nav>
-          <button className="db-logout-btn" onClick={handleLogout}>
-            <span>↩</span> Deconectare
-          </button>
-        </aside>
+        {/* Stats — 4 full row */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {[
+            { label: 'Cluburi Disponibile', value: available.length, emoji: '🏟️', bg: '#f0f7ff', color: '#1a6fff' },
+            { label: 'Cluburile Mele', value: joined.length, emoji: '👥', bg: '#ecfdf5', color: '#10b981' },
+            { label: 'Total Membri', value: totalMembers.toLocaleString(), emoji: '🏃', bg: '#fffbeb', color: '#f59e0b' },
+            { label: 'Categorii', value: CATEGORIES.length - 1, emoji: '🏅', bg: '#fdf4ff', color: '#a855f7' },
+          ].map((s) => (
+              <Grid item xs={6} sm={3} key={s.label}>
+                <Card elevation={0} sx={{ borderRadius: 3, bgcolor: s.bg, border: '1px solid rgba(0,0,0,0.04)', height: '100%' }}>
+                  <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ lineHeight: 1.3 }}>{s.label}</Typography>
+                      <Typography fontSize="1.4rem">{s.emoji}</Typography>
+                    </Box>
+                    <Typography variant="h4" fontWeight={900} color="#0f172a">{s.value}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+          ))}
+        </Grid>
 
-        {/* Main */}
-        <main className="db-main">
-          <div className="db-topbar">
-            <div>
-              <h1 className="db-title">Cluburi</h1>
-              <p className="db-subtitle">
-                Descoperă și alătură-te cluburilor sportive din comunitate
-              </p>
-            </div>
-            <div className="db-user-chip">
-              <div className="db-avatar">{user?.avatar}</div>
-              <div className="db-user-info">
-                <div className="db-user-name">{user?.firstName} {user?.lastName}</div>
-                <div className="db-user-email">{user?.email}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="db-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            <div className="db-stat-card">
-              <div className="db-stat-label">Cluburile Mele</div>
-              <div className="db-stat-value">{joined.length}</div>
-              <div className="db-stat-hint">Cluburi la care ești membru</div>
-            </div>
-            <div className="db-stat-card">
-              <div className="db-stat-label">Disponibile</div>
-              <div className="db-stat-value">{available.length}</div>
-              <div className="db-stat-hint">Cluburi de explorat</div>
-            </div>
-            <div className="db-stat-card">
-              <div className="db-stat-label">Comunitate Totală</div>
-              <div className="db-stat-value">{totalMembers.toLocaleString()}</div>
-              <div className="db-stat-hint">Membri activi în cluburi</div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="cl-tabs">
-            <button
-                className={`cl-tab ${activeTab === 'mine' ? 'cl-tab--active' : ''}`}
-                onClick={() => setActiveTab('mine')}
-            >
-              Cluburile Mele <span className="cl-tab-count">{joined.length}</span>
-            </button>
-            <button
-                className={`cl-tab ${activeTab === 'explore' ? 'cl-tab--active' : ''}`}
-                onClick={() => setActiveTab('explore')}
-            >
-              Explorează <span className="cl-tab-count">{available.length}</span>
-            </button>
-          </div>
-
-          {/* Toolbar */}
-          <div className="cl-toolbar">
-            <div className="cl-search-wrap">
-              <span className="cl-search-icon">🔍</span>
-              <input
-                  className="cl-search"
-                  type="text"
-                  placeholder="Caută cluburi după nume sau locație..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+        {/* Filters */}
+        <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', mb: 2 }}>
+          <CardContent sx={{ p: 2 }}>
+            <Tabs value={tabVal} onChange={(_, v) => setTabVal(v)} sx={{ mb: 2 }}>
+              <Tab label={`Explorează (${available.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
+              <Tab label={`Cluburile Mele (${joined.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
+            </Tabs>
+            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+              <TextField size="small" placeholder="Caută club sau locație..."
+                         value={search} onChange={(e) => setSearch(e.target.value)}
+                         InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#94a3b8', fontSize: 18 }} /></InputAdornment> }}
+                         sx={{ width: 260, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
-            </div>
-            {CATEGORIES.map((cat) => (
-                <button
-                    key={cat}
-                    className={`cl-filter-btn ${filterCat === cat ? 'cl-filter-btn--active' : ''}`}
-                    onClick={() => setFilterCat(cat)}
-                >
-                  {cat}
-                </button>
-            ))}
-          </div>
+              <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                {CATEGORIES.map((cat) => (
+                    <Chip key={cat} label={cat} size="small" onClick={() => setFilterCat(cat)}
+                          variant={filterCat === cat ? 'filled' : 'outlined'}
+                          sx={{ fontSize: '0.75rem', bgcolor: filterCat === cat ? '#1a6fff' : 'transparent', color: filterCat === cat ? '#fff' : '#64748b', borderColor: '#e2e8f0' }} />
+                ))}
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
 
-          {/* Card grid or empty */}
-          {filtered.length === 0 ? (
-              <div className="cl-empty">
-                <div className="cl-empty-icon">
-                  {activeTab === 'mine' ? '🏠' : '🔍'}
-                </div>
-                <h3 className="cl-empty-title">
-                  {activeTab === 'mine'
-                      ? 'Nu ești membru în niciun club'
-                      : 'Niciun club găsit'}
-                </h3>
-                <p className="cl-empty-text">
-                  {activeTab === 'mine'
-                      ? 'Explorează cluburile disponibile și alătură-te comunității!'
-                      : 'Încearcă să schimbi filtrul sau termenul de căutare.'}
-                </p>
-              </div>
-          ) : (
-              <div className="cl-grid">
-                {filtered.map((club) => {
-                  const memberOfClub = isJoined(club.id);
-                  return (
-                      <div
-                          key={club.id}
-                          className={`cl-card ${memberOfClub ? 'cl-card--joined' : ''}`}
-                          onClick={() => setDetailClub(club)}
-                      >
-                        <div className="cl-card-banner" />
-                        <div className="cl-card-body">
-                          <div className="cl-card-top">
-                            <div className="cl-card-icon">{club.icon}</div>
-                            <div className="cl-card-header">
-                              <h3 className="cl-card-name">{club.name}</h3>
-                              <div className="cl-card-location"> {club.location}</div>
-                            </div>
-                          </div>
+        {/* Club Grid */}
+        {filtered.length === 0 ? (
+            <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3' }}>
+              <CardContent sx={{ p: 6, textAlign: 'center' }}>
+                <Typography variant="h3" sx={{ mb: 1 }}>🏟️</Typography>
+                <Typography color="text.secondary" fontWeight={600}>
+                  {tabVal === 1 ? 'Nu ești în niciun club. Explorează și alătură-te!' : 'Niciun club găsit.'}
+                </Typography>
+              </CardContent>
+            </Card>
+        ) : (
+            <Grid container spacing={2}>
+              {filtered.map((club) => {
+                const joined_ = isJoined(club.id);
+                const catColor = CAT_COLORS[club.category] || '#6366f1';
+                return (
+                    <Grid item xs={12} sm={6} md={4} key={club.id}>
+                      <Card elevation={0} onClick={() => setDetailClub(club)}
+                            sx={{ borderRadius: 3, border: `1px solid ${joined_ ? '#1a6fff30' : '#e8edf3'}`, cursor: 'pointer', '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transform: 'translateY(-2px)' }, transition: 'all 0.2s', height: '100%' }}>
+                        <CardContent sx={{ p: 2.5 }}>
+                          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                            <Avatar sx={{ width: 48, height: 48, fontSize: '1.4rem', bgcolor: `${catColor}12`, borderRadius: '12px' }}>
+                              {club.icon}
+                            </Avatar>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <Typography variant="body2" fontWeight={800} noWrap sx={{ flex: 1 }}>{club.name}</Typography>
+                                {joined_ && <Chip label="✓ Înscris" size="small" sx={{ height: 18, bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 700, fontSize: '0.6rem', ml: 0.5 }} />}
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                                <LocationOn sx={{ fontSize: 11, color: '#94a3b8' }} />
+                                <Typography variant="caption" color="text.secondary" noWrap>{club.location}</Typography>
+                              </Box>
+                            </Box>
+                          </Box>
 
-                          <p className="cl-card-desc">{club.description}</p>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.5 }}>
+                            {club.description.length > 85 ? club.description.slice(0, 85) + '...' : club.description}
+                          </Typography>
 
-                          <div className="cl-card-meta">
-                            <span className="cl-chip cl-chip--cat">{club.category}</span>
-                            <span className={`cl-chip cl-chip--level-${club.level}`}>{club.level}</span>
-                            <span className="cl-chip">🗓 {club.schedule}</span>
-                            <span className="cl-chip">
-                        <span className="cl-stars">{renderStars(club.rating)}</span> {club.rating}
-                      </span>
-                          </div>
+                          <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+                            <Chip label={club.category} size="small" sx={{ height: 20, bgcolor: `${catColor}12`, color: catColor, fontWeight: 700, fontSize: '0.68rem' }} />
+                            <Chip label={club.level} size="small" sx={{ height: 20, bgcolor: '#f8faff', color: '#64748b', fontSize: '0.68rem' }} />
+                          </Box>
 
-                          <div className="cl-card-footer">
-                            <span className="cl-card-members">👥 {club.members} membri</span>
-                            {memberOfClub ? (
-                                <button
-                                    className="cl-btn-leave"
-                                    onClick={(e) => { e.stopPropagation(); leaveClub(club.id); }}
-                                >
-                                  Părăsește
-                                </button>
-                            ) : (
-                                <button
-                                    className="cl-btn-join"
-                                    onClick={(e) => { e.stopPropagation(); joinClub(club); }}
-                                >
-                                  Alătură-te
-                                </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                  );
-                })}
-              </div>
-          )}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Group sx={{ fontSize: 13, color: '#94a3b8' }} />
+                              <Typography variant="caption" color="text.secondary">{club.members.toLocaleString()} membri</Typography>
+                            </Box>
+                            <Rating value={club.rating} readOnly size="small" precision={0.5} sx={{ fontSize: '0.8rem' }} />
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                );
+              })}
+            </Grid>
+        )}
 
-          {/* Detail overlay */}
+        {/* Detail Dialog */}
+        <Dialog open={!!detailClub} onClose={() => setDetailClub(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
           {detailClub && (
-              <div className="cl-detail-overlay" onClick={() => setDetailClub(null)}>
-                <div className="cl-detail-panel" onClick={(e) => e.stopPropagation()}>
-                  <div className="cl-detail-banner" />
-                  <button className="cl-detail-close" onClick={() => setDetailClub(null)}>✕</button>
-
-                  <div className="cl-detail-body">
-                    <div className="cl-detail-top">
-                      <div className="cl-detail-icon">{detailClub.icon}</div>
-                      <div>
-                        <h2 className="cl-detail-name">{detailClub.name}</h2>
-                        <div className="cl-detail-loc">📍 {detailClub.location}</div>
-                      </div>
-                    </div>
-
-                    <p className="cl-detail-desc">{detailClub.description}</p>
-
-                    <div className="cl-detail-grid">
-                      <div className="cl-detail-stat">
-                        <div className="cl-detail-stat-label">Categorie</div>
-                        <div className="cl-detail-stat-value">{detailClub.category}</div>
-                      </div>
-                      <div className="cl-detail-stat">
-                        <div className="cl-detail-stat-label">Nivel</div>
-                        <div className="cl-detail-stat-value">{detailClub.level}</div>
-                      </div>
-                      <div className="cl-detail-stat">
-                        <div className="cl-detail-stat-label">Program</div>
-                        <div className="cl-detail-stat-value">{detailClub.schedule}</div>
-                      </div>
-                      <div className="cl-detail-stat">
-                        <div className="cl-detail-stat-label">Membri</div>
-                        <div className="cl-detail-stat-value">{detailClub.members}</div>
-                      </div>
-                      <div className="cl-detail-stat">
-                        <div className="cl-detail-stat-label">Rating</div>
-                        <div className="cl-detail-stat-value">
-                          <span className="cl-stars">{renderStars(detailClub.rating)}</span> {detailClub.rating}
-                        </div>
-                      </div>
-                      <div className="cl-detail-stat">
-                        <div className="cl-detail-stat-label">Fondat</div>
-                        <div className="cl-detail-stat-value">{detailClub.founded}</div>
-                      </div>
-                    </div>
-
-                    {detailClub.nextEvent && (
-                        <div className="cl-detail-event">
-                          <div className="cl-detail-event-icon">📅</div>
-                          <div>
-                            <div className="cl-detail-event-label">Următorul Eveniment</div>
-                            <div className="cl-detail-event-text">{detailClub.nextEvent}</div>
-                          </div>
-                        </div>
-                    )}
-
-                    <div className="cl-detail-actions">
-                      {isJoined(detailClub.id) ? (
-                          <button className="cl-btn-leave" onClick={() => leaveClub(detailClub.id)}>
-                            Părăsește Clubul
-                          </button>
-                      ) : (
-                          <button className="cl-btn-join" onClick={() => joinClub(detailClub)}>
-                            Alătură-te Clubului
-                          </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <>
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Avatar sx={{ bgcolor: `${CAT_COLORS[detailClub.category] || '#6366f1'}12`, width: 48, height: 48, fontSize: '1.4rem', borderRadius: '12px' }}>
+                      {detailClub.icon}
+                    </Avatar>
+                    <Box>
+                      <Typography fontWeight={800}>{detailClub.name}</Typography>
+                      <Typography variant="caption" color="text.secondary">{detailClub.location}</Typography>
+                    </Box>
+                  </Box>
+                  <IconButton onClick={() => setDetailClub(null)} size="small"><Close /></IconButton>
+                </DialogTitle>
+                <Divider />
+                <DialogContent sx={{ pt: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>{detailClub.description}</Typography>
+                  <Grid container spacing={1.5}>
+                    {[
+                      { label: 'Categorie', value: detailClub.category },
+                      { label: 'Nivel', value: detailClub.level },
+                      { label: 'Membri', value: detailClub.members.toLocaleString() },
+                      { label: 'Înființat', value: detailClub.founded },
+                      { label: 'Program', value: detailClub.schedule },
+                      { label: 'Următor eveniment', value: detailClub.nextEvent },
+                    ].filter(r => r.value).map((row) => (
+                        <Grid item xs={6} key={row.label}>
+                          <Typography variant="caption" color="text.secondary">{row.label}</Typography>
+                          <Typography variant="body2" fontWeight={700}>{row.value}</Typography>
+                        </Grid>
+                    ))}
+                  </Grid>
+                  <Box sx={{ mt: 2 }}><Rating value={detailClub.rating} readOnly precision={0.5} /></Box>
+                </DialogContent>
+                <Divider />
+                <DialogActions sx={{ p: 2 }}>
+                  <Button onClick={() => setDetailClub(null)} sx={{ borderRadius: 2 }}>Închide</Button>
+                  {isJoined(detailClub.id) ? (
+                      <Button variant="outlined" color="error" startIcon={<ExitToApp />} onClick={() => leaveClub(detailClub.id)} sx={{ borderRadius: 2 }}>Părăsește</Button>
+                  ) : (
+                      <Button variant="contained" startIcon={<Add />} onClick={() => joinClub(detailClub)} sx={{ borderRadius: 2, boxShadow: 'none' }}>Alătură-te</Button>
+                  )}
+                </DialogActions>
+              </>
           )}
-
-          {/* Back */}
-          <div className="ov-back-wrap">
-            <Link to={ROUTES.DASHBOARD} className="ov-btn-back">
-              ← Înapoi la Dashboard
-            </Link>
-          </div>
-
-          <div className="db-footer">
-            <p className="db-footer-copy">© 2026 FitMoldova. Toate drepturile rezervate.</p>
-            <div className="db-footer-links">
-              <Link to={ROUTES.CONTACT} className="db-footer-link">Contact</Link>
-              <Link to={ROUTES.FEEDBACK} className="db-footer-link">Feedback</Link>
-            </div>
-          </div>
-        </main>
-      </div>
+        </Dialog>
+      </DashboardLayout>
   );
 };
 

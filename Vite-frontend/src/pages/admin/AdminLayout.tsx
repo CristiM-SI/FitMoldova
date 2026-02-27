@@ -11,6 +11,7 @@ import {
     LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
+    ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -131,6 +132,12 @@ const AdminLayout: React.FC = () => {
                         </Title>
                     </Space>
                     <Space>
+                        <Button
+                            icon={<ArrowLeftOutlined />}
+                            onClick={() => navigate(ROUTES.DASHBOARD)}
+                        >
+                            Înapoi la site
+                        </Button>
                         <Avatar style={{ backgroundColor: '#1677ff' }}>{user?.avatar}</Avatar>
                         <Text>{user?.firstName} {user?.lastName}</Text>
                         <Text type="secondary" style={{ fontSize: 12 }}>Administrator</Text>

@@ -23,6 +23,8 @@ import ForumPage from './pages/ForumPage'
 import RoutesPage from './pages/RoutesPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminOverview from './pages/admin/AdminOverview'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminEvents from './pages/admin/AdminEvents'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -202,6 +204,8 @@ function App() {
                                     }
                                 >
                                     <Route index element={<AdminOverview />} />
+                                    <Route path="users" element={<AdminUsers />} />
+                                    <Route path="events" element={<AdminEvents />} />
                                 </Route>
 
                                 {/* Fallback */}

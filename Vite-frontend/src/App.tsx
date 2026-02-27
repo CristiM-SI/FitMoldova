@@ -25,6 +25,9 @@ import AdminLayout from './pages/admin/AdminLayout'
 import AdminOverview from './pages/admin/AdminOverview'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminEvents from './pages/admin/AdminEvents'
+import AdminClubs from './pages/admin/AdminClubs'
+import AdminChallenges from './pages/admin/AdminChallenges'
+import AdminRoutes from './pages/admin/AdminRoutes'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -206,6 +209,9 @@ function App() {
                                     <Route index element={<AdminOverview />} />
                                     <Route path="users" element={<AdminUsers />} />
                                     <Route path="events" element={<AdminEvents />} />
+                                    <Route path="clubs" element={<AdminClubs />} />
+                                    <Route path="challenges" element={<AdminChallenges />} />
+                                    <Route path="routes" element={<AdminRoutes />} />
                                 </Route>
 
                                 {/* Fallback */}

@@ -3,14 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Drawer, AppBar, Toolbar, Typography, List, ListItemButton,
     ListItemIcon, ListItemText, Avatar, IconButton, Divider, Tooltip,
-    useTheme, useMediaQuery, Chip, Grid,
+    useTheme, useMediaQuery, Chip,
 } from '@mui/material';
 import {
     Dashboard as DashboardIcon, DirectionsRun, EmojiEvents, Group,
     Event, Person, Logout, Menu as MenuIcon, ChevronLeft, FitnessCenter,
 } from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext.tsx';
-import { ROUTES } from '../../routes/paths.ts';
+import { useAuth } from '../../context/AuthContext';
+import { ROUTES } from '../../routes/paths';
 
 const DRAWER_WIDTH = 240;
 const DRAWER_COLLAPSED = 64;
@@ -28,20 +28,11 @@ const NAV_ITEMS = [
 export const DashboardFooter: React.FC = () => (
     <Box
         component="footer"
-        sx={{
-            mt: 6,
-            bgcolor: '#0f172a',
-            color: '#94a3b8',
-            borderRadius: 3,
-            overflow: 'hidden',
-        }}
+        sx={{ mt: 6, bgcolor: '#0f172a', color: '#94a3b8', borderRadius: 3, overflow: 'hidden' }}
     >
-        <Grid container>
-            <Grid item xs={12} sm={6} md={3} sx={{
-                p: 4,
-                borderRight: { md: '1px solid rgba(255,255,255,0.06)' },
-                borderBottom: { xs: '1px solid rgba(255,255,255,0.06)', md: 'none' },
-            }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+            {/* Brand */}
+            <Box sx={{ flex: '1 1 220px', p: 4, borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                 <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', mb: 1.5, letterSpacing: 1 }}>
                     <Box component="span" sx={{ color: '#fff' }}>FIT</Box>
                     <Box component="span" sx={{ color: '#1a6fff' }}>MOLDOVA</Box>
@@ -50,12 +41,9 @@ export const DashboardFooter: React.FC = () => (
                     Platforma ta completă pentru fitness, comunitate și progres.
                     Transformă-ți obiectivele în realitate.
                 </Typography>
-            </Grid>
-
-            <Grid item xs={6} sm={3} md={3} sx={{
-                p: 4,
-                borderRight: { md: '1px solid rgba(255,255,255,0.06)' },
-            }}>
+            </Box>
+            {/* Platforma */}
+            <Box sx={{ flex: '1 1 160px', p: 4, borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                 <Typography variant="caption" sx={{ color: '#fff', fontWeight: 800, display: 'block', mb: 2, letterSpacing: 1.5, textTransform: 'uppercase', fontSize: '0.7rem' }}>
                     Platformă
                 </Typography>
@@ -65,16 +53,11 @@ export const DashboardFooter: React.FC = () => (
                     { label: 'Provocări', to: ROUTES.CHALLENGES },
                     { label: 'Trasee', to: ROUTES.ROUTES_MAP },
                 ].map((l) => (
-                    <Link key={l.label} to={l.to} style={{ display: 'block', color: '#64748b', textDecoration: 'none', fontSize: '0.82rem', marginBottom: 10 }}>
-                        {l.label}
-                    </Link>
+                    <Link key={l.label} to={l.to} style={{ display: 'block', color: '#64748b', textDecoration: 'none', fontSize: '0.82rem', marginBottom: 10 }}>{l.label}</Link>
                 ))}
-            </Grid>
-
-            <Grid item xs={6} sm={3} md={3} sx={{
-                p: 4,
-                borderRight: { md: '1px solid rgba(255,255,255,0.06)' },
-            }}>
+            </Box>
+            {/* Comunitate */}
+            <Box sx={{ flex: '1 1 160px', p: 4, borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                 <Typography variant="caption" sx={{ color: '#fff', fontWeight: 800, display: 'block', mb: 2, letterSpacing: 1.5, textTransform: 'uppercase', fontSize: '0.7rem' }}>
                     Comunitate
                 </Typography>
@@ -83,13 +66,11 @@ export const DashboardFooter: React.FC = () => (
                     { label: 'Cluburi', to: ROUTES.CLUBS },
                     { label: 'Comunitate', to: ROUTES.COMMUNITY },
                 ].map((l) => (
-                    <Link key={l.label} to={l.to} style={{ display: 'block', color: '#64748b', textDecoration: 'none', fontSize: '0.82rem', marginBottom: 10 }}>
-                        {l.label}
-                    </Link>
+                    <Link key={l.label} to={l.to} style={{ display: 'block', color: '#64748b', textDecoration: 'none', fontSize: '0.82rem', marginBottom: 10 }}>{l.label}</Link>
                 ))}
-            </Grid>
-
-            <Grid item xs={12} sm={12} md={3} sx={{ p: 4 }}>
+            </Box>
+            {/* Suport */}
+            <Box sx={{ flex: '1 1 160px', p: 4 }}>
                 <Typography variant="caption" sx={{ color: '#fff', fontWeight: 800, display: 'block', mb: 2, letterSpacing: 1.5, textTransform: 'uppercase', fontSize: '0.7rem' }}>
                     Suport
                 </Typography>
@@ -97,13 +78,10 @@ export const DashboardFooter: React.FC = () => (
                     { label: 'Contact', to: ROUTES.CONTACT },
                     { label: 'Feedback', to: ROUTES.FEEDBACK },
                 ].map((l) => (
-                    <Link key={l.label} to={l.to} style={{ display: 'block', color: '#64748b', textDecoration: 'none', fontSize: '0.82rem', marginBottom: 10 }}>
-                        {l.label}
-                    </Link>
+                    <Link key={l.label} to={l.to} style={{ display: 'block', color: '#64748b', textDecoration: 'none', fontSize: '0.82rem', marginBottom: 10 }}>{l.label}</Link>
                 ))}
-            </Grid>
-        </Grid>
-
+            </Box>
+        </Box>
         <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.06)', px: 4, py: 2 }}>
             <Typography variant="caption" sx={{ color: '#334155' }}>
                 © 2026 FitMoldova. Toate drepturile rezervate.
@@ -126,13 +104,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const drawerWidth = collapsed && !isMobile ? DRAWER_COLLAPSED : DRAWER_WIDTH;
-
     const handleLogout = () => { logout(); navigate(ROUTES.HOME); };
     const getInitials = () => !user ? '?' : `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
 
     const drawerContent = (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#0a1628' }}>
-            <Box sx={{ px: 2, py: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)', minHeight: 64 }}>
+            {/* Logo — clicks to home */}
+            <Box
+                component={Link}
+                to={ROUTES.HOME}
+                sx={{
+                    px: 2, py: 2.5, display: 'flex', alignItems: 'center', gap: 1.5,
+                    borderBottom: '1px solid rgba(255,255,255,0.08)', minHeight: 64,
+                    textDecoration: 'none',
+                }}
+            >
                 <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#1a6fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <DirectionsRun sx={{ color: '#fff', fontSize: 20 }} />
                 </Box>
@@ -165,7 +151,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 {(!collapsed || isMobile) && (
                                     <ListItemText
                                         primary={item.label}
-                                        primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: isActive ? 700 : 400, color: isActive ? '#fff' : 'rgba(255,255,255,0.7)' }}
+                                        slotProps={{ primary: { style: { fontSize: '0.875rem', fontWeight: isActive ? 700 : 400, color: isActive ? '#fff' : 'rgba(255,255,255,0.7)' } } }}
                                     />
                                 )}
                                 {isActive && (!collapsed || isMobile) && (
@@ -184,9 +170,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1.5, py: 1, mb: 1, bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
                         <Avatar sx={{ width: 32, height: 32, bgcolor: '#1a6fff', fontSize: '0.75rem' }}>{getInitials()}</Avatar>
                         <Box sx={{ overflow: 'hidden' }}>
-                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>
-                                {user?.firstName} {user?.lastName}
-                            </Typography>
+                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>{user?.firstName} {user?.lastName}</Typography>
                             <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>Utilizator</Typography>
                         </Box>
                     </Box>
@@ -198,7 +182,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     >
                         <ListItemIcon sx={{ color: '#ef4444', minWidth: collapsed && !isMobile ? 0 : 40 }}><Logout /></ListItemIcon>
                         {(!collapsed || isMobile) && (
-                            <ListItemText primary="Deconectare" primaryTypographyProps={{ fontSize: '0.875rem', color: '#ef4444', fontWeight: 500 }} />
+                            <ListItemText
+                                primary="Deconectare"
+                                slotProps={{ primary: { style: { fontSize: '0.875rem', color: '#ef4444', fontWeight: 500 } } }}
+                            />
                         )}
                     </ListItemButton>
                 </Tooltip>
@@ -216,7 +203,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     {drawerContent}
                 </Drawer>
             )}
-
             {isMobile && (
                 <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(false)}
                         sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, border: 'none' } }}>
@@ -234,12 +220,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 {collapsed ? <MenuIcon /> : <ChevronLeft />}
                             </IconButton>
                         )}
-                        <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>FitMoldova</Typography>
+                        {/* FitMoldova text -> clicks to home */}
+                        <Typography
+                            component={Link}
+                            to={ROUTES.HOME}
+                            variant="subtitle1"
+                            fontWeight={800}
+                            sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit', letterSpacing: 0.5 }}
+                        >
+                            <Box component="span" sx={{ color: '#0f172a' }}>FIT</Box>
+                            <Box component="span" sx={{ color: '#1a6fff' }}>MOLDOVA</Box>
+                        </Typography>
+                        {/* Bigger avatar chip */}
                         <Chip
-                            avatar={<Avatar sx={{ bgcolor: '#1a6fff', width: 28, height: 28, fontSize: '0.7rem' }}>{getInitials()}</Avatar>}
+                            avatar={
+                                <Avatar sx={{ bgcolor: '#1a6fff !important', width: '36px !important', height: '36px !important', fontSize: '0.8rem !important', fontWeight: 700 }}>
+                                    {getInitials()}
+                                </Avatar>
+                            }
                             label={`${user?.firstName} ${user?.lastName}`}
-                            variant="outlined" size="small"
-                            sx={{ borderColor: '#e0e0e0', fontWeight: 600 }}
+                            variant="outlined"
+                            sx={{
+                                height: 42, borderColor: '#e0e0e0', fontWeight: 700,
+                                fontSize: '0.875rem', px: 0.5,
+                                '& .MuiChip-label': { px: 1.5 },
+                            }}
                         />
                     </Toolbar>
                 </AppBar>

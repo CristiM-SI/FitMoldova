@@ -5,10 +5,10 @@ import {
   DialogTitle, DialogContent, DialogActions, Divider,
 } from '@mui/material';
 import { Search, Group, Add, ExitToApp, Close, LocationOn } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
-import { useProgress } from '../context/ProgressContext';
-import { useDashboardData } from '../context/useDashboardData';
-import type { Club } from '../services/mock/cluburi';
+import DashboardLayout from './DashboardLayout.tsx';
+import { useProgress } from '../../context/ProgressContext.tsx';
+import { useDashboardData } from '../../context/useDashboardData.ts';
+import type { Club } from '../../services/mock/cluburi.ts';
 
 const CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Înot', 'Trail'] as const;
 

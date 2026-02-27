@@ -5,12 +5,12 @@ import {
     TextField, Snackbar, Alert, Divider, Paper, LinearProgress,
 } from '@mui/material';
 import { Edit, Save, Cancel, Person, Info, Email, CheckCircle } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
-import { useAuth } from '../context/AuthContext';
-import { useUser } from '../context/UserContext';
-import { useProgress } from '../context/ProgressContext';
-import { useDashboardData } from '../context/useDashboardData';
-import { ROUTES } from '../routes/paths';
+import DashboardLayout from './DashboardLayout.tsx';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { useUser } from '../../context/UserContext.tsx';
+import { useProgress } from '../../context/ProgressContext.tsx';
+import { useDashboardData } from '../../context/useDashboardData.ts';
+import { ROUTES } from '../../routes/paths.ts';
 
 const AVATAR_COLORS = ['#1a6fff', '#00c8a0', '#f59e0b', '#ef4444', '#8b5cf6'];
 

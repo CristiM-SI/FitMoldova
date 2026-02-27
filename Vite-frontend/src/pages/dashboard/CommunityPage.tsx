@@ -4,11 +4,11 @@ import {
     TextField, Tabs, Tab, IconButton, Divider, LinearProgress,
 } from '@mui/material';
 import { Favorite, FavoriteBorder, ChatBubbleOutline, Send, EmojiEvents } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
+import DashboardLayout from './DashboardLayout.tsx';
 import {
     SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS, MEMBER_POSTS,
-} from '../services/mock/community';
-import type { Sport, FeedTab, Post, Challenge, Member } from '../services/mock/community';
+} from '../../services/mock/community.ts';
+import type { Sport, FeedTab, Post, Challenge, Member } from '../../services/mock/community.ts';
 
 const getInitials = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);

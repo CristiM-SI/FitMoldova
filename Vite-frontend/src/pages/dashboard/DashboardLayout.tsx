@@ -9,8 +9,8 @@ import {
     Dashboard as DashboardIcon, DirectionsRun, EmojiEvents, Group,
     Event, Person, Logout, Menu as MenuIcon, ChevronLeft, FitnessCenter,
 } from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
-import { ROUTES } from '../routes/paths';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { ROUTES } from '../../routes/paths.ts';
 
 const DRAWER_WIDTH = 240;
 const DRAWER_COLLAPSED = 64;

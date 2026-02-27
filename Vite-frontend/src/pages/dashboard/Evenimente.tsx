@@ -5,9 +5,9 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions, Divider,
 } from '@mui/material';
 import { Search, Add, ExitToApp, Close, LocationOn, AccessTime, Group, AttachMoney, CalendarToday } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
-import { useDashboardData } from '../context/useDashboardData';
-import type { Eveniment } from '../services/mock/evenimente';
+import DashboardLayout from './DashboardLayout.tsx';
+import { useDashboardData } from '../../context/useDashboardData.ts';
+import type { Eveniment } from '../../services/mock/evenimente.ts';
 
 const CATEGORIES = ['Toate', 'Maraton', 'Ciclism', 'Yoga', 'Fitness', 'Trail', 'Înot', 'Social'] as const;
 const MONTHS_RO = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

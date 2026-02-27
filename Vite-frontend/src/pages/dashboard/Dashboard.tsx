@@ -9,11 +9,11 @@ import {
   RadioButtonUnchecked, ArrowForward, Bolt, FitnessCenter,
   CalendarToday, LocationOn,
 } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
-import { useAuth } from '../context/AuthContext';
-import { useProgress } from '../context/ProgressContext';
-import { useDashboardData } from '../context/useDashboardData';
-import { ROUTES } from '../routes/paths';
+import DashboardLayout from './DashboardLayout.tsx';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { useProgress } from '../../context/ProgressContext.tsx';
+import { useDashboardData } from '../../context/useDashboardData.ts';
+import { ROUTES } from '../../routes/paths.ts';
 
 const STAT_CARDS = [
   { label: 'Activități', hint: 'Adaugă prima activitate', color: '#e8f3ff', iconBg: '#1a6fff', Icon: DirectionsRun, link: ROUTES.ACTIVITIES },

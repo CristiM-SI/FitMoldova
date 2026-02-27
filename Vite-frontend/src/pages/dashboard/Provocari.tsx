@@ -4,10 +4,10 @@ import {
     LinearProgress, Alert, Divider, Avatar, Paper,
 } from '@mui/material';
 import { EmojiEvents, Group, Timer, ArrowForward, ExitToApp, Add } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
-import { useProgress } from '../context/ProgressContext';
-import { useDashboardData } from '../context/useDashboardData';
-import type { Provocare } from '../services/mock/provocari';
+import DashboardLayout from './DashboardLayout.tsx';
+import { useProgress } from '../../context/ProgressContext.tsx';
+import { useDashboardData } from '../../context/useDashboardData.ts';
+import type { Provocare } from '../../services/mock/provocari.ts';
 
 const DIFF_CONFIG: Record<string, { color: string; bg: string }> = {
     'Ușor': { color: '#10b981', bg: '#ecfdf5' },

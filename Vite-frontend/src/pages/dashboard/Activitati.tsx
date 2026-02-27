@@ -4,10 +4,10 @@ import {
   Alert, Divider, Avatar, LinearProgress, Paper,
 } from '@mui/material';
 import { Add, Close, DirectionsRun, LocalFireDepartment, Timer, Straighten } from '@mui/icons-material';
-import DashboardLayout from './DashboardLayout';
-import { useProgress } from '../context/ProgressContext';
-import { useDashboardData } from '../context/useDashboardData';
-import { MOCK_ACTIVITATI } from '../services/mock/activitati';
+import DashboardLayout from './DashboardLayout.tsx';
+import { useProgress } from '../../context/ProgressContext.tsx';
+import { useDashboardData } from '../../context/useDashboardData.ts';
+import { MOCK_ACTIVITATI } from '../../services/mock/activitati.ts';
 
 const TYPE_COLORS: Record<string, string> = {
   Alergare: '#3b82f6', Ciclism: '#10b981', Înot: '#06b6d4',

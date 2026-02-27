@@ -1,348 +1,271 @@
-﻿import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useUser } from "../context/UserContext";
-import { useProgress } from "../context/ProgressContext";
-import { ROUTES } from "../routes/paths";
-import styles from "../styles/Profile.module.css";
-import './Dashboard.css';
-import './DashboardOverlays.css';
+﻿import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+    Box, Typography, Card, CardContent, Grid, Button, Avatar, Chip,
+    TextField, Snackbar, Alert, Divider, Paper, LinearProgress,
+} from '@mui/material';
+import { Edit, Save, Cancel, Person, Info, Email, CheckCircle } from '@mui/icons-material';
+import DashboardLayout from './DashboardLayout';
+import { useAuth } from '../context/AuthContext';
+import { useUser } from '../context/UserContext';
+import { useProgress } from '../context/ProgressContext';
+import { useDashboardData } from '../context/useDashboardData';
+import { ROUTES } from '../routes/paths';
 
-const AVATAR_COLORS = [
-    "#1a7fff", "#00c8a0", "#f59e0b", "#ef4444", "#8b5cf6"
-];
+const AVATAR_COLORS = ['#1a6fff', '#00c8a0', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-function getInitials(firstName: string, lastName: string) {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+function getInitials(f: string, l: string) {
+    return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase();
 }
 
 function getAvatarColor(name: string) {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
 const Profile: React.FC = () => {
-    const { user: authUser, logout } = useAuth();
+    const { user: authUser } = useAuth();
     const { user, updateUser } = useUser();
-    const { completeProfile } = useProgress();
+    const { completeProfile, progress } = useProgress();
+    const { activitatiCurente, provocariInscrise, cluburiJoined } = useDashboardData();
     const navigate = useNavigate();
+
     const [isEditing, setIsEditing] = useState(false);
     const [saved, setSaved] = useState(false);
 
     const [editData, setEditData] = useState({
-        firstName: user?.firstName || authUser?.firstName || "",
-        lastName: user?.lastName || authUser?.lastName || "",
-        phone: user?.phone || "",
-        location: user?.location || "",
-        bio: user?.bio || "",
+        firstName: user?.firstName || authUser?.firstName || '',
+        lastName: user?.lastName || authUser?.lastName || '',
+        phone: user?.phone || '',
+        location: user?.location || '',
+        bio: user?.bio || '',
     });
-
-    const handleLogout = (): void => {
-        logout();
-        navigate(ROUTES.HOME);
-    };
 
     if (!authUser) {
         return (
-            <div className={styles.page}>
-                <div className={styles.grid} aria-hidden="true" />
-                <div className={styles.emptyCard}>
-                    <p className={styles.emptyTitle}>Nu ești autentificat</p>
-                    <p className={styles.emptyText}>Trebuie să creezi un cont pentru a vedea profilul.</p>
-                    <button className={styles.btn} onClick={() => navigate(ROUTES.REGISTER)}>
-                        CREEAZĂ CONT
-                    </button>
-                </div>
-            </div>
+            <DashboardLayout>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                    <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', p: 4, textAlign: 'center', maxWidth: 400 }}>
+                        <Typography variant="h6" fontWeight={800} gutterBottom>Nu ești autentificat</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            Trebuie să creezi un cont pentru a vedea profilul.
+                        </Typography>
+                        <Button variant="contained" onClick={() => navigate(ROUTES.REGISTER)} sx={{ borderRadius: 2, boxShadow: 'none' }}>
+                            Creează cont
+                        </Button>
+                    </Card>
+                </Box>
+            </DashboardLayout>
         );
     }
 
     const displayFirstName = user?.firstName || authUser.firstName;
     const displayLastName = user?.lastName || authUser.lastName;
     const displayEmail = user?.email || authUser.email;
-
     const avatarColor = getAvatarColor(displayFirstName + displayLastName);
     const initials = getInitials(displayFirstName, displayLastName);
-    const fullName = `${displayFirstName} ${displayLastName}`;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setEditData((prev) => ({ ...prev, [name]: value }));
+        setEditData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleSave = () => {
         updateUser(editData);
         setIsEditing(false);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
-
-        // Bifează milestone-ul dacă cel puțin un câmp e completat
-        if (editData.phone || editData.location || editData.bio) {
-            completeProfile();
-        }
+        if (editData.phone || editData.location || editData.bio) completeProfile();
     };
 
     const handleCancel = () => {
         setEditData({
             firstName: user?.firstName || authUser.firstName,
             lastName: user?.lastName || authUser.lastName,
-            phone: user?.phone || "",
-            location: user?.location || "",
-            bio: user?.bio || "",
+            phone: user?.phone || '',
+            location: user?.location || '',
+            bio: user?.bio || '',
         });
         setIsEditing(false);
     };
 
+    // Progress bar for profile completion
+    const completionFields = [editData.firstName, editData.lastName, displayEmail, editData.phone, editData.location, editData.bio];
+    const profileCompletion = Math.round((completionFields.filter(Boolean).length / completionFields.length) * 100);
+
     return (
-        <div className="db-page">
-            <div className="db-grid" aria-hidden="true" />
-
-            {/* Sidebar */}
-            <aside className="db-sidebar">
-                <Link to={ROUTES.HOME} className="db-logo">
-                    <span className="db-logo-white">FIT</span>
-                    <span className="db-logo-blue">MOLDOVA</span>
-                </Link>
-                <nav className="db-nav">
-                    <Link to={ROUTES.DASHBOARD} className="db-nav-item">
-                        <span className="db-nav-icon">📊</span> Dashboard
-                    </Link>
-                    <Link to={ROUTES.ACTIVITIES} className="db-nav-item">
-                        <span className="db-nav-icon">🏃</span> Activități
-                    </Link>
-                    <Link to={ROUTES.CHALLENGES} className="db-nav-item">
-                        <span className="db-nav-icon">🏆</span> Provocări
-                    </Link>
-                    <Link to={ROUTES.CLUBS} className="db-nav-item">
-                        <span className="db-nav-icon">👥</span> Cluburi
-                    </Link>
-                    <Link to={ROUTES.EVENTS_DASHBOARD} className="db-nav-item">
-                        <span className="db-nav-icon">📅</span> Evenimente
-                    </Link>
-                    <Link to={ROUTES.PROFILE} className="db-nav-item db-nav-item--active">
-                        <span className="db-nav-icon">👤</span> Profil
-                    </Link>
-                </nav>
-                <button className="db-logout-btn" onClick={handleLogout}>
-                    <span>↩</span> Deconectare
-                </button>
-            </aside>
-
-            {/* Main */}
-            <main className="db-main" style={{ padding: '0' }}>
-                {/* Top bar cu Edit */}
-                <header className={styles.topBar} style={{ position: 'relative', zIndex: 100 }}>
-                    <h1 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
-                        👤 Profilul Meu
-                    </h1>
-                    <div className={styles.topRight}>
-                        {!isEditing ? (
-                            <button
-                                className={styles.editBtn}
-                                onClick={() => setIsEditing(true)}
-                                title="Editează profilul"
-                            >
-                                <PencilIcon />
-                                <span>Editează</span>
-                            </button>
-                        ) : (
-                            <div className={styles.editActions}>
-                                <button className={styles.cancelBtn} onClick={handleCancel}>Anulează</button>
-                                <button className={styles.saveBtn} onClick={handleSave}>Salvează</button>
-                            </div>
-                        )}
-                    </div>
-                </header>
-
-                {/* Save toast */}
-                {saved && (
-                    <div className={styles.toast}>
-                        <CheckIcon /> Profilul a fost actualizat!
-                    </div>
+        <DashboardLayout>
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                    <Typography variant="h5" fontWeight={800} color="#0f172a">Profil</Typography>
+                    <Typography variant="body2" color="text.secondary">Gestionează informațiile tale personale</Typography>
+                </Box>
+                {!isEditing ? (
+                    <Button variant="outlined" startIcon={<Edit />} onClick={() => setIsEditing(true)} sx={{ borderRadius: 2 }}>
+                        Editează
+                    </Button>
+                ) : (
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button variant="outlined" startIcon={<Cancel />} onClick={handleCancel} sx={{ borderRadius: 2 }}>Anulează</Button>
+                        <Button variant="contained" startIcon={<Save />} onClick={handleSave} sx={{ borderRadius: 2, boxShadow: 'none' }}>Salvează</Button>
+                    </Box>
                 )}
+            </Box>
 
-                <div className={styles.main}>
-                    {/* Hero card */}
-                    <div className={styles.heroCard}>
-                        <div className={styles.heroBg} />
-                        <div className={styles.avatarWrap}>
-                            <div className={styles.avatar} style={{ backgroundColor: avatarColor }}>
-                                {initials}
-                            </div>
-                            {isEditing && (
-                                <div className={styles.avatarBadge}><PencilIcon /></div>
-                            )}
-                        </div>
+            {/* Stats — 4 full row */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+                {[
+                    { label: 'Activități', value: activitatiCurente.length, emoji: '🏃', bg: '#f0f7ff' },
+                    { label: 'Provocări', value: provocariInscrise.length, emoji: '🏆', bg: '#fffbeb' },
+                    { label: 'Cluburi', value: cluburiJoined.length, emoji: '👥', bg: '#ecfdf5' },
+                    { label: 'Profil completat', value: `${profileCompletion}%`, emoji: '⭐', bg: '#fdf4ff' },
+                ].map((s) => (
+                    <Grid item xs={6} sm={3} key={s.label}>
+                        <Card elevation={0} sx={{ borderRadius: 3, bgcolor: s.bg, border: '1px solid rgba(0,0,0,0.04)', height: '100%' }}>
+                            <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ lineHeight: 1.3 }}>{s.label}</Typography>
+                                    <Typography fontSize="1.4rem">{s.emoji}</Typography>
+                                </Box>
+                                <Typography variant="h4" fontWeight={900} color="#0f172a">{s.value}</Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
 
-                        {isEditing ? (
-                            <div className={styles.nameEditRow}>
-                                <input
-                                    name="firstName"
-                                    className={styles.nameInput}
-                                    value={editData.firstName}
-                                    onChange={handleChange}
-                                    placeholder="Prenume"
-                                />
-                                <input
-                                    name="lastName"
-                                    className={styles.nameInput}
-                                    value={editData.lastName}
-                                    onChange={handleChange}
-                                    placeholder="Nume"
-                                />
-                            </div>
-                        ) : (
-                            <h1 className={styles.heroName}>{fullName}</h1>
-                        )}
+            {/* Hero Banner */}
+            <Paper elevation={0} sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', border: '1px solid #e8edf3' }}>
+                <Box sx={{ height: 130, background: 'linear-gradient(135deg, #0f172a 0%, #1a6fff 50%, #0ea5e9 100%)', position: 'relative' }}>
+                    <Box sx={{ position: 'absolute', right: -20, top: -20, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
+                </Box>
+                <Box sx={{ px: 3, pb: 3, position: 'relative' }}>
+                    <Avatar sx={{ width: 80, height: 80, bgcolor: avatarColor, fontSize: '1.5rem', fontWeight: 900, border: '4px solid #fff', mt: -5, mb: 1.5, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                        {initials}
+                    </Avatar>
 
-                        <p className={styles.heroEmail}>{displayEmail}</p>
-                        <div className={styles.heroBadge}>
-                            <span className={styles.badgeDot} />
-                            Membru activ
-                        </div>
-                    </div>
+                    {isEditing ? (
+                        <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5, flexWrap: 'wrap' }}>
+                            <TextField name="firstName" size="small" label="Prenume" value={editData.firstName} onChange={handleChange}
+                                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                            <TextField name="lastName" size="small" label="Nume" value={editData.lastName} onChange={handleChange}
+                                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                        </Box>
+                    ) : (
+                        <Typography variant="h6" fontWeight={900} sx={{ mb: 0.5 }}>{displayFirstName} {displayLastName}</Typography>
+                    )}
 
-                    {/* Info grid */}
-                    <div className={styles.grid2}>
-                        <div className={styles.infoCard}>
-                            <h2 className={styles.cardTitle}>
-                                <UserIcon /> Informații personale
-                            </h2>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                        <Typography variant="caption" color="text.secondary">✉️ {displayEmail}</Typography>
+                        <Chip icon={<CheckCircle sx={{ fontSize: '14px !important', color: '#10b981 !important' }} />}
+                              label="Membru activ" size="small"
+                              sx={{ height: 22, bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 700, fontSize: '0.7rem' }} />
+                    </Box>
 
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Prenume</label>
+                    {/* Profile completion bar */}
+                    <Box sx={{ mt: 2.5, maxWidth: 400 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">Completare profil</Typography>
+                            <Typography variant="caption" fontWeight={800} color="#1a6fff">{profileCompletion}%</Typography>
+                        </Box>
+                        <LinearProgress variant="determinate" value={profileCompletion}
+                                        sx={{ height: 6, borderRadius: 3, bgcolor: '#f0f4f8', '& .MuiLinearProgress-bar': { bgcolor: profileCompletion === 100 ? '#10b981' : '#1a6fff', borderRadius: 3 } }} />
+                    </Box>
+                </Box>
+            </Paper>
+
+            {/* Info Grid */}
+            <Grid container spacing={2}>
+                {/* Personal Info */}
+                <Grid item xs={12} md={6}>
+                    <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', height: '100%' }}>
+                        <CardContent sx={{ p: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                                <Person sx={{ color: '#1a6fff', fontSize: 20 }} />
+                                <Typography variant="subtitle1" fontWeight={800}>Informații personale</Typography>
+                            </Box>
+                            {[
+                                { label: 'Prenume', name: 'firstName', value: displayFirstName, editable: true },
+                                { label: 'Nume', name: 'lastName', value: displayLastName, editable: true },
+                                { label: 'Email', name: 'email', value: displayEmail, editable: false },
+                                { label: 'Telefon', name: 'phone', value: user?.phone || '', placeholder: '+373 xxx xxx xxx', editable: true },
+                                { label: 'Locație', name: 'location', value: user?.location || '', placeholder: 'ex: Chișinău, Moldova', editable: true },
+                            ].map((field, i) => (
+                                <React.Fragment key={field.name}>
+                                    {i > 0 && <Divider sx={{ my: 1.5 }} />}
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary" fontWeight={600}>{field.label}</Typography>
+                                        {isEditing && field.editable && field.name !== 'email' ? (
+                                            <TextField fullWidth size="small" name={field.name}
+                                                       value={editData[field.name as keyof typeof editData] ?? ''}
+                                                       onChange={handleChange} placeholder={field.placeholder}
+                                                       sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                                        ) : (
+                                            <Typography variant="body2" fontWeight={600} sx={{ mt: 0.25 }}>
+                                                {field.value || <Box component="span" sx={{ color: '#94a3b8', fontWeight: 400, fontStyle: 'italic' }}>Necompletat</Box>}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </React.Fragment>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                {/* About */}
+                <Grid item xs={12} md={6}>
+                    <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', height: '100%' }}>
+                        <CardContent sx={{ p: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                                <Info sx={{ color: '#1a6fff', fontSize: 20 }} />
+                                <Typography variant="subtitle1" fontWeight={800}>Despre mine</Typography>
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary" fontWeight={600}>Bio</Typography>
                                 {isEditing ? (
-                                    <input name="firstName" className={styles.fieldInput} value={editData.firstName} onChange={handleChange} />
+                                    <TextField fullWidth multiline rows={3} size="small" name="bio" value={editData.bio}
+                                               onChange={handleChange} placeholder="Spune ceva despre tine..."
+                                               sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                                 ) : (
-                                    <p className={styles.fieldValue}>{displayFirstName}</p>
+                                    <Typography variant="body2" sx={{ mt: 0.25, lineHeight: 1.7 }}>
+                                        {user?.bio || <Box component="span" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>Nicio descriere adăugată.</Box>}
+                                    </Typography>
                                 )}
-                            </div>
+                            </Box>
 
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Nume</label>
-                                {isEditing ? (
-                                    <input name="lastName" className={styles.fieldInput} value={editData.lastName} onChange={handleChange} />
-                                ) : (
-                                    <p className={styles.fieldValue}>{displayLastName}</p>
-                                )}
-                            </div>
+                            <Divider sx={{ mb: 2 }} />
 
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Email</label>
-                                <p className={styles.fieldValue}>{displayEmail}</p>
-                            </div>
+                            <Box sx={{ mb: 2.5 }}>
+                                <Typography variant="caption" color="text.secondary" fontWeight={600}>Membru din</Typography>
+                                <Typography variant="body2" fontWeight={600} sx={{ mt: 0.25 }}>{user?.joinDate || '—'}</Typography>
+                            </Box>
 
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Telefon</label>
-                                {isEditing ? (
-                                    <input name="phone" className={styles.fieldInput} value={editData.phone} onChange={handleChange} placeholder="+373 xxx xxx xxx" />
-                                ) : (
-                                    <p className={styles.fieldValue}>{user?.phone || <span className={styles.empty}>Necompletat</span>}</p>
-                                )}
-                            </div>
+                            {/* Activity stats */}
+                            <Box sx={{ bgcolor: '#f8faff', borderRadius: 2, border: '1px solid #e8edf3', overflow: 'hidden' }}>
+                                {[
+                                    { label: 'Activități înregistrate', value: activitatiCurente.length, emoji: '🏃' },
+                                    { label: 'Provocări active', value: provocariInscrise.length, emoji: '🏆' },
+                                    { label: 'Cluburi înscrise', value: cluburiJoined.length, emoji: '👥' },
+                                ].map((s, i) => (
+                                    <React.Fragment key={s.label}>
+                                        {i > 0 && <Divider />}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1.5 }}>
+                                            <Typography variant="body2" color="text.secondary">{s.emoji} {s.label}</Typography>
+                                            <Typography variant="body2" fontWeight={900} color="#1a6fff">{s.value}</Typography>
+                                        </Box>
+                                    </React.Fragment>
+                                ))}
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
 
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Locație</label>
-                                {isEditing ? (
-                                    <input name="location" className={styles.fieldInput} value={editData.location} onChange={handleChange} placeholder="ex: Chișinău, Moldova" />
-                                ) : (
-                                    <p className={styles.fieldValue}>{user?.location || <span className={styles.empty}>Necompletat</span>}</p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className={styles.infoCard}>
-                            <h2 className={styles.cardTitle}>
-                                <InfoIcon /> Despre mine
-                            </h2>
-
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Bio</label>
-                                {isEditing ? (
-                                    <textarea
-                                        name="bio"
-                                        className={styles.fieldTextarea}
-                                        value={editData.bio}
-                                        onChange={handleChange}
-                                        placeholder="Spune ceva despre tine..."
-                                        rows={4}
-                                    />
-                                ) : (
-                                    <p className={styles.fieldValue}>
-                                        {user?.bio || <span className={styles.empty}>Nicio descriere adăugată.</span>}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.fieldLabel}>Membru din</label>
-                                <p className={styles.fieldValue}>{user?.joinDate || '—'}</p>
-                            </div>
-
-                            <div className={styles.stats}>
-                                <div className={styles.stat}>
-                                    <span className={styles.statNum}>0</span>
-                                    <span className={styles.statLbl}>Activități</span>
-                                </div>
-                                <div className={styles.statDiv} />
-                                <div className={styles.stat}>
-                                    <span className={styles.statNum}>0</span>
-                                    <span className={styles.statLbl}>Provocări</span>
-                                </div>
-                                <div className={styles.statDiv} />
-                                <div className={styles.stat}>
-                                    <span className={styles.statNum}>0</span>
-                                    <span className={styles.statLbl}>Cluburi</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Back button */}
-                    <div className="ov-back-wrap" style={{ margin: '1rem 0 2rem' }}>
-                        <Link to={ROUTES.DASHBOARD} className="ov-btn-back">
-                            ← Înapoi la Dashboard
-                        </Link>
-                    </div>
-                </div>
-
-                <div className="db-footer">
-                    <p className="db-footer-copy">© 2026 FitMoldova. Toate drepturile rezervate.</p>
-                    <div className="db-footer-links">
-                        <Link to={ROUTES.CONTACT} className="db-footer-link">Contact</Link>
-                        <Link to={ROUTES.FEEDBACK} className="db-footer-link">Feedback</Link>
-                    </div>
-                </div>
-            </main>
-        </div>
+            <Snackbar open={saved} autoHideDuration={3000} onClose={() => setSaved(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                <Alert severity="success" sx={{ borderRadius: 2 }}>✅ Profilul a fost actualizat cu succes!</Alert>
+            </Snackbar>
+        </DashboardLayout>
     );
 };
-
-/* ---- Icons ---- */
-const PencilIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-);
-
-const CheckIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12" />
-    </svg>
-);
-
-const UserIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-    </svg>
-);
-
-const InfoIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-);
 
 export default Profile;

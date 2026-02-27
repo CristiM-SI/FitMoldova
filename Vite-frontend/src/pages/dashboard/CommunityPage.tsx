@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     Box, Typography, Button, Avatar, Chip, TextField, IconButton,
-    Paper, Divider, Dialog, DialogContent, Tooltip,
+    Divider, Dialog, DialogContent, Tooltip,
 } from '@mui/material';
 import {
     Favorite, FavoriteBorder, ChatBubbleOutline, Send, Close,
@@ -37,20 +37,6 @@ const T = {
 // ── HELPERS ───────────────────────────────────
 const getInitials = (name: string): string =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-
-const CLUB_CAT_GRADIENTS: Record<string, string> = {
-    Alergare: 'linear-gradient(135deg,#ff6b35,#f7c948)',
-    Ciclism:  'linear-gradient(135deg,#10b981,#059669)',
-    Fitness:  'linear-gradient(135deg,#8b5cf6,#6d28d9)',
-    Yoga:     'linear-gradient(135deg,#ec4899,#be185d)',
-    Inot:     'linear-gradient(135deg,#06b6d4,#0284c7)',
-    Trail:    'linear-gradient(135deg,#22c55e,#15803d)',
-    default:  'linear-gradient(135deg,#1a6fff,#7c3aed)',
-};
-function getGradient(cat: string) {
-    const norm = cat.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return CLUB_CAT_GRADIENTS[cat] || CLUB_CAT_GRADIENTS[norm] || CLUB_CAT_GRADIENTS.default;
-}
 
 // ── CIRCLE PROGRESS ──────────────────────────
 function CircleProgress({ pct, uid }: { pct: number; uid: string }) {

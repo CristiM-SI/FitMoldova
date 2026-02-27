@@ -28,6 +28,7 @@ import AdminEvents from './pages/admin/AdminEvents'
 import AdminClubs from './pages/admin/AdminClubs'
 import AdminChallenges from './pages/admin/AdminChallenges'
 import AdminRoutes from './pages/admin/AdminRoutes'
+import AdminFeedback from './pages/admin/AdminFeedback'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -212,6 +213,7 @@ function App() {
                                     <Route path="clubs" element={<AdminClubs />} />
                                     <Route path="challenges" element={<AdminChallenges />} />
                                     <Route path="routes" element={<AdminRoutes />} />
+                                    <Route path="feedback" element={<AdminFeedback />} />
                                 </Route>
 
                                 {/* Fallback */}

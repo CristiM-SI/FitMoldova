@@ -23,6 +23,15 @@ export const ROUTES = {
   CLUBS: '/clubs',
   GALLERY: '/gallery',
   FEEDBACK: '/feedback',
+
+  // Admin routes
+  ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_EVENTS: '/admin/events',
+  ADMIN_CLUBS: '/admin/clubs',
+  ADMIN_CHALLENGES: '/admin/challenges',
+  ADMIN_ROUTES: '/admin/routes',
+  ADMIN_FEEDBACK: '/admin/feedback',
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;

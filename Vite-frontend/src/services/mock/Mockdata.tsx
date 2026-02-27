@@ -10,6 +10,7 @@ export interface MockUser {
     password: string;
     avatar: string;
     registeredAt: string;
+    isAdmin?: boolean;
 }
 
 export const MOCK_USERS: MockUser[] = [
@@ -42,6 +43,17 @@ export const MOCK_USERS: MockUser[] = [
         password: "Fitness202445!!!@@@@",
         avatar: "AR",
         registeredAt: "2024-03-10T08:00:00.000Z",
+    },
+    {
+        id: 4,
+        username: "admin.fitmoldova",
+        firstName: "Admin",
+        lastName: "FitMoldova",
+        email: "admin@fitmoldova.md",
+        password: "Admin2024@@@@1234",
+        avatar: "AF",
+        registeredAt: "2024-01-01T00:00:00.000Z",
+        isAdmin: true,
     },
 ];
 export const RECOMMENDED_ACTIVITIES: RecommendedActivity[] = [

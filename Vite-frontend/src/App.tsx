@@ -21,6 +21,8 @@ import Contact from './pages/Contact'
 import Feedback from './pages/Feedback'
 import ForumPage from './pages/ForumPage'
 import RoutesPage from './pages/RoutesPage'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminOverview from './pages/admin/AdminOverview'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -54,6 +56,19 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     if (isAuthenticated) {
         return <Navigate to={ROUTES.DASHBOARD} replace />;
+    }
+
+    return <>{children}</>;
+};
+
+// Guard pentru rutele de admin (necesită autentificare + rol admin)
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { isAuthenticated, isAdmin, loading } = useAuth();
+
+    if (loading) return null;
+
+    if (!isAuthenticated || !isAdmin) {
+        return <Navigate to={ROUTES.HOME} replace />;
     }
 
     return <>{children}</>;
@@ -176,6 +191,18 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
+
+                                {/* Rute Admin */}
+                                <Route
+                                    path={ROUTES.ADMIN}
+                                    element={
+                                        <AdminRoute>
+                                            <AdminLayout />
+                                        </AdminRoute>
+                                    }
+                                >
+                                    <Route index element={<AdminOverview />} />
+                                </Route>
 
                                 {/* Fallback */}
                                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

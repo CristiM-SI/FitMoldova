@@ -3,14 +3,14 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
 import { ROUTES } from '../../routes/paths';
-import { UserCircleIcon, Squares2X2Icon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
+import { UserCircleIcon, Squares2X2Icon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 import '../../styles/Navbar.css';
 
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, isAdmin, logout, user } = useAuth();
   const { user: userCtx } = useUser();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
               className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
               onClick={closeMenu}
             >
-              🗺️ Trasee
+              Trasee
             </NavLink>
           </li>
           <li>
@@ -118,6 +118,15 @@ const Navbar: React.FC = () => {
                     <Cog6ToothIcon className="nav-dropdown-icon" />
                     Setări
                   </button>
+                  {isAdmin && (
+                    <button
+                      className="nav-dropdown-item"
+                      onClick={() => { setDropdownOpen(false); navigate(ROUTES.ADMIN); }}
+                    >
+                      <ShieldCheckIcon className="nav-dropdown-icon" />
+                      Admin Panel
+                    </button>
+                  )}
                   <div className="nav-dropdown-divider" />
                   <button
                     className="nav-dropdown-item nav-dropdown-item--danger"

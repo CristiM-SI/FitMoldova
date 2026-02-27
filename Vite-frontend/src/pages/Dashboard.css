@@ -460,6 +460,39 @@
   }
 }
 
+/* ── Mini footer pentru paginile de dashboard ── */
+.db-footer {
+  margin-top: 3rem;
+  padding: 1.25rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.db-footer-copy {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.db-footer-links {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.db-footer-link {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.db-footer-link:hover {
+  color: var(--primary, #1a7fff);
+}
+
 .db-overlay {
   position: fixed;  /* ← fix peste tot ecranul */
   inset: 0;  /* ← echivalent cu top:0; right:0; bottom:0; left:0; */

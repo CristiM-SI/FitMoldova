@@ -8,11 +8,13 @@ export interface User {
   email: string;
   avatar: string;
   registeredAt: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   loading: boolean;
   register: (data: { firstName: string; lastName: string; email: string; password: string }) => { success: boolean };
   login: (username: string, password: string) => { success: boolean };
@@ -22,6 +24,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
+  isAdmin: false,
   loading: true,
   register: () => ({ success: false }),
   login: () => ({ success: false }),
@@ -31,6 +34,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed = JSON.parse(saved) as User;
         setUser(parsed);
         setIsAuthenticated(true);
+        setIsAdmin(parsed.isAdmin === true);
       } catch {
         localStorage.removeItem('fitmoldova_user');
       }
@@ -78,9 +83,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: mockUser.email,
         avatar: mockUser.avatar,
         registeredAt: mockUser.registeredAt,
+        isAdmin: mockUser.isAdmin,
       };
       setUser(loggedUser);
       setIsAuthenticated(true);
+      setIsAdmin(loggedUser.isAdmin === true);
       localStorage.setItem('fitmoldova_user', JSON.stringify(loggedUser));
       return { success: true };
     }
@@ -104,11 +111,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
+    setIsAdmin(false);
     localStorage.removeItem('fitmoldova_user');
   };
 
   return (
-      <AuthContext.Provider value={{ user, isAuthenticated, loading, register, login, logout }}>
+      <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, loading, register, login, logout }}>
         {children}
       </AuthContext.Provider>
   );

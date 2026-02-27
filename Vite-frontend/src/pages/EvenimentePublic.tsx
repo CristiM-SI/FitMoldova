@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import EventMap from '../components/EventMap';
 import { useAuth } from '../context/AuthContext';
 import { useDashboardData } from '../context/useDashboardData';
@@ -465,6 +466,7 @@ const EvenimentePublic: React.FC = () => {
                     </div>
                 </div>
             )}
+        <Footer />
         </div>
     );
 };

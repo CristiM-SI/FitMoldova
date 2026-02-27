@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Box, Typography, Card, CardContent, Button, Chip,
-    LinearProgress, Divider, Paper, Tabs, Tab,
+    LinearProgress, Paper, Tabs, Tab,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import DashboardLayout from './DashboardLayout';

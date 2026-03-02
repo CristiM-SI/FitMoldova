@@ -29,6 +29,10 @@ import AdminClubs from './pages/admin/AdminClubs'
 import AdminChallenges from './pages/admin/AdminChallenges'
 import AdminRoutes from './pages/admin/AdminRoutes'
 import AdminFeedback from './pages/admin/AdminFeedback'
+import { ForumProvider } from './context/ForumContext'
+import FeedPage from './pages/FeedPage'
+import SavedPage from './pages/SavedPage'
+import NotificationsPage from './pages/NotificationsPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -88,10 +92,14 @@ function App() {
                 <UserProvider>
                     <ProgressProvider>
                         <DashboardDataProvider>
+                            <ForumProvider>
                             <Routes>
                                 {/* Rute publice */}
                                 <Route path={ROUTES.HOME} element={<Home />} />
                                 <Route path={ROUTES.CLUBS} element={<Clubs />} />
+                                <Route path={ROUTES.FEED} element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+                                <Route path={ROUTES.SAVED} element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
+                                <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                                 <Route
                                     path={ROUTES.LOGIN}
                                     element={
@@ -219,6 +227,7 @@ function App() {
                                 {/* Fallback */}
                                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
                             </Routes>
+                            </ForumProvider>   
                         </DashboardDataProvider>
                     </ProgressProvider>
                 </UserProvider>

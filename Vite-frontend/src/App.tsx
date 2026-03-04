@@ -4,6 +4,9 @@ import { UserProvider } from './context/UserContext'
 import { ProgressProvider } from './context/ProgressContext'
 import { DashboardDataProvider } from './context/DashboardDataContext'
 import { useAuth } from './context/AuthContext'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
 import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Clubs from './pages/dashboard/Clubs.tsx'
@@ -29,10 +32,6 @@ import AdminClubs from './pages/admin/AdminClubs'
 import AdminChallenges from './pages/admin/AdminChallenges'
 import AdminRoutes from './pages/admin/AdminRoutes'
 import AdminFeedback from './pages/admin/AdminFeedback'
-import { ForumProvider } from './context/ForumContext'
-import FeedPage from './pages/FeedPage'
-import SavedPage from './pages/SavedPage'
-import NotificationsPage from './pages/NotificationsPage'
 
 
 // Guard pentru rutele protejate (necesită autentificare)
@@ -42,12 +41,22 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
     if (loading) {
         return (
-            <div className="route-guard-loading">
-                <div className="loading-spinner">
-                    <div className="spinner"></div>
-                    <p>Se încarcă...</p>
-                </div>
-            </div>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '100vh',
+                    bgcolor: 'background.default',
+                    flexDirection: 'column',
+                    gap: 2,
+                }}
+            >
+                <CircularProgress size={50} />
+                <Typography variant="body1" color="text.secondary" fontWeight={500}>
+                    Se încarcă...
+                </Typography>
+            </Box>
         );
     }
 
@@ -92,14 +101,10 @@ function App() {
                 <UserProvider>
                     <ProgressProvider>
                         <DashboardDataProvider>
-                            <ForumProvider>
                             <Routes>
                                 {/* Rute publice */}
                                 <Route path={ROUTES.HOME} element={<Home />} />
                                 <Route path={ROUTES.CLUBS} element={<Clubs />} />
-                                <Route path={ROUTES.FEED} element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
-                                <Route path={ROUTES.SAVED} element={<ProtectedRoute><SavedPage /></ProtectedRoute>} />
-                                <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                                 <Route
                                     path={ROUTES.LOGIN}
                                     element={
@@ -227,7 +232,6 @@ function App() {
                                 {/* Fallback */}
                                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
                             </Routes>
-                            </ForumProvider>   
                         </DashboardDataProvider>
                     </ProgressProvider>
                 </UserProvider>

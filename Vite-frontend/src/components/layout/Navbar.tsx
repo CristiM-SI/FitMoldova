@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import Button from '@mui/material/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
 import { ROUTES } from '../../routes/paths';
@@ -42,10 +43,10 @@ const Navbar: React.FC = () => {
   const closeMenu = () => setMenuOpen(false);
 
   const displayName = userCtx
-    ? `${userCtx.firstName} ${userCtx.lastName}`
-    : user
-      ? `${user.firstName} ${user.lastName}`
-      : 'Profil';
+      ? `${userCtx.firstName} ${userCtx.lastName}`
+      : user
+          ? `${user.firstName} ${user.lastName}`
+          : 'Profil';
 
   return (
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
@@ -57,97 +58,97 @@ const Navbar: React.FC = () => {
           <li><button onClick={() => { navigate(ROUTES.EVENTS); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
           <li>
             <NavLink
-              to={ROUTES.ROUTES_MAP}
-              className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
-              onClick={closeMenu}
+                to={ROUTES.ROUTES_MAP}
+                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                onClick={closeMenu}
             >
               Trasee
             </NavLink>
           </li>
           <li>
             <NavLink
-              to={ROUTES.CONTACT}
-              className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
-              onClick={closeMenu}
+                to={ROUTES.CONTACT}
+                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                onClick={closeMenu}
             >
               Contact
             </NavLink>
           </li>
           {isAuthenticated && (
-            <li>
-              <NavLink
-                to={ROUTES.FEEDBACK}
-                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
-                onClick={closeMenu}
-              >
-                Feedback
-              </NavLink>
-            </li>
+              <li>
+                <NavLink
+                    to={ROUTES.FEEDBACK}
+                    className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                    onClick={closeMenu}
+                >
+                  Feedback
+                </NavLink>
+              </li>
           )}
         </ul>
 
         <div className="nav-actions">
           {isAuthenticated ? (
-            <div className="nav-user-menu" ref={dropdownRef}>
-              <button
-                className={`nav-avatar-btn ${dropdownOpen ? 'nav-avatar-btn--active' : ''}`}
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                title={displayName}
-                aria-label="Meniu utilizator"
-              >
-                <UserCircleIcon className="nav-avatar-icon" />
-              </button>
+              <div className="nav-user-menu" ref={dropdownRef}>
+                <button
+                    className={`nav-avatar-btn ${dropdownOpen ? 'nav-avatar-btn--active' : ''}`}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    title={displayName}
+                    aria-label="Meniu utilizator"
+                >
+                  <UserCircleIcon className="nav-avatar-icon" />
+                </button>
 
-              {dropdownOpen && (
-                <div className="nav-dropdown">
-                  <div className="nav-dropdown-header">
-                    <span className="nav-dropdown-name">{displayName}</span>
-                  </div>
-                  <div className="nav-dropdown-divider" />
-                  <button
-                    className="nav-dropdown-item"
-                    onClick={() => { setDropdownOpen(false); navigate(ROUTES.DASHBOARD); }}
-                  >
-                    <Squares2X2Icon className="nav-dropdown-icon" />
-                    Dashboard
-                  </button>
-                  <button
-                    className="nav-dropdown-item"
-                    onClick={() => { setDropdownOpen(false); navigate(ROUTES.PROFILE); }}
-                  >
-                    <Cog6ToothIcon className="nav-dropdown-icon" />
-                    Setări
-                  </button>
-                  {isAdmin && (
-                    <button
-                      className="nav-dropdown-item"
-                      onClick={() => { setDropdownOpen(false); navigate(ROUTES.ADMIN); }}
-                    >
-                      <ShieldCheckIcon className="nav-dropdown-icon" />
-                      Admin Panel
-                    </button>
-                  )}
-                  <div className="nav-dropdown-divider" />
-                  <button
-                    className="nav-dropdown-item nav-dropdown-item--danger"
-                    onClick={handleLogout}
-                  >
-                    <ArrowRightEndOnRectangleIcon className="nav-dropdown-icon" />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
+                {dropdownOpen && (
+                    <div className="nav-dropdown">
+                      <div className="nav-dropdown-header">
+                        <span className="nav-dropdown-name">{displayName}</span>
+                      </div>
+                      <div className="nav-dropdown-divider" />
+                      <button
+                          className="nav-dropdown-item"
+                          onClick={() => { setDropdownOpen(false); navigate(ROUTES.DASHBOARD); }}
+                      >
+                        <Squares2X2Icon className="nav-dropdown-icon" />
+                        Dashboard
+                      </button>
+                      <button
+                          className="nav-dropdown-item"
+                          onClick={() => { setDropdownOpen(false); navigate(ROUTES.PROFILE); }}
+                      >
+                        <Cog6ToothIcon className="nav-dropdown-icon" />
+                        Setări
+                      </button>
+                      {isAdmin && (
+                          <button
+                              className="nav-dropdown-item"
+                              onClick={() => { setDropdownOpen(false); navigate(ROUTES.ADMIN); }}
+                          >
+                            <ShieldCheckIcon className="nav-dropdown-icon" />
+                            Admin Panel
+                          </button>
+                      )}
+                      <div className="nav-dropdown-divider" />
+                      <button
+                          className="nav-dropdown-item nav-dropdown-item--danger"
+                          onClick={handleLogout}
+                      >
+                        <ArrowRightEndOnRectangleIcon className="nav-dropdown-icon" />
+                        Logout
+                      </button>
+                    </div>
+                )}
+              </div>
           ) : (
               <>
-                <Link to={ROUTES.LOGIN} className="btn btn-outline">Login</Link>
-                <Link to={ROUTES.REGISTER} className="btn btn-primary">Începe Acum</Link>
+                <Button component={Link} to={ROUTES.LOGIN} variant="outlined" color="primary" size="small">Login</Button>
+                <Button component={Link} to={ROUTES.REGISTER} variant="contained" color="primary" size="small">Începe Acum</Button>
               </>
           )}
           <button
-            className={`nav-hamburger ${menuOpen ? 'nav-hamburger--open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Deschide meniu"
+              className={`nav-hamburger ${menuOpen ? 'nav-hamburger--open' : ''}`}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Deschide meniu"
           >
             <span /><span /><span />
           </button>

@@ -9,9 +9,6 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   CONTACT: '/contact',
-  FEED: '/feed',               
-  SAVED: '/saved',             
-  NOTIFICATIONS: '/notifications',
 
   // Protected routes
   DASHBOARD: '/dashboard',

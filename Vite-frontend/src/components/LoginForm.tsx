@@ -1,5 +1,6 @@
 ﻿import { LoginFormErrors, LoginForm } from "../types/login.types";
 import { PasswordStrength } from "../hooks/useLoginForm";
+import CircularProgress from '@mui/material/CircularProgress';
 
 function EyeOpenIcon() {
     return (
@@ -181,7 +182,7 @@ export function LoginForm({
 
                 {/* Submit */}
                 <button className="submit-btn" type="button" onClick={onSubmit} disabled={isLoading}>
-                    {isLoading && <span className="spinner" />}
+                    {isLoading && <CircularProgress size={18} sx={{ color: '#fff' }} />}
                     {isLoading ? "Se conectează..." : "Intră în cont"}
                 </button>
 

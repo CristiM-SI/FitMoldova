@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Button from '@mui/material/Button';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import '../styles/Feedback.css';
@@ -99,7 +100,7 @@ const Feedback: React.FC = () => {
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+        prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
   };
 
@@ -117,7 +118,7 @@ const Feedback: React.FC = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -138,286 +139,289 @@ const Feedback: React.FC = () => {
   const displayRating = hovered || rating;
 
   return (
-    <div className="feedback-page">
-      <div className="noise-bg" />
-      <div className="gradient-orb orb-1" />
-      <div className="gradient-orb orb-2" />
+      <div className="feedback-page">
+        <div className="noise-bg" />
+        <div className="gradient-orb orb-1" />
+        <div className="gradient-orb orb-2" />
 
-      <Navbar />
+        <Navbar />
 
-      {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="feedback-hero">
-        <div className="feedback-hero-content">
-          <div className="feedback-hero-badge">Feedback & Recenzii</div>
-          <h1>
-            Opinia ta <span className="highlight">contează</span>
-          </h1>
-          <p>
-            Ajută-ne să îmbunătățim FitMoldova. Împărtășește experiența ta,
-            sugestiile și ideile — fiecare feedback ne face mai buni.
-          </p>
-        </div>
-      </section>
-
-      {/* ── STATS BAR ────────────────────────────────────── */}
-      <div className="feedback-stats-bar">
-        <div className="feedback-stat">
-          <div className="feedback-stat-number">4.7</div>
-          <div className="feedback-stat-label">Rating Mediu</div>
-        </div>
-        <div className="feedback-stat">
-          <div className="feedback-stat-number">3.2K+</div>
-          <div className="feedback-stat-label">Recenzii</div>
-        </div>
-        <div className="feedback-stat">
-          <div className="feedback-stat-number">94%</div>
-          <div className="feedback-stat-label">Utilizatori Mulțumiți</div>
-        </div>
-        <div className="feedback-stat">
-          <div className="feedback-stat-number">&lt;2h</div>
-          <div className="feedback-stat-label">Timp Răspuns Suport</div>
-        </div>
-      </div>
-
-      {/* ── FORM + SIDEBAR ───────────────────────────────── */}
-      <section className="feedback-main-section">
-        <div className="feedback-main-inner">
-
-          {/* Form */}
-          <div className="feedback-form-wrapper">
-            <h2 className="feedback-form-title">Lasă un feedback</h2>
-            <p className="feedback-form-subtitle">
-              Spune-ne ce funcționează bine și ce am putea îmbunătăți.
-              Fiecare sugestie este citită de echipa noastră.
+        {/* ── HERO ─────────────────────────────────────────── */}
+        <section className="feedback-hero">
+          <div className="feedback-hero-content">
+            <div className="feedback-hero-badge">Feedback & Recenzii</div>
+            <h1>
+              Opinia ta <span className="highlight">contează</span>
+            </h1>
+            <p>
+              Ajută-ne să îmbunătățim FitMoldova. Împărtășește experiența ta,
+              sugestiile și ideile — fiecare feedback ne face mai buni.
             </p>
+          </div>
+        </section>
 
-            {status === 'success' && (
-              <div className="feedback-success-msg">
-                ✅ Mulțumim pentru feedback! Îl vom analiza cu atenție.
-              </div>
-            )}
-            {status === 'error' && (
-              <div className="feedback-error-msg">
-                ❌ A apărut o eroare. Te rugăm să încerci din nou.
-              </div>
-            )}
+        {/* ── STATS BAR ────────────────────────────────────── */}
+        <div className="feedback-stats-bar">
+          <div className="feedback-stat">
+            <div className="feedback-stat-number">4.7</div>
+            <div className="feedback-stat-label">Rating Mediu</div>
+          </div>
+          <div className="feedback-stat">
+            <div className="feedback-stat-number">3.2K+</div>
+            <div className="feedback-stat-label">Recenzii</div>
+          </div>
+          <div className="feedback-stat">
+            <div className="feedback-stat-number">94%</div>
+            <div className="feedback-stat-label">Utilizatori Mulțumiți</div>
+          </div>
+          <div className="feedback-stat">
+            <div className="feedback-stat-number">&lt;2h</div>
+            <div className="feedback-stat-label">Timp Răspuns Suport</div>
+          </div>
+        </div>
 
-            <form className="feedback-form" onSubmit={handleSubmit} noValidate>
+        {/* ── FORM + SIDEBAR ───────────────────────────────── */}
+        <section className="feedback-main-section">
+          <div className="feedback-main-inner">
 
-              {/* Star rating */}
-              <div className="feedback-rating-section">
+            {/* Form */}
+            <div className="feedback-form-wrapper">
+              <h2 className="feedback-form-title">Lasă un feedback</h2>
+              <p className="feedback-form-subtitle">
+                Spune-ne ce funcționează bine și ce am putea îmbunătăți.
+                Fiecare sugestie este citită de echipa noastră.
+              </p>
+
+              {status === 'success' && (
+                  <div className="feedback-success-msg">
+                    ✅ Mulțumim pentru feedback! Îl vom analiza cu atenție.
+                  </div>
+              )}
+              {status === 'error' && (
+                  <div className="feedback-error-msg">
+                    ❌ A apărut o eroare. Te rugăm să încerci din nou.
+                  </div>
+              )}
+
+              <form className="feedback-form" onSubmit={handleSubmit} noValidate>
+
+                {/* Star rating */}
+                <div className="feedback-rating-section">
                 <span className="feedback-rating-label">
                   Notă generală *
                 </span>
-                <div className="star-rating">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={`star-btn ${displayRating >= star ? 'active' : ''}`}
-                      onClick={() => {
-                        setRating(star);
-                        setErrors((prev) => ({ ...prev, rating: undefined }));
-                      }}
-                      onMouseEnter={() => setHovered(star)}
-                      onMouseLeave={() => setHovered(0)}
-                      aria-label={`${star} stele`}
-                    >
-                      ★
-                    </button>
-                  ))}
+                  <div className="star-rating">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                            key={star}
+                            type="button"
+                            className={`star-btn ${displayRating >= star ? 'active' : ''}`}
+                            onClick={() => {
+                              setRating(star);
+                              setErrors((prev) => ({ ...prev, rating: undefined }));
+                            }}
+                            onMouseEnter={() => setHovered(star)}
+                            onMouseLeave={() => setHovered(0)}
+                            aria-label={`${star} stele`}
+                        >
+                          ★
+                        </button>
+                    ))}
+                  </div>
+                  <div className="star-rating-text">
+                    {displayRating > 0 ? STAR_LABELS[displayRating] : ''}
+                  </div>
+                  {errors.rating && (
+                      <span className="field-error">{errors.rating}</span>
+                  )}
                 </div>
-                <div className="star-rating-text">
-                  {displayRating > 0 ? STAR_LABELS[displayRating] : ''}
-                </div>
-                {errors.rating && (
-                  <span className="field-error">{errors.rating}</span>
-                )}
-              </div>
 
-              {/* Category chips */}
-              <div className="feedback-category-section">
+                {/* Category chips */}
+                <div className="feedback-category-section">
                 <span className="feedback-category-label">
                   Categorie (opțional)
                 </span>
-                <div className="feedback-chips">
-                  {CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      className={`chip ${selectedCategories.includes(cat) ? 'chip--selected' : ''}`}
-                      onClick={() => toggleCategory(cat)}
-                    >
-                      {cat}
-                    </button>
+                  <div className="feedback-chips">
+                    {CATEGORIES.map((cat) => (
+                        <button
+                            key={cat}
+                            type="button"
+                            className={`chip ${selectedCategories.includes(cat) ? 'chip--selected' : ''}`}
+                            onClick={() => toggleCategory(cat)}
+                        >
+                          {cat}
+                        </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="feedback-field">
+                  <label htmlFor="fb-title">Titlu *</label>
+                  <input
+                      id="fb-title"
+                      name="title"
+                      type="text"
+                      placeholder="Rezumă experiența ta în câteva cuvinte"
+                      value={form.title}
+                      onChange={handleChange}
+                      className={errors.title ? 'input-error' : ''}
+                  />
+                  {errors.title && (
+                      <span className="field-error">{errors.title}</span>
+                  )}
+                </div>
+
+                {/* Message */}
+                <div className="feedback-field">
+                  <label htmlFor="fb-message">Mesaj *</label>
+                  <textarea
+                      id="fb-message"
+                      name="message"
+                      rows={6}
+                      placeholder="Descrie în detaliu experiența ta, ce ți-a plăcut sau ce am putea îmbunătăți..."
+                      value={form.message}
+                      onChange={handleChange}
+                      className={errors.message ? 'input-error' : ''}
+                  />
+                  {errors.message && (
+                      <span className="field-error">{errors.message}</span>
+                  )}
+                </div>
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    className="feedback-submit-btn"
+                    fullWidth
+                >
+                  Trimite Feedback
+                </Button>
+              </form>
+            </div>
+
+            {/* Sidebar */}
+            <div className="feedback-sidebar">
+
+              {/* Overall rating card */}
+              <div className="feedback-overall-card">
+                <h3>Rating General</h3>
+                <div className="feedback-big-rating">4.7</div>
+                <div className="feedback-big-stars">★★★★★</div>
+                <div className="feedback-review-count">bazat pe 3.247 recenzii</div>
+
+                <div className="feedback-breakdown">
+                  {RATING_BREAKDOWN.map((row) => (
+                      <div key={row.label} className="breakdown-row">
+                        <span className="breakdown-label">{row.label}</span>
+                        <div className="breakdown-bar-bg">
+                          <div
+                              className="breakdown-bar-fill"
+                              style={{ width: `${row.pct}%` }}
+                          />
+                        </div>
+                        <span className="breakdown-pct">{row.pct}%</span>
+                      </div>
                   ))}
                 </div>
               </div>
 
-              {/* Title */}
-              <div className="feedback-field">
-                <label htmlFor="fb-title">Titlu *</label>
-                <input
-                  id="fb-title"
-                  name="title"
-                  type="text"
-                  placeholder="Rezumă experiența ta în câteva cuvinte"
-                  value={form.title}
-                  onChange={handleChange}
-                  className={errors.title ? 'input-error' : ''}
-                />
-                {errors.title && (
-                  <span className="field-error">{errors.title}</span>
-                )}
+              {/* Tip card */}
+              <div className="feedback-tip-card">
+                <h3>Sfat util</h3>
+                <p>
+                  Feedback-ul detaliat ne ajută cel mai mult. Menționează ce
+                  funcționalitate ai folosit, ce ai așteptat să se întâmple și
+                  ce s-a întâmplat de fapt.
+                </p>
               </div>
-
-              {/* Message */}
-              <div className="feedback-field">
-                <label htmlFor="fb-message">Mesaj *</label>
-                <textarea
-                  id="fb-message"
-                  name="message"
-                  rows={6}
-                  placeholder="Descrie în detaliu experiența ta, ce ți-a plăcut sau ce am putea îmbunătăți..."
-                  value={form.message}
-                  onChange={handleChange}
-                  className={errors.message ? 'input-error' : ''}
-                />
-                {errors.message && (
-                  <span className="field-error">{errors.message}</span>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary feedback-submit-btn"
-              >
-                Trimite Feedback
-              </button>
-            </form>
-          </div>
-
-          {/* Sidebar */}
-          <div className="feedback-sidebar">
-
-            {/* Overall rating card */}
-            <div className="feedback-overall-card">
-              <h3>Rating General</h3>
-              <div className="feedback-big-rating">4.7</div>
-              <div className="feedback-big-stars">★★★★★</div>
-              <div className="feedback-review-count">bazat pe 3.247 recenzii</div>
-
-              <div className="feedback-breakdown">
-                {RATING_BREAKDOWN.map((row) => (
-                  <div key={row.label} className="breakdown-row">
-                    <span className="breakdown-label">{row.label}</span>
-                    <div className="breakdown-bar-bg">
-                      <div
-                        className="breakdown-bar-fill"
-                        style={{ width: `${row.pct}%` }}
-                      />
-                    </div>
-                    <span className="breakdown-pct">{row.pct}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tip card */}
-            <div className="feedback-tip-card">
-              <h3>Sfat util</h3>
-              <p>
-                Feedback-ul detaliat ne ajută cel mai mult. Menționează ce
-                funcționalitate ai folosit, ce ai așteptat să se întâmple și
-                ce s-a întâmplat de fapt.
-              </p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── RECENT REVIEWS ───────────────────────────────── */}
-      <section className="feedback-reviews-section">
-        <div className="section-header">
-          <h2 className="section-title">Ce spun utilizatorii noștri</h2>
-          <p className="section-subtitle">
-            Recenzii recente din comunitatea FitMoldova
-          </p>
-        </div>
-
-        <div className="feedback-reviews-grid">
-          {RECENT_REVIEWS.map((review, idx) => (
-            <div key={idx} className="review-card">
-              <div className="review-header">
-                <div className="review-avatar">{review.initials}</div>
-                <div className="review-meta">
-                  <div className="review-name">{review.name}</div>
-                  <div className="review-date">{review.date}</div>
-                </div>
-                <div className="review-stars">
-                  {'★'.repeat(review.stars)}{'☆'.repeat(5 - review.stars)}
-                </div>
-              </div>
-              <div className="review-category-chip">{review.category}</div>
-              <p className="review-text">{review.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CTA STRIP ────────────────────────────────────── */}
-      <section className="feedback-cta-section">
-        <div className="feedback-cta-content">
-          <h2>Ai o problemă sau o sugestie urgentă?</h2>
-          <p>
-            Folosește pagina de Contact pentru a ne trimite un mesaj direct
-            și echipa noastră te va contacta cât mai curând.
-          </p>
-          <Link to={ROUTES.CONTACT} className="btn btn-primary">
-            Contactează-ne
-          </Link>
-        </div>
-      </section>
-
-      {/* ── FOOTER ───────────────────────────────────────── */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>FitMoldova</h3>
-            <p>
-              Platforma ta completă pentru fitness, comunitate și progres.
-              Transformă-ți obiectivele în realitate.
+        {/* ── RECENT REVIEWS ───────────────────────────────── */}
+        <section className="feedback-reviews-section">
+          <div className="section-header">
+            <h2 className="section-title">Ce spun utilizatorii noștri</h2>
+            <p className="section-subtitle">
+              Recenzii recente din comunitatea FitMoldova
             </p>
           </div>
-          <div className="footer-section">
-            <h3>Platformă</h3>
-            <ul>
-              <li><Link to={ROUTES.ACTIVITIES} className="footer-link">Tracking Activități</Link></li>
-              <li><Link to={ROUTES.EVENTS} className="footer-link">Evenimente</Link></li>
-              <li><Link to={ROUTES.CHALLENGES} className="footer-link">Provocări</Link></li>
-            </ul>
+
+          <div className="feedback-reviews-grid">
+            {RECENT_REVIEWS.map((review, idx) => (
+                <div key={idx} className="review-card">
+                  <div className="review-header">
+                    <div className="review-avatar">{review.initials}</div>
+                    <div className="review-meta">
+                      <div className="review-name">{review.name}</div>
+                      <div className="review-date">{review.date}</div>
+                    </div>
+                    <div className="review-stars">
+                      {'★'.repeat(review.stars)}{'☆'.repeat(5 - review.stars)}
+                    </div>
+                  </div>
+                  <div className="review-category-chip">{review.category}</div>
+                  <p className="review-text">{review.text}</p>
+                </div>
+            ))}
           </div>
-          <div className="footer-section">
-            <h3>Comunitate</h3>
-            <ul>
-              <li><Link to={ROUTES.FORUM} className="footer-link">Forum</Link></li>
-              <li><Link to={ROUTES.CLUBS} className="footer-link">Cluburi</Link></li>
-              <li><Link to={ROUTES.COMMUNITY} className="footer-link">Comunitate</Link></li>
-            </ul>
+        </section>
+
+        {/* ── CTA STRIP ────────────────────────────────────── */}
+        <section className="feedback-cta-section">
+          <div className="feedback-cta-content">
+            <h2>Ai o problemă sau o sugestie urgentă?</h2>
+            <p>
+              Folosește pagina de Contact pentru a ne trimite un mesaj direct
+              și echipa noastră te va contacta cât mai curând.
+            </p>
+            <Button component={Link} to={ROUTES.CONTACT} variant="contained" color="primary">
+              Contactează-ne
+            </Button>
           </div>
-          <div className="footer-section">
-            <h3>Suport</h3>
-            <ul>
-              <li><Link to={ROUTES.CONTACT} className="footer-link">Contact</Link></li>
-              <li><Link to={ROUTES.FEEDBACK} className="footer-link">Feedback</Link></li>
-            </ul>
+        </section>
+
+        {/* ── FOOTER ───────────────────────────────────────── */}
+        <footer className="footer">
+          <div className="footer-content">
+            <div className="footer-section">
+              <h3>FitMoldova</h3>
+              <p>
+                Platforma ta completă pentru fitness, comunitate și progres.
+                Transformă-ți obiectivele în realitate.
+              </p>
+            </div>
+            <div className="footer-section">
+              <h3>Platformă</h3>
+              <ul>
+                <li><Link to={ROUTES.ACTIVITIES} className="footer-link">Tracking Activități</Link></li>
+                <li><Link to={ROUTES.EVENTS} className="footer-link">Evenimente</Link></li>
+                <li><Link to={ROUTES.CHALLENGES} className="footer-link">Provocări</Link></li>
+              </ul>
+            </div>
+            <div className="footer-section">
+              <h3>Comunitate</h3>
+              <ul>
+                <li><Link to={ROUTES.FORUM} className="footer-link">Forum</Link></li>
+                <li><Link to={ROUTES.CLUBS} className="footer-link">Cluburi</Link></li>
+                <li><Link to={ROUTES.COMMUNITY} className="footer-link">Comunitate</Link></li>
+              </ul>
+            </div>
+            <div className="footer-section">
+              <h3>Suport</h3>
+              <ul>
+                <li><Link to={ROUTES.CONTACT} className="footer-link">Contact</Link></li>
+                <li><Link to={ROUTES.FEEDBACK} className="footer-link">Feedback</Link></li>
+              </ul>
+            </div>
           </div>
-        </div>
-        <div className="footer-bottom">
-          <p>© 2026 FitMoldova. Toate drepturile rezervate.</p>
-        </div>
-      </footer>
-    </div>
+          <div className="footer-bottom">
+            <p>© 2026 FitMoldova. Toate drepturile rezervate.</p>
+          </div>
+        </footer>
+      </div>
   );
 };
 

@@ -140,6 +140,7 @@ const Navbar: React.FC = () => {
           {[
             { label: 'Trasee', to: ROUTES.ROUTES_MAP },
             { label: 'Contact', to: ROUTES.CONTACT },
+            { label: 'Galerie', to: ROUTES.GALLERY },
             ...(isAuthenticated ? [{ label: 'Feedback', to: ROUTES.FEEDBACK }] : []),
           ].map(item => (
               <li key={item.label} style={{ listStyle: 'none' }}>

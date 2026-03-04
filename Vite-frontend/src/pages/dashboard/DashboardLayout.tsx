@@ -5,12 +5,24 @@ import {
     ListItemIcon, ListItemText, Avatar, IconButton, Divider, Tooltip,
     useTheme, useMediaQuery, Chip,
 } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {
     Dashboard as DashboardIcon, DirectionsRun, EmojiEvents, Group,
     Event, Person, Logout, Menu as MenuIcon, ChevronLeft, FitnessCenter,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../routes/paths';
+
+/* Light sub-theme for Dashboard pages */
+const dashboardLightTheme = createTheme({
+    palette: {
+        mode: 'light',
+        primary: { main: '#1a6fff' },
+        background: { default: '#f0f4f8', paper: '#fff' },
+        text: { primary: '#0f172a', secondary: '#64748b' },
+    },
+    shape: { borderRadius: 12 },
+});
 
 const DRAWER_WIDTH = 240;
 const DRAWER_COLLAPSED = 64;
@@ -194,67 +206,69 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     );
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f0f4f8' }}>
-            {!isMobile && (
-                <Drawer variant="permanent" sx={{
-                    width: drawerWidth, flexShrink: 0, transition: 'width 0.25s ease',
-                    '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', border: 'none', transition: 'width 0.25s ease', overflow: 'hidden' },
-                }}>
-                    {drawerContent}
-                </Drawer>
-            )}
-            {isMobile && (
-                <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(false)}
-                        sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, border: 'none' } }}>
-                    {drawerContent}
-                </Drawer>
-            )}
+        <ThemeProvider theme={dashboardLightTheme}>
+            <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f0f4f8' }}>
+                {!isMobile && (
+                    <Drawer variant="permanent" sx={{
+                        width: drawerWidth, flexShrink: 0, transition: 'width 0.25s ease',
+                        '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', border: 'none', transition: 'width 0.25s ease', overflow: 'hidden' },
+                    }}>
+                        {drawerContent}
+                    </Drawer>
+                )}
+                {isMobile && (
+                    <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(false)}
+                            sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, border: 'none' } }}>
+                        {drawerContent}
+                    </Drawer>
+                )}
 
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                <AppBar position="sticky" elevation={0} sx={{ bgcolor: '#fff', borderBottom: '1px solid #e8edf3', color: '#141414' }}>
-                    <Toolbar sx={{ gap: 1 }}>
-                        {isMobile ? (
-                            <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#444' }}><MenuIcon /></IconButton>
-                        ) : (
-                            <IconButton onClick={() => setCollapsed(!collapsed)} sx={{ color: '#444' }}>
-                                {collapsed ? <MenuIcon /> : <ChevronLeft />}
-                            </IconButton>
-                        )}
-                        {/* FitMoldova text -> clicks to home */}
-                        <Typography
-                            component={Link}
-                            to={ROUTES.HOME}
-                            variant="subtitle1"
-                            fontWeight={800}
-                            sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit', letterSpacing: 0.5 }}
-                        >
-                            <Box component="span" sx={{ color: '#0f172a' }}>FIT</Box>
-                            <Box component="span" sx={{ color: '#1a6fff' }}>MOLDOVA</Box>
-                        </Typography>
-                        {/* Bigger avatar chip */}
-                        <Chip
-                            avatar={
-                                <Avatar sx={{ bgcolor: '#1a6fff !important', width: '36px !important', height: '36px !important', fontSize: '0.8rem !important', fontWeight: 700 }}>
-                                    {getInitials()}
-                                </Avatar>
-                            }
-                            label={`${user?.firstName} ${user?.lastName}`}
-                            variant="outlined"
-                            sx={{
-                                height: 42, borderColor: '#e0e0e0', fontWeight: 700,
-                                fontSize: '0.875rem', px: 0.5,
-                                '& .MuiChip-label': { px: 1.5 },
-                            }}
-                        />
-                    </Toolbar>
-                </AppBar>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <AppBar position="sticky" elevation={0} sx={{ bgcolor: '#fff', borderBottom: '1px solid #e8edf3', color: '#141414' }}>
+                        <Toolbar sx={{ gap: 1 }}>
+                            {isMobile ? (
+                                <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#444' }}><MenuIcon /></IconButton>
+                            ) : (
+                                <IconButton onClick={() => setCollapsed(!collapsed)} sx={{ color: '#444' }}>
+                                    {collapsed ? <MenuIcon /> : <ChevronLeft />}
+                                </IconButton>
+                            )}
+                            {/* FitMoldova text -> clicks to home */}
+                            <Typography
+                                component={Link}
+                                to={ROUTES.HOME}
+                                variant="subtitle1"
+                                fontWeight={800}
+                                sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit', letterSpacing: 0.5 }}
+                            >
+                                <Box component="span" sx={{ color: '#0f172a' }}>FIT</Box>
+                                <Box component="span" sx={{ color: '#1a6fff' }}>MOLDOVA</Box>
+                            </Typography>
+                            {/* Bigger avatar chip */}
+                            <Chip
+                                avatar={
+                                    <Avatar sx={{ bgcolor: '#1a6fff !important', width: '36px !important', height: '36px !important', fontSize: '0.8rem !important', fontWeight: 700 }}>
+                                        {getInitials()}
+                                    </Avatar>
+                                }
+                                label={`${user?.firstName} ${user?.lastName}`}
+                                variant="outlined"
+                                sx={{
+                                    height: 42, borderColor: '#e0e0e0', fontWeight: 700,
+                                    fontSize: '0.875rem', px: 0.5,
+                                    '& .MuiChip-label': { px: 1.5 },
+                                }}
+                            />
+                        </Toolbar>
+                    </AppBar>
 
-                <Box sx={{ flex: 1, p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ flex: 1 }}>{children}</Box>
-                    <DashboardFooter />
+                    <Box sx={{ flex: 1, p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column' }}>
+                        <Box sx={{ flex: 1 }}>{children}</Box>
+                        <DashboardFooter />
+                    </Box>
                 </Box>
             </Box>
-        </Box>
+        </ThemeProvider>
     );
 };
 

@@ -1,21 +1,22 @@
 /* RoutesPage — stiluri de bază, completate în commit 9 */
 
 .routes-page {
+  padding-top: 72px;
   min-height: 100vh;
   background: radial-gradient(1200px at 20% 120px, rgba(26, 127, 255, 0.12), transparent 45%),
-              radial-gradient(900px at 80% 0px, rgba(0, 216, 132, 0.12), transparent 50%),
-              var(--dark);
+  radial-gradient(900px at 80% 0px, rgba(0, 216, 132, 0.12), transparent 50%),
+  var(--dark);
   color: var(--text-primary);
   position: relative;
 }
 
 /* ---- Hero ---- */
 .routes-hero {
-  padding: 120px 1.5rem 3rem;
+  padding: 72px 1.5rem 3rem;
   text-align: center;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 25%),
-    linear-gradient(180deg, var(--dark-elevated) 0%, var(--dark) 100%);
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 25%),
+          linear-gradient(180deg, var(--dark-elevated) 0%, var(--dark) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 

@@ -218,7 +218,8 @@ const RoutesPage: React.FC = () => {
                   <p className="rdc-empty-title">Selectează un traseu din listă sau de pe hartă</p>
                   <p className="rdc-empty-sub">Vezi detaliile, reperele și adaugă-l ca țintă în Dashboard.</p>
                 </div>
-            )}\n        </Box>
+            )}
+          </Box>
 
           {/* Toast */}
           <Box sx={routesToastSx(toast.visible)}>

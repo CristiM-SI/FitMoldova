@@ -179,7 +179,7 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         /* Re-inject CSS custom properties so that remaining .css files
-           (Navbar.css, Home.css, Feedback.css, Contact.css, etc.)
+           (Feedback.css, Contact.css, EvenimentePublic.css, etc.)
            continue to work — these were originally in theme.css */
         ':root': {
           '--primary': tokens.primary,
@@ -342,8 +342,7 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          background: tokens.darkCard,
-          border: `1px solid ${tokens.darkBorder}`,
+          backgroundImage: 'none',
           borderRadius: tokens.radiusLg,
           transition: `all ${tokens.transitionBase}`,
         },

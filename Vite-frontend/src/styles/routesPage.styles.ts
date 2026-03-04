@@ -7,7 +7,7 @@ import { tokens } from '../themes/theme';
 
 export const routesPageSx: SxProps<Theme> = {
   minHeight: '100vh',
-  pt: '80px',
+  pt: '72px',
   background: `radial-gradient(1200px at 20% 120px, rgba(26,127,255,0.12), transparent 45%),
                radial-gradient(900px at 80% 0px, rgba(0,216,132,0.12), transparent 50%),
                ${tokens.dark}`,
@@ -17,7 +17,7 @@ export const routesPageSx: SxProps<Theme> = {
 
 export const routesHeroSx: SxProps<Theme> = {
   px: '1.5rem',
-  pt: '120px',
+  pt: '72px',
   pb: '3rem',
   textAlign: 'center',
   background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 25%),

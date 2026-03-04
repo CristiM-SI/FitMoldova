@@ -1,5 +1,6 @@
 /* NotFound.css */
 .notfound-page {
+  padding-top: 72px;
   position: relative;
   min-height: 100vh;
   display: flex;

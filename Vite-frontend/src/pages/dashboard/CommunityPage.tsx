@@ -252,12 +252,12 @@ export default function CommunityPage() {
                                     active={tab === item.id} badge={item.badge} onClick={item.onClick} />
                         ))}
 
-                        <Box sx={{ height: 1, bgcolor: T.border, my: 0.75 }} />
+                        <Box sx={{ height: '1px', bgcolor: T.border, my: 0.75 }} />
 
                         <NavBtn icon="💬" label="Forum" active={false} onClick={() => navigate(ROUTES.FORUM)} />
                         <NavBtn icon="🏟️" label="Cluburi" active={false} onClick={() => navigate(ROUTES.CLUBS)} />
 
-                        <Box sx={{ height: 1, bgcolor: T.border, my: 0.75 }} />
+                        <Box sx={{ height: '1px', bgcolor: T.border, my: 0.75 }} />
 
                         {isAuthenticated ? (
                             <Link to={ROUTES.DASHBOARD} style={{ textDecoration: 'none' }}>

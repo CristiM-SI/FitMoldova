@@ -32,7 +32,7 @@ import AdminClubs from './pages/admin/AdminClubs'
 import AdminChallenges from './pages/admin/AdminChallenges'
 import AdminRoutes from './pages/admin/AdminRoutes'
 import AdminFeedback from './pages/admin/AdminFeedback'
-
+import Gallery from './pages/Gallery';
 
 // Guard pentru rutele protejate (necesită autentificare)
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -105,6 +105,7 @@ function App() {
                                 {/* Rute publice */}
                                 <Route path={ROUTES.HOME} element={<Home />} />
                                 <Route path={ROUTES.CLUBS} element={<Clubs />} />
+                                <Route path={ROUTES.GALLERY} element={<Gallery />} />
                                 <Route
                                     path={ROUTES.LOGIN}
                                     element={

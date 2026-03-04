@@ -2,6 +2,7 @@
 .home-page {
   position: relative;
   min-height: 100vh;
+  padding-top: 80px; /* offset for fixed navbar */
 }
 
 .noise-bg {
@@ -11,8 +12,8 @@
   width: 100%;
   height: 100%;
   background:
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px),
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px);
+          repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px),
+          repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px);
   pointer-events: none;
   z-index: 1;
   opacity: 0.5;
@@ -51,20 +52,108 @@
 }
 
 .hero {
-  min-height: 90vh;
+  min-height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 5%;
+  padding: 2.5rem 5% 3rem;
   position: relative;
   z-index: 2;
 }
 
 .hero-content {
-  max-width: 1000px;
+  max-width: 1200px;
   width: 100%;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 3.5rem;
   animation: slideUp 1s ease-out;
+}
+
+.hero-text {
+  flex: 1.2;
+  min-width: 0;
+}
+
+.hero-image-wrapper {
+  flex: 0.9;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-image {
+  width: 100%;
+  max-width: 420px;
+  height: 480px;
+  border-radius: 20px;
+  object-fit: cover;
+  object-position: center top;
+  box-shadow:
+          0 24px 64px rgba(0, 102, 255, 0.2),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.hero-image:hover {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow:
+          0 32px 80px rgba(0, 102, 255, 0.3),
+          0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.hero-image-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  height: 90%;
+  background: radial-gradient(circle, rgba(0, 102, 255, 0.2) 0%, rgba(0, 208, 132, 0.08) 50%, transparent 70%);
+  transform: translate(-50%, -50%);
+  filter: blur(50px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Floating badge on the image */
+.hero-image-badge {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 22, 40, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  border-radius: 14px;
+  padding: 0.6rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.hero-image-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00D084;
+  box-shadow: 0 0 8px rgba(0, 208, 132, 0.6);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 208, 132, 0.6); }
+  50% { box-shadow: 0 0 16px rgba(0, 208, 132, 0.9); }
+}
+
+.hero-image-badge-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.02em;
 }
 
 @keyframes slideUp {
@@ -78,12 +167,27 @@
   }
 }
 
+.hero-badge {
+  display: inline-block;
+  background: rgba(0, 102, 255, 0.1);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  color: #3385FF;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
 .hero h1 {
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
   font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 1.5rem;
+  line-height: 1.12;
+  margin-bottom: 1.25rem;
   letter-spacing: -0.03em;
+  text-align: left;
 }
 
 .hero h1 .highlight {
@@ -95,18 +199,19 @@
 }
 
 .hero p {
-  font-size: 1.3rem;
-  margin-bottom: 3rem;
+  font-size: 1.15rem;
+  margin-bottom: 2.5rem;
   color: rgba(248, 249, 250, 0.8);
-  line-height: 1.6;
+  line-height: 1.7;
   font-weight: 300;
+  text-align: left;
 }
 
 .hero-cta {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .stats {
@@ -114,6 +219,18 @@
   grid-template-columns: repeat(4, 1fr);
   gap: clamp(0.75rem, 2vw, 2rem);
   margin-top: 4rem;
+}
+
+.stats-section {
+  position: relative;
+  z-index: 2;
+  padding: 0 5% 4rem;
+}
+
+.stats-section .stats {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 0;
 }
 
 .stat-item {
@@ -225,6 +342,50 @@
   box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2);
 }
 
+.feature-card-clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+.feature-card-clickable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.feature-card-clickable .feature-icon {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card-clickable:hover .feature-icon {
+  transform: scale(1.08);
+  box-shadow: 0 8px 24px rgba(0, 102, 255, 0.3);
+}
+
+.feature-card-clickable:hover .feature-title {
+  color: var(--primary-light, #3385FF);
+}
+
+.feature-card-clickable .feature-title {
+  transition: color 0.3s ease;
+}
+
+.feature-card-arrow {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  font-size: 1.2rem;
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.3s ease;
+}
+
+.feature-card-clickable:hover .feature-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--primary);
+}
+
 .feature-icon {
   width: 70px;
   height: 70px;
@@ -334,15 +495,52 @@
 
 @media (max-width: 768px) {
   .hero {
-    min-height: 70vh;
+    min-height: auto;
+    padding: 2rem 5%;
+  }
+
+  .hero-content {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .hero-text {
+    order: 1;
+    text-align: center;
+  }
+
+  .hero-image-wrapper {
+    order: 2;
+  }
+
+  .hero-badge {
+    display: inline-block;
+  }
+
+  .hero h1 {
+    text-align: center;
+  }
+
+  .hero p {
+    text-align: center;
   }
 
   .hero-cta {
     flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-image {
+    max-width: 100%;
+    height: 320px;
   }
 
   .features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

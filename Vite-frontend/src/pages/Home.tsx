@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
@@ -11,11 +11,13 @@ interface Feature {
   icon: string;
   title: string;
   description: string;
+  route: string;
 }
 
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (location.hash === '#features') {
@@ -27,52 +29,62 @@ const Home: React.FC = () => {
     {
       icon: '📊',
       title: 'Dashboard Personal',
-      description: 'Vizualizează statistici detaliate, urmărește progresul tău și editează informațiile profilului într-un singur loc centralizat și intuitiv.'
+      description: 'Vizualizează statistici detaliate, urmărește progresul tău și editează informațiile profilului într-un singur loc centralizat și intuitiv.',
+      route: ROUTES.DASHBOARD,
     },
     {
       icon: '🏃',
       title: 'Tracking Activități',
-      description: 'Înregistrează sesiunile de alergare, ciclism sau sală cu introducere manuală sau timer live. Monitorizează distanța, durata și caloriile.'
+      description: 'Înregistrează sesiunile de alergare, ciclism sau sală cu introducere manuală sau timer live. Monitorizează distanța, durata și caloriile.',
+      route: ROUTES.ACTIVITIES,
     },
     {
       icon: '🏆',
       title: 'Provocări & Competiții',
-      description: 'Participă la challenges motivante, urmărește progresul în timp real și trimite dovezi pentru verificare. Câștigă premii și recunoaștere.'
+      description: 'Participă la challenges motivante, urmărește progresul în timp real și trimite dovezi pentru verificare. Câștigă premii și recunoaștere.',
+      route: ROUTES.CHALLENGES,
     },
     {
       icon: '📅',
       title: 'Evenimente Sportive',
-      description: 'Creează și gestionează evenimente, caută și filtrează după preferințe, înscrie-te la competiții și conectează-te cu alți participanți.'
+      description: 'Creează și gestionează evenimente, caută și filtrează după preferințe, înscrie-te la competiții și conectează-te cu alți participanți.',
+      route: ROUTES.EVENTS,
     },
     {
       icon: '🗺️',
       title: 'Rute Interactive',
-      description: 'Explorează hărți interactive cu rute recomandate de ciclism și alergare. Adaugă propriile tale rute și descoperă noi trasee.'
+      description: 'Explorează hărți interactive cu rute recomandate de ciclism și alergare. Adaugă propriile tale rute și descoperă noi trasee.',
+      route: ROUTES.ROUTES_MAP,
     },
     {
       icon: '💬',
       title: 'Forum & Comunitate',
-      description: 'Participă la discuții pe categorii (general, ciclism, alergare, sală), pune întrebări, împărtășește sfaturi și conectează-te cu comunitatea.'
+      description: 'Participă la discuții pe categorii (general, ciclism, alergare, sală), pune întrebări, împărtășește sfaturi și conectează-te cu comunitatea.',
+      route: ROUTES.FORUM,
     },
     {
       icon: '📱',
       title: 'Mesagerie Privată',
-      description: 'Comunicare directă între utilizatori prin mesaje private sau grupuri de discuție pentru planificarea antrenamentelor și evenimente.'
+      description: 'Comunicare directă între utilizatori prin mesaje private sau grupuri de discuție pentru planificarea antrenamentelor și evenimente.',
+      route: ROUTES.COMMUNITY,
     },
     {
       icon: '📸',
       title: 'Galerii Multimedia',
-      description: 'Încarcă și partajează fotografii de la antrenamente, evenimente și competiții. Creează amintiri alături de comunitate.'
+      description: 'Încarcă și partajează fotografii de la antrenamente, evenimente și competiții. Creează amintiri alături de comunitate.',
+      route: ROUTES.GALLERY,
     },
     {
       icon: '👥',
       title: 'Cluburi Locale',
-      description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.'
+      description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.',
+      route: ROUTES.CLUBS,
     },
     {
       icon: '⭐',
       title: 'Feedback & Recenzii',
-      description: 'Împărtășește experiența ta, evaluează platforma și citește recenziile comunității. Opinia ta ne ajută să creștem.'
+      description: 'Împărtășește experiența ta, evaluează platforma și citește recenziile comunității. Opinia ta ne ajută să creștem.',
+      route: ROUTES.FEEDBACK,
     }
   ];
 
@@ -84,45 +96,67 @@ const Home: React.FC = () => {
 
         <Navbar />
 
+        {/* ── HERO — text left, image right ─────────────────── */}
         <section className="hero">
           <div className="hero-content">
-            <h1>
-              Transformă-ți <span className="highlight">Fitness-ul</span> într-o Comunitate
-            </h1>
-            <p>
-              Alătură-te celei mai vibrantă platforme de fitness din Moldova.
-              Urmărește progresul, participă la provocări și conectează-te cu pasionați de sport.
-            </p>
-            <div className="hero-cta">
-              {isAuthenticated ? (
-                  <Button component={Link} to={ROUTES.DASHBOARD} variant="contained" color="primary">Mergi la Dashboard</Button>
-              ) : (
-                  <Button component={Link} to={ROUTES.REGISTER} variant="contained" color="primary">Creează Cont Gratuit</Button>
-              )}
-              <Button variant="outlined" color="primary" onClick={() => scrollToSection("features")}>Descoperă Mai Mult</Button>
+            <div className="hero-text">
+              <div className="hero-badge">Platforma #1 de Fitness din Moldova</div>
+              <h1>
+                Transformă-ți{' '}
+                <span className="highlight">Fitness-ul</span>
+                <br />
+                într-o Comunitate
+              </h1>
+              <p>
+                Urmărește progresul, participă la provocări și conectează-te cu mii de pasionați de sport din toată Moldova.
+              </p>
+              <div className="hero-cta">
+                {isAuthenticated ? (
+                    <Button component={Link} to={ROUTES.DASHBOARD} variant="contained" color="primary">Mergi la Dashboard</Button>
+                ) : (
+                    <Button component={Link} to={ROUTES.REGISTER} variant="contained" color="primary">Creează Cont Gratuit</Button>
+                )}
+                <Button variant="outlined" color="primary" onClick={() => scrollToSection("features")}>Descoperă Mai Mult</Button>
+              </div>
             </div>
-
-            <div className="stats">
-              <div className="stat-item">
-                <div className="stat-number">50K+</div>
-                <div className="stat-label">Utilizatori Activi</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">2.5M+</div>
-                <div className="stat-label">Km Parcurși</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">1.2K+</div>
-                <div className="stat-label">Evenimente</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">300+</div>
-                <div className="stat-label">Cluburi Locale</div>
+            <div className="hero-image-wrapper">
+              <img
+                  src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80"
+                  alt="Fată alergând"
+                  className="hero-image"
+              />
+              <div className="hero-image-glow"></div>
+              <div className="hero-image-badge">
+                <span className="hero-image-badge-dot"></span>
+                <span className="hero-image-badge-text">50K+ sportivi activi</span>
               </div>
             </div>
           </div>
         </section>
 
+        {/* ── STATS BAR ────────────────────────────────────── */}
+        <section className="stats-section">
+          <div className="stats">
+            <div className="stat-item">
+              <div className="stat-number">50K+</div>
+              <div className="stat-label">Utilizatori Activi</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">2.5M+</div>
+              <div className="stat-label">Km Parcurși</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">1.2K+</div>
+              <div className="stat-label">Evenimente</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">300+</div>
+              <div className="stat-label">Cluburi Locale</div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FEATURES — clickable cards ───────────────────── */}
         <section id="features" className="features">
           <div className="section-header">
             <h2 className="section-title">Totul ce ai nevoie pentru succes</h2>
@@ -133,10 +167,18 @@ const Home: React.FC = () => {
 
           <div className="features-grid">
             {features.map((feature, index) => (
-                <div key={index} className="feature-card">
+                <div
+                    key={index}
+                    className="feature-card feature-card-clickable"
+                    onClick={() => navigate(feature.route)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(feature.route); }}
+                >
                   <div className="feature-icon">{feature.icon}</div>
                   <h3 className="feature-title">{feature.title}</h3>
                   <p className="feature-description">{feature.description}</p>
+                  <span className="feature-card-arrow">→</span>
                 </div>
             ))}
           </div>

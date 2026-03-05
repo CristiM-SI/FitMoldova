@@ -23,6 +23,15 @@ const UPLOAD_TYPES = [
     { icon: '📄', label: 'Document', accept: '.pdf,.doc,.docx', ext: 'PDF, DOC' },
 ];
 
+const CATEGORY_IMAGES: Record<string, string> = {
+    Competiții: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80',
+    Antrenament: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+    Nutriție: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80',
+    Recuperare: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80',
+    Evenimente: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80',
+    default: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600&q=80',
+};
+
 interface MediaItem {
     id: number; type: string; category: string; user: string;
     handle: string; time: string; title: string; likes: number;
@@ -51,13 +60,12 @@ const MediaCard: React.FC<{ item: MediaItem; onClick: (item: MediaItem) => void 
                 (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
             }}
         >
-            <div style={{
-                height: 180,
-                background: `linear-gradient(135deg, ${item.color} 0%, #0a1628 100%)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 52, position: 'relative',
-            }}>
-                {item.emoji}
+            <div style={{ height: 180, position: 'relative', overflow: 'hidden' }}>
+                <img
+                    src={CATEGORY_IMAGES[item.category] ?? CATEGORY_IMAGES['default']}
+                    alt={item.category}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
                 {item.type === 'video' && (
                     <div style={{
                         position: 'absolute', bottom: 10, right: 10,
@@ -108,8 +116,8 @@ const MediaCard: React.FC<{ item: MediaItem; onClick: (item: MediaItem) => void 
                             }}
                         >{liked ? '❤️' : '🤍'} {likeCount}</button>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#64748b', fontSize: 13 }}>
-              💬 {item.comments}
-            </span>
+                            💬 {item.comments}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -264,13 +272,12 @@ const MediaModal: React.FC<{ item: MediaItem; onClose: () => void }> = ({ item, 
             background: '#0d1b2e', border: '1px solid #1e3a5f',
             borderRadius: 24, width: '100%', maxWidth: 700, overflow: 'hidden',
         }}>
-            <div style={{
-                height: 350,
-                background: `linear-gradient(135deg, ${item.color} 0%, #0a1628 100%)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 100, position: 'relative',
-            }}>
-                {item.emoji}
+            <div style={{ height: 350, position: 'relative', overflow: 'hidden' }}>
+                <img
+                    src={CATEGORY_IMAGES[item.category] ?? CATEGORY_IMAGES['default']}
+                    alt={item.category}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
                 <button onClick={onClose} style={{
                     position: 'absolute', top: 16, right: 16,
                     background: 'rgba(0,0,0,0.6)', border: '1px solid #1e3a5f',
@@ -388,8 +395,8 @@ const Gallery: React.FC = () => {
                                 color: activeCategory === cat ? '#38bdf8' : '#64748b',
                             }}>
                                 {cat} <span style={{ opacity: 0.6, fontSize: 11 }}>
-                  {cat === 'Toate' ? allMedia.length : allMedia.filter(m => m.category === cat).length}
-                </span>
+                                    {cat === 'Toate' ? allMedia.length : allMedia.filter(m => m.category === cat).length}
+                                </span>
                             </button>
                         ))}
                     </div>
@@ -443,10 +450,14 @@ const Gallery: React.FC = () => {
                                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#1e3a5f'}
                             >
                                 <div style={{
-                                    width: 64, height: 64, borderRadius: 12, flexShrink: 0,
-                                    background: `linear-gradient(135deg, ${item.color}, #0a1628)`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28,
-                                }}>{item.emoji}</div>
+                                    width: 64, height: 64, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
+                                }}>
+                                    <img
+                                        src={CATEGORY_IMAGES[item.category] ?? CATEGORY_IMAGES['default']}
+                                        alt={item.category}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                    />
+                                </div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                         <span style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 15 }}>{item.title}</span>

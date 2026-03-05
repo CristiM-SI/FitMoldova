@@ -10,4 +10,72 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
+  
+  <div id="page-loader">
+    <div class="custom-loader"></div>
+  </div>
+
+  <style>
+    #page-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    #page-loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .custom-loader {
+      --R:30px;
+      --g1:#766DF4 96%, #0000;
+      --g2:#E4E4ED 96%, #0000;
+      width: calc(2*var(--R));
+      height:calc(2*var(--R));
+      border-radius:50%;
+      display: grid;
+      -webkit-mask:linear-gradient(#000 0 0);
+      animation: s10 2s infinite linear;
+    }
+    .custom-loader::before,
+    .custom-loader::after {
+      content:"";
+      grid-area: 1/1;
+      width:50%;
+      background:
+              radial-gradient(farthest-side,var(--g1)) calc(var(--R) + 0.866*var(--R) - var(--R)) calc(var(--R) - 0.5*var(--R) - var(--R)),
+              radial-gradient(farthest-side,var(--g1)) calc(var(--R) + 0.866*var(--R) - var(--R)) calc(var(--R) - 0.5*var(--R) - var(--R)),
+              radial-gradient(farthest-side,var(--g2)) calc(var(--R) + 0.5*var(--R) - var(--R)) calc(var(--R) - 0.866*var(--R) - var(--R)),
+              radial-gradient(farthest-side,var(--g1)) 0 calc(-1*var(--R)),
+              radial-gradient(farthest-side,var(--g2)) calc(var(--R) - 0.5*var(--R) - var(--R)) calc(var(--R) - 0.866*var(--R) - var(--R)),
+              radial-gradient(farthest-side,var(--g1)) calc(var(--R) - 0.866*var(--R) - var(--R)) calc(var(--R) - 0.5*var(--R) - var(--R)),
+              radial-gradient(farthest-side,var(--g2)) calc(-1*var(--R)) 0,
+              radial-gradient(farthest-side,var(--g1)) calc(var(--R) - 0.866*var(--R) - var(--R)) calc(var(--R) + 0.5*var(--R) - var(--R));
+      background-size:calc(2*var(--R)) calc(2*var(--R));
+      background-repeat:no-repeat;
+    }
+    .custom-loader::after {
+      transform:rotate(180deg);
+      transform-origin:right;
+    }
+    @keyframes s10 {
+      100% { transform: rotate(-1turn); }
+    }
+  </style>
+
+  <script>
+    window.addEventListener('load', function () {
+      var loader = document.getElementById('page-loader');
+      if (!loader) return;
+      loader.classList.add('hidden');
+      setTimeout(function () { loader.remove(); }, 500);
+    });
+  </script>
 </html>

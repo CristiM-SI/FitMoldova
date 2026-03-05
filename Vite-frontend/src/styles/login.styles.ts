@@ -88,13 +88,13 @@ export const loginStyles = `
   /* Numele brandului (logo text) */
   .brand-link { text-decoration: none; display: inline-block; position: relative; z-index: 1; }
   .brand-name {
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Space Mono', monospace;
     font-weight: 900;
     font-size: 28px;
     color: var(--blue-primary);
-    letter-spacing: 2px;
+    letter-spacing: 0px;
     text-transform: uppercase;
-  }
+}
 
   /* Conținut hero — centrul panoului stâng */
   .hero-content { position: relative; z-index: 1; }

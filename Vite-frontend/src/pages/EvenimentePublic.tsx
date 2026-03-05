@@ -30,6 +30,17 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
     default: 'linear-gradient(135deg, #1a7fff 0%, #7c3aed 100%)',
 };
 
+const CATEGORY_IMAGES: Record<string, string> = {
+    Maraton: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=600&q=80',
+    Ciclism: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=600&q=80',
+    Yoga: 'https://images.unsplash.com/photo-1588286840104-8957b019727f?w=600&q=80',
+    Fitness: 'https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?w=600&q=80',
+    Trail: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80',
+    Înot: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80',
+    Social: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600&q=80',
+    default: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600&q=80',
+};
+
 const MONTHS_RO = [
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
@@ -271,8 +282,12 @@ const EvenimentePublic: React.FC = () => {
                                         onKeyDown={(e) => e.key === 'Enter' && openDetail(ev)}
                                     >
                                         {/* ── IMAGE AREA ── */}
-                                        <div className="ep-card-img" style={{ background: getGradient(ev.category) }}>
-                                            <span className="ep-card-emoji">{ev.icon}</span>
+                                        <div className="ep-card-img">
+                                            <img
+                                                src={CATEGORY_IMAGES[ev.category] ?? CATEGORY_IMAGES['default']}
+                                                alt={ev.category}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                            />
                                             <div className="ep-card-img-overlay">
                                                 <span className="ep-cat-chip">{ev.category}</span>
                                                 {joined && (
@@ -340,8 +355,12 @@ const EvenimentePublic: React.FC = () => {
                         <button className="ep-overlay-close" onClick={closeDetail} aria-label="Închide">✕</button>
 
                         {/* Hero banner */}
-                        <div className="ep-overlay-hero" style={{ background: getGradient(detail.category) }}>
-                            <span className="ep-overlay-emoji">{detail.icon}</span>
+                        <div className="ep-overlay-hero" style={{ padding: 0, overflow: 'hidden' }}>
+                            <img
+                                src={CATEGORY_IMAGES[detail.category] ?? CATEGORY_IMAGES['default']}
+                                alt={detail.category}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
                             <div className="ep-overlay-hero-chips">
                                 <span className="ep-overlay-chip">{detail.category}</span>
                                 <span className="ep-overlay-chip">{detail.difficulty}</span>

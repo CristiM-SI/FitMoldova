@@ -10,6 +10,7 @@ interface Feature {
   icon: string;
   title: string;
   description: string;
+  link: string;
 }
 
 const Home: React.FC = () => {
@@ -26,52 +27,62 @@ const Home: React.FC = () => {
     {
       icon: '📊',
       title: 'Dashboard Personal',
-      description: 'Vizualizează statistici detaliate, urmărește progresul tău și editează informațiile profilului într-un singur loc centralizat și intuitiv.'
+      description: 'Vizualizează statistici detaliate, urmărește progresul tău și editează informațiile profilului într-un singur loc centralizat și intuitiv.',
+      link: ROUTES.DASHBOARD
     },
     {
       icon: '🏃',
       title: 'Tracking Activități',
-      description: 'Înregistrează sesiunile de alergare, ciclism sau sală cu introducere manuală sau timer live. Monitorizează distanța, durata și caloriile.'
+      description: 'Înregistrează sesiunile de alergare, ciclism sau sală cu introducere manuală sau timer live. Monitorizează distanța, durata și caloriile.',
+      link: ROUTES.ACTIVITIES
     },
     {
       icon: '🏆',
       title: 'Provocări & Competiții',
-      description: 'Participă la challenges motivante, urmărește progresul în timp real și trimite dovezi pentru verificare. Câștigă premii și recunoaștere.'
+      description: 'Participă la challenges motivante, urmărește progresul în timp real și trimite dovezi pentru verificare. Câștigă premii și recunoaștere.',
+      link: ROUTES.CHALLENGES
     },
     {
       icon: '📅',
       title: 'Evenimente Sportive',
-      description: 'Creează și gestionează evenimente, caută și filtrează după preferințe, înscrie-te la competiții și conectează-te cu alți participanți.'
+      description: 'Creează și gestionează evenimente, caută și filtrează după preferințe, înscrie-te la competiții și conectează-te cu alți participanți.',
+      link: ROUTES.EVENTS
     },
     {
       icon: '🗺️',
       title: 'Rute Interactive',
-      description: 'Explorează hărți interactive cu rute recomandate de ciclism și alergare. Adaugă propriile tale rute și descoperă noi trasee.'
+      description: 'Explorează hărți interactive cu rute recomandate de ciclism și alergare. Adaugă propriile tale rute și descoperă noi trasee.',
+      link: ROUTES.ROUTES_MAP
     },
     {
       icon: '💬',
       title: 'Forum & Comunitate',
-      description: 'Participă la discuții pe categorii (general, ciclism, alergare, sală), pune întrebări, împărtășește sfaturi și conectează-te cu comunitatea.'
+      description: 'Participă la discuții pe categorii (general, ciclism, alergare, sală), pune întrebări, împărtășește sfaturi și conectează-te cu comunitatea.',
+      link: ROUTES.FORUM
     },
     {
       icon: '📱',
       title: 'Mesagerie Privată',
-      description: 'Comunicare directă între utilizatori prin mesaje private sau grupuri de discuție pentru planificarea antrenamentelor și evenimente.'
+      description: 'Comunicare directă între utilizatori prin mesaje private sau grupuri de discuție pentru planificarea antrenamentelor și evenimente.',
+      link: ROUTES.COMMUNITY
     },
     {
       icon: '📸',
       title: 'Galerii Multimedia',
-      description: 'Încarcă și partajează fotografii de la antrenamente, evenimente și competiții. Creează amintiri alături de comunitate.'
+      description: 'Încarcă și partajează fotografii de la antrenamente, evenimente și competiții. Creează amintiri alături de comunitate.',
+      link: ROUTES.GALLERY
     },
     {
       icon: '👥',
       title: 'Cluburi Locale',
-      description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.'
+      description: 'Creează sau alătură-te cluburilor și comunităților locale sau tematice. Organizează întâlniri și evenimente de grup.',
+      link: ROUTES.CLUBS
     },
     {
       icon: '⭐',
       title: 'Feedback & Recenzii',
-      description: 'Împărtășește experiența ta, evaluează platforma și citește recenziile comunității. Opinia ta ne ajută să creștem.'
+      description: 'Împărtășește experiența ta, evaluează platforma și citește recenziile comunității. Opinia ta ne ajută să creștem.',
+      link: ROUTES.FEEDBACK
     }
   ];
 
@@ -132,11 +143,14 @@ const Home: React.FC = () => {
 
           <div className="features-grid">
             {features.map((feature, index) => (
-                <div key={index} className="feature-card">
+                <Link key={index} to={feature.link} className="feature-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
                   <div className="feature-icon">{feature.icon}</div>
                   <h3 className="feature-title">{feature.title}</h3>
                   <p className="feature-description">{feature.description}</p>
-                </div>
+                  <div style={{ marginTop: 'auto', paddingTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,102,255,0.1)', border: '1px solid rgba(0,102,255,0.25)', color: '#3385FF', fontSize: '1.1rem', transition: 'all 0.3s' }}>→</span>
+                  </div>
+                </Link>
             ))}
           </div>
         </section>

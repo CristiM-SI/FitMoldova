@@ -10,3 +10,10 @@ document.head.appendChild(styleEl);
 createRoot(document.getElementById('root')!).render(
     <App />
 )
+
+// Hide the HTML loading screen once React has mounted
+const loader = document.getElementById('app-loader');
+if (loader) {
+    loader.classList.add('hidden');
+    setTimeout(() => loader.remove(), 500);
+}

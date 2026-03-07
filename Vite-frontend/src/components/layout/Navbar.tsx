@@ -66,6 +66,15 @@ const Navbar: React.FC = () => {
           </li>
           <li>
             <NavLink
+                to={ROUTES.GALLERY}
+                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                onClick={closeMenu}
+            >
+              Galerie
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
                 to={ROUTES.CONTACT}
                 className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
                 onClick={closeMenu}

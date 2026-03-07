@@ -71,7 +71,21 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
 
-    if (loading) return null;
+    if (loading) return (
+        <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            minHeight: '100vh', background: 'radial-gradient(ellipse at 30% 20%, rgba(0,102,255,0.15), transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(0,208,132,0.1), transparent 50%), #0A1628',
+        }}>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.04em', marginBottom: '2rem', fontFamily: "'Rajdhani', 'Space Mono', monospace" }}>
+                    <span style={{ color: '#fff' }}>FIT</span>
+                    <span style={{ color: '#0066FF' }}>MOLDOVA</span>
+                </div>
+                <div style={{ width: 44, height: 44, margin: '0 auto 1.25rem', border: '3px solid rgba(255,255,255,0.08)', borderTopColor: '#0066FF', borderRadius: '50%', animation: 'lspin 0.8s linear infinite' }}></div>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 500 }}>Se încarcă...</p>
+            </div>
+        </div>
+    );
 
     if (isAuthenticated) {
         return <Navigate to={ROUTES.DASHBOARD} replace />;
@@ -84,7 +98,21 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated, isAdmin, loading } = useAuth();
 
-    if (loading) return null;
+    if (loading) return (
+        <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            minHeight: '100vh', background: 'radial-gradient(ellipse at 30% 20%, rgba(0,102,255,0.15), transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(0,208,132,0.1), transparent 50%), #0A1628',
+        }}>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.04em', marginBottom: '2rem', fontFamily: "'Rajdhani', 'Space Mono', monospace" }}>
+                    <span style={{ color: '#fff' }}>FIT</span>
+                    <span style={{ color: '#0066FF' }}>MOLDOVA</span>
+                </div>
+                <div style={{ width: 44, height: 44, margin: '0 auto 1.25rem', border: '3px solid rgba(255,255,255,0.08)', borderTopColor: '#0066FF', borderRadius: '50%', animation: 'lspin 0.8s linear infinite' }}></div>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 500 }}>Se încarcă...</p>
+            </div>
+        </div>
+    );
 
     if (!isAuthenticated || !isAdmin) {
         return <Navigate to={ROUTES.HOME} replace />;

@@ -252,12 +252,10 @@ export default function CommunityPage() {
                                     active={tab === item.id} badge={item.badge} onClick={item.onClick} />
                         ))}
 
-                        <Box sx={{ height: '1px', bgcolor: T.border, my: 0.75 }} />
 
                         <NavBtn icon="💬" label="Forum" active={false} onClick={() => navigate(ROUTES.FORUM)} />
                         <NavBtn icon="🏟️" label="Cluburi" active={false} onClick={() => navigate(ROUTES.CLUBS)} />
 
-                        <Box sx={{ height: '1px', bgcolor: T.border, my: 0.75 }} />
 
                         {isAuthenticated ? (
                             <Link to={ROUTES.DASHBOARD} style={{ textDecoration: 'none' }}>
@@ -268,6 +266,40 @@ export default function CommunityPage() {
                                 <NavBtn icon="◀" label="Acasă" active={false} onClick={() => {}} />
                             </Link>
                         )}
+                    </Box>
+
+
+                    {/* ── MOBILE TAB BAR ── */}
+                    <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 0.75, overflowX: 'auto', pb: 0.5, mb: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
+                        {NAV_ITEMS.map((item) => (
+                            <Box component="button" key={item.id} onClick={item.onClick}
+                                 sx={{
+                                     display: 'flex', alignItems: 'center', gap: 0.75,
+                                     px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap',
+                                     border: `1px solid ${tab === item.id ? 'rgba(26,111,255,.3)' : T.border}`,
+                                     bgcolor: tab === item.id ? T.bdim : T.card,
+                                     color: tab === item.id ? T.cyan : T.muted,
+                                     fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600,
+                                     cursor: 'pointer', transition: 'all .2s', flexShrink: 0,
+                                     '&:hover': { bgcolor: T.cdim, color: '#fff' },
+                                 }}>
+                                <span style={{ fontSize: '1rem' }}>{item.icon}</span>
+                                {item.label}
+                                {item.badge && (
+                                    <Box component="span" sx={{ borderRadius: '100px', px: 0.75, py: 0.15, fontSize: '0.6rem', fontWeight: 700, bgcolor: 'rgba(255,145,0,.14)', color: '#ff9100' }}>
+                                        {item.badge.text}
+                                    </Box>
+                                )}
+                            </Box>
+                        ))}
+                        <Box component="button" onClick={() => navigate(ROUTES.FORUM)}
+                             sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap', border: `1px solid ${T.border}`, bgcolor: T.card, color: T.muted, fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all .2s', flexShrink: 0, '&:hover': { bgcolor: T.cdim, color: '#fff' } }}>
+                            <span style={{ fontSize: '1rem' }}>💬</span> Forum
+                        </Box>
+                        <Box component="button" onClick={() => navigate(ROUTES.CLUBS)}
+                             sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap', border: `1px solid ${T.border}`, bgcolor: T.card, color: T.muted, fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all .2s', flexShrink: 0, '&:hover': { bgcolor: T.cdim, color: '#fff' } }}>
+                            <span style={{ fontSize: '1rem' }}>🏟️</span> Cluburi
+                        </Box>
                     </Box>
 
                     {/* ── CENTER CONTENT ── */}

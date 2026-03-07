@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Button from '@mui/material/Button';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import '../styles/Contact.css';
+
 
 interface ContactInfo {
   icon: string;
@@ -291,9 +290,9 @@ const Contact: React.FC = () => {
                   )}
                 </div>
 
-                <Button type="submit" variant="contained" color="primary" className="contact-submit-btn" fullWidth>
+                <button type="submit" className="btn btn-primary contact-submit-btn">
                   Trimite Mesajul
-                </Button>
+                </button>
               </form>
             </div>
 
@@ -386,9 +385,9 @@ const Contact: React.FC = () => {
                 Opinia ta ajută comunitatea să crească.
               </p>
             </div>
-            <Button component={Link} to={ROUTES.FEEDBACK} variant="contained" color="primary" className="contact-feedback-promo-btn">
+            <Link to={ROUTES.FEEDBACK} className="btn btn-primary contact-feedback-promo-btn">
               Lasă Feedback
-            </Button>
+            </Link>
           </div>
         </section>
 
@@ -400,9 +399,9 @@ const Contact: React.FC = () => {
               Alătură-te comunității FitMoldova și descoperă o nouă modalitate
               de a-ți atinge obiectivele de fitness.
             </p>
-            <Button component={Link} to={ROUTES.REGISTER} variant="contained" color="primary">
+            <Link to={ROUTES.REGISTER} className="btn btn-primary">
               Creează Cont Gratuit
-            </Button>
+            </Link>
           </div>
         </section>
 

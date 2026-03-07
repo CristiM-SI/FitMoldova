@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Button from '@mui/material/Button';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import '../styles/Feedback.css';
+
 
 interface Review {
   name: string;
@@ -289,15 +288,12 @@ const Feedback: React.FC = () => {
                   )}
                 </div>
 
-                <Button
+                <button
                     type="submit"
-                    variant="contained"
-                    color="primary"
-                    className="feedback-submit-btn"
-                    fullWidth
+                    className="btn btn-primary feedback-submit-btn"
                 >
                   Trimite Feedback
-                </Button>
+                </button>
               </form>
             </div>
 
@@ -377,9 +373,9 @@ const Feedback: React.FC = () => {
               Folosește pagina de Contact pentru a ne trimite un mesaj direct
               și echipa noastră te va contacta cât mai curând.
             </p>
-            <Button component={Link} to={ROUTES.CONTACT} variant="contained" color="primary">
+            <Link to={ROUTES.CONTACT} className="btn btn-primary">
               Contactează-ne
-            </Button>
+            </Link>
           </div>
         </section>
 

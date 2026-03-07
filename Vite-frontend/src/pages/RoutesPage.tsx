@@ -9,17 +9,7 @@ import RoutesSidebar from '../components/RoutesSidebar';
 import type { RouteDifficulty, RouteType, Traseu } from '../types/Route';
 import { useDashboardData } from '../context/useDashboardData';
 import { useAuth } from '../context/AuthContext';
-import Box from '@mui/material/Box';
-import {
-  routesPageSx, routesHeroSx, routesHeroContentSx, routesHeroTitleSx,
-  routesHeroHighlightSx, routesHeroSubtitleSx, routesHeroStatsSx,
-  routesStatSx, routesStatValueSx, routesStatLabelSx, routesMainSx,
-  routesCtaSx, routesCtaTitleSx, routesCtaSubSx, routesCtaSelectedSx,
-  routesCtaBtnSx, routesLayoutSx, routesHomeBtnSx,
-  routesMapContainerSx, routesToastSx, routeDetailsCardSx,
-} from '../styles/routesPage.styles';
-/* Keep CSS for sub-component styles (rsb-*, route-popup-*, rdc-*, leaflet) */
-import './RoutesPage.css';
+
 
 const RoutesPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -81,64 +71,63 @@ const RoutesPage: React.FC = () => {
   }, [selectedRoute, isAuthenticated, navigate, location, isAlreadySaved, addTraseu, showToast]);
 
   return (
-      <Box sx={routesPageSx}>
+      <div className="routes-page">
         <Navbar />
 
-        <Box sx={routesHeroSx}>
-          <Box sx={routesHeroContentSx}>
-            <Box component="h1" sx={routesHeroTitleSx}>
-              Trasee <Box component="span" sx={routesHeroHighlightSx}>Moldova</Box>
-            </Box>
-            <Box component="p" sx={routesHeroSubtitleSx}>
+        <div className="routes-hero">
+          <div className="routes-hero-content">
+            <h1 className="routes-hero-title">
+              Trasee <span className="routes-hero-highlight">Moldova</span>
+            </h1>
+            <p className="routes-hero-subtitle">
               Explorează {MOCK_TRASEE.length} trasee interactive de alergare, ciclism și drumeție
               pe harta Moldovei. Adaugă-ți traseul preferat ca obiectiv în dashboard.
-            </Box>
+            </p>
 
-            <Box sx={routesHeroStatsSx}>
-              <Box sx={routesStatSx}>
-                <Box component="span" sx={routesStatValueSx}>{MOCK_TRASEE.length}</Box>
-                <Box component="span" sx={routesStatLabelSx}>Trasee</Box>
-              </Box>
-              <Box sx={routesStatSx}>
-                <Box component="span" sx={routesStatValueSx}>
-                  {Math.round(MOCK_TRASEE.reduce((s, t) => s + t.distance, 0))} km
-                </Box>
-                <Box component="span" sx={routesStatLabelSx}>Distanță totală</Box>
-              </Box>
-              <Box sx={routesStatSx}>
-                <Box component="span" sx={routesStatValueSx}>
-                  {[...new Set(MOCK_TRASEE.map((t) => t.region))].length}
-                </Box>
-                <Box component="span" sx={routesStatLabelSx}>Regiuni</Box>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+            <div className="routes-hero-stats">
+              <div className="routes-stat">
+                <span className="routes-stat-value">{MOCK_TRASEE.length}</span>
+                <span className="routes-stat-label">Trasee</span>
+              </div>
+              <div className="routes-stat">
+              <span className="routes-stat-value">
+                {Math.round(MOCK_TRASEE.reduce((s, t) => s + t.distance, 0))} km
+              </span>
+                <span className="routes-stat-label">Distanță totală</span>
+              </div>
+              <div className="routes-stat">
+              <span className="routes-stat-value">
+                {[...new Set(MOCK_TRASEE.map((t) => t.region))].length}
+              </span>
+                <span className="routes-stat-label">Regiuni</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <Box sx={routesMainSx}>
-          <Box sx={routesCtaSx}>
+        <div className="routes-main">
+          <div className="routes-cta">
             <div>
-              <Box component="p" sx={routesCtaTitleSx}>Adaugă traseul ca țintă</Box>
-              <Box component="p" sx={routesCtaSubSx}>
+              <p className="routes-cta-title">Adaugă traseul ca țintă</p>
+              <p className="routes-cta-sub">
                 Selectează un traseu pentru a-l trimite în Dashboard. {isAuthenticated ? '🏁' : '🔐 Autentificare necesară'}
-              </Box>
+              </p>
               {selectedRoute && (
-                  <Box component="p" sx={routesCtaSelectedSx}>
+                  <p className="routes-cta-selected">
                     {selectedRoute.icon} <strong>{selectedRoute.name}</strong> · {selectedRoute.distance} km · {selectedRoute.difficulty}
-                  </Box>
+                  </p>
               )}
             </div>
-            <Box
-                component="button"
-                sx={routesCtaBtnSx}
+            <button
+                className="routes-cta-btn"
                 onClick={handleAddTarget}
                 disabled={!selectedRoute}
             >
               {selectedRoute ? (isAlreadySaved ? 'În Dashboard' : 'Adaugă în Dashboard') : 'Selectează un traseu'}
-            </Box>
-          </Box>
+            </button>
+          </div>
 
-          <Box sx={routesLayoutSx}>
+          <div className="routes-layout">
             <aside className="routes-sidebar">
               <RoutesSidebar
                   trasee={MOCK_TRASEE}
@@ -151,17 +140,17 @@ const RoutesPage: React.FC = () => {
               />
             </aside>
 
-            <Box sx={routesMapContainerSx}>
+            <div className="routes-map-container">
               <MoldovaRoutesMap
                   trasee={filteredTrasee}
                   selectedId={selectedId}
                   onSelect={setSelectedId}
               />
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* Panou detalii traseu */}
-          <Box sx={routeDetailsCardSx}>
+          <div className="route-details-card">
             {selectedRoute ? (
                 <>
                   <div className="rdc-header">
@@ -219,21 +208,27 @@ const RoutesPage: React.FC = () => {
                   <p className="rdc-empty-sub">Vezi detaliile, reperele și adaugă-l ca țintă în Dashboard.</p>
                 </div>
             )}
-          </Box>
+          </div>
 
           {/* Toast */}
-          <Box sx={routesToastSx(toast.visible)}>
-            <span style={{ fontSize: '1.1rem' }}>{toast.icon}</span>
+          <div
+              className="routes-toast"
+              style={{
+                transform: toast.visible ? 'translateY(0)' : 'translateY(80px)',
+                opacity: toast.visible ? 1 : 0,
+              }}
+          >
+            <span className="routes-toast-icon">{toast.icon}</span>
             <span>{toast.msg}</span>
-          </Box>
+          </div>
 
           {/* Buton Home rapid */}
-          <Box component={Link} to={ROUTES.HOME} sx={routesHomeBtnSx} aria-label="Înapoi la Home">
+          <Link to={ROUTES.HOME} className="routes-home-btn" aria-label="Înapoi la Home">
             🏠
-          </Box>
-        </Box>
+          </Link>
+        </div>
         <Footer />
-      </Box>
+      </div>
   );
 };
 

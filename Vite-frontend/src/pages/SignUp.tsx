@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ROUTES } from "../routes/paths";
 import { useAuth } from "../context/AuthContext";
 import { useUser } from "../context/UserContext";
-import styles from "../styles/SignUp.module.css";
+import { signUpStyles } from "../styles/signUpStyles";
 
 interface FormData {
     firstName: string;
@@ -144,14 +144,15 @@ const SignUp = () => {
 
     if (submitted) {
         return (
-            <div className={styles.page}>
-                <div className={styles.grid} aria-hidden="true" />
-                <div className={styles.card}>
-                    <div className={styles.successIcon}>✓</div>
-                    <h2 className={styles.successTitle}>CONT CREAT CU SUCCES!</h2>
-                    <p className={styles.successText}>
+            <div className="su-page">
+                <style>{signUpStyles}</style>
+                <div className="su-grid" aria-hidden="true" />
+                <div className="su-card">
+                    <div className="su-successIcon">✓</div>
+                    <h2 className="su-successTitle">CONT CREAT CU SUCCES!</h2>
+                    <p className="su-successText">
                         Bine ai venit în comunitatea{" "}
-                        <span className={styles.accent}>FitMoldova</span>.
+                        <span className="su-accent">FitMoldova</span>.
                         <br />Ești redirecționat către dashboard...
                     </p>
                 </div>
@@ -160,109 +161,110 @@ const SignUp = () => {
     }
 
     return (
-        <div className={styles.page}>
-            <div className={styles.grid} aria-hidden="true" />
+        <div className="su-page">
+            <style>{signUpStyles}</style>
+            <div className="su-grid" aria-hidden="true" />
 
-            <div className={styles.card}>
-                <div className={styles.header}>
-                    <div className={styles.logo}>
-                        <span className={styles.logoWhite}>FIT</span>
-                        <span className={styles.logoBlue}>MOLDOVA</span>
+            <div className="su-card">
+                <div className="su-header">
+                    <div className="su-logo">
+                        <span className="su-logoWhite">FIT</span>
+                        <span className="su-logoBlue">MOLDOVA</span>
                     </div>
-                    <p className={styles.subtitle}>Alătură-te comunității de fitness</p>
+                    <p className="su-subtitle">Alătură-te comunității de fitness</p>
                 </div>
 
-                <form className={styles.form} onSubmit={handleSubmit} noValidate>
-                    <div className={styles.row}>
-                        <div className={styles.field}>
-                            <label className={styles.label} htmlFor="lastName">Nume</label>
+                <form className="su-form" onSubmit={handleSubmit} noValidate>
+                    <div className="su-row">
+                        <div className="su-field">
+                            <label className="su-label" htmlFor="lastName">Nume</label>
                             <input
                                 id="lastName" name="lastName" type="text" autoComplete="family-name"
-                                className={`${styles.input} ${touched.lastName && errors.lastName ? styles.inputError : ""} ${touched.lastName && !errors.lastName && formData.lastName ? styles.inputValid : ""}`}
+                                className={`su-input ${touched.lastName && errors.lastName ? "su-inputError" : ""} ${touched.lastName && !errors.lastName && formData.lastName ? "su-inputValid" : ""}`}
                                 placeholder="Popescu"
                                 value={formData.lastName} onChange={handleChange} onBlur={handleBlur}
                             />
-                            {touched.lastName && errors.lastName && <span className={styles.error}>{errors.lastName}</span>}
+                            {touched.lastName && errors.lastName && <span className="su-error">{errors.lastName}</span>}
                         </div>
-                        <div className={styles.field}>
-                            <label className={styles.label} htmlFor="firstName">Prenume</label>
+                        <div className="su-field">
+                            <label className="su-label" htmlFor="firstName">Prenume</label>
                             <input
                                 id="firstName" name="firstName" type="text" autoComplete="given-name"
-                                className={`${styles.input} ${touched.firstName && errors.firstName ? styles.inputError : ""} ${touched.firstName && !errors.firstName && formData.firstName ? styles.inputValid : ""}`}
+                                className={`su-input ${touched.firstName && errors.firstName ? "su-inputError" : ""} ${touched.firstName && !errors.firstName && formData.firstName ? "su-inputValid" : ""}`}
                                 placeholder="Ion"
                                 value={formData.firstName} onChange={handleChange} onBlur={handleBlur}
                             />
-                            {touched.firstName && errors.firstName && <span className={styles.error}>{errors.firstName}</span>}
+                            {touched.firstName && errors.firstName && <span className="su-error">{errors.firstName}</span>}
                         </div>
                     </div>
 
-                    <div className={styles.field}>
-                        <label className={styles.label} htmlFor="email">Adresă de email</label>
+                    <div className="su-field">
+                        <label className="su-label" htmlFor="email">Adresă de email</label>
                         <input
                             id="email" name="email" type="email" autoComplete="email"
-                            className={`${styles.input} ${touched.email && errors.email ? styles.inputError : ""} ${touched.email && !errors.email && formData.email ? styles.inputValid : ""}`}
+                            className={`su-input ${touched.email && errors.email ? "su-inputError" : ""} ${touched.email && !errors.email && formData.email ? "su-inputValid" : ""}`}
                             placeholder="ion.popescu@email.com"
                             value={formData.email} onChange={handleChange} onBlur={handleBlur}
                         />
-                        {touched.email && errors.email && <span className={styles.error}>{errors.email}</span>}
+                        {touched.email && errors.email && <span className="su-error">{errors.email}</span>}
                     </div>
 
-                    <div className={styles.field}>
-                        <label className={styles.label} htmlFor="password">Parolă</label>
-                        <div className={styles.inputWrapper}>
+                    <div className="su-field">
+                        <label className="su-label" htmlFor="password">Parolă</label>
+                        <div className="su-inputWrapper">
                             <input
                                 id="password" name="password" type={showPassword ? "text" : "password"}
                                 autoComplete="new-password"
-                                className={`${styles.input} ${styles.inputWithToggle} ${touched.password && errors.password ? styles.inputError : ""} ${touched.password && !errors.password && formData.password ? styles.inputValid : ""}`}
+                                className={`su-input su-inputWithToggle ${touched.password && errors.password ? "su-inputError" : ""} ${touched.password && !errors.password && formData.password ? "su-inputValid" : ""}`}
                                 placeholder="Minim 16 caractere"
                                 value={formData.password} onChange={handleChange} onBlur={handleBlur}
                             />
-                            <button type="button" className={styles.toggle} onClick={() => setShowPassword(v => !v)} aria-label="Toggle parolă">
+                            <button type="button" className="su-toggle" onClick={() => setShowPassword(v => !v)} aria-label="Toggle parolă">
                                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                             </button>
                         </div>
 
                         {formData.password && (
                             <>
-                                <div className={styles.strengthWrapper}>
-                                    <div className={styles.strengthBar}>
-                                        <div className={styles.strengthFill} style={{ width: `${strengthPercent}%`, backgroundColor: strengthColor }} />
+                                <div className="su-strengthWrapper">
+                                    <div className="su-strengthBar">
+                                        <div className="su-strengthFill" style={{ width: `${strengthPercent}%`, backgroundColor: strengthColor }} />
                                     </div>
-                                    <span className={styles.strengthLabel} style={{ color: strengthColor }}>{strengthLabel}</span>
+                                    <span className="su-strengthLabel" style={{ color: strengthColor }}>{strengthLabel}</span>
                                 </div>
-                                <ul className={styles.requirements}>
-                                    <li className={strength.total >= 16 ? styles.reqMet : styles.reqUnmet}>{strength.total >= 16 ? "✓" : "○"} Minim 16 caractere ({strength.total}/16)</li>
-                                    <li className={strength.letters >= 6 ? styles.reqMet : styles.reqUnmet}>{strength.letters >= 6 ? "✓" : "○"} Cel puțin 6 litere ({strength.letters}/6)</li>
-                                    <li className={strength.digits >= 6 ? styles.reqMet : styles.reqUnmet}>{strength.digits >= 6 ? "✓" : "○"} Cel puțin 6 cifre ({strength.digits}/6)</li>
-                                    <li className={strength.specials >= 4 ? styles.reqMet : styles.reqUnmet}>{strength.specials >= 4 ? "✓" : "○"} Cel puțin 4 caractere speciale ({strength.specials}/4)</li>
+                                <ul className="su-requirements">
+                                    <li className={strength.total >= 16 ? "su-reqMet" : "su-reqUnmet"}>{strength.total >= 16 ? "✓" : "○"} Minim 16 caractere ({strength.total}/16)</li>
+                                    <li className={strength.letters >= 6 ? "su-reqMet" : "su-reqUnmet"}>{strength.letters >= 6 ? "✓" : "○"} Cel puțin 6 litere ({strength.letters}/6)</li>
+                                    <li className={strength.digits >= 6 ? "su-reqMet" : "su-reqUnmet"}>{strength.digits >= 6 ? "✓" : "○"} Cel puțin 6 cifre ({strength.digits}/6)</li>
+                                    <li className={strength.specials >= 4 ? "su-reqMet" : "su-reqUnmet"}>{strength.specials >= 4 ? "✓" : "○"} Cel puțin 4 caractere speciale ({strength.specials}/4)</li>
                                 </ul>
                             </>
                         )}
-                        {touched.password && errors.password && <span className={styles.error}>{errors.password}</span>}
+                        {touched.password && errors.password && <span className="su-error">{errors.password}</span>}
                     </div>
 
-                    <div className={styles.field}>
-                        <label className={styles.label} htmlFor="confirmPassword">Confirmă parola</label>
-                        <div className={styles.inputWrapper}>
+                    <div className="su-field">
+                        <label className="su-label" htmlFor="confirmPassword">Confirmă parola</label>
+                        <div className="su-inputWrapper">
                             <input
                                 id="confirmPassword" name="confirmPassword" type={showConfirm ? "text" : "password"}
                                 autoComplete="new-password"
-                                className={`${styles.input} ${styles.inputWithToggle} ${touched.confirmPassword && errors.confirmPassword ? styles.inputError : ""} ${touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword ? styles.inputValid : ""}`}
+                                className={`su-input su-inputWithToggle ${touched.confirmPassword && errors.confirmPassword ? "su-inputError" : ""} ${touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword ? "su-inputValid" : ""}`}
                                 placeholder="Repetă parola"
                                 value={formData.confirmPassword} onChange={handleChange} onBlur={handleBlur}
                             />
-                            <button type="button" className={styles.toggle} onClick={() => setShowConfirm(v => !v)} aria-label="Toggle confirmare">
+                            <button type="button" className="su-toggle" onClick={() => setShowConfirm(v => !v)} aria-label="Toggle confirmare">
                                 {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
                             </button>
                         </div>
-                        {touched.confirmPassword && errors.confirmPassword && <span className={styles.error}>{errors.confirmPassword}</span>}
+                        {touched.confirmPassword && errors.confirmPassword && <span className="su-error">{errors.confirmPassword}</span>}
                     </div>
 
-                    <button type="submit" className={styles.submit}>CREEAZĂ CONT GRATUIT</button>
+                    <button type="submit" className="su-submit">CREEAZĂ CONT GRATUIT</button>
 
-                    <p className={styles.loginPrompt}>
+                    <p className="su-loginPrompt">
                         Ai deja un cont?{" "}
-                        <Link to={ROUTES.LOGIN} className={styles.loginLink}>Autentifică-te</Link>
+                        <Link to={ROUTES.LOGIN} className="su-loginLink">Autentifică-te</Link>
                     </p>
                 </form>
             </div>

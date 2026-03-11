@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
@@ -23,7 +24,7 @@ import {
   sxHeaderTitle, sxThread, sxThreadRow, sxThreadAva, sxThreadBody,
   sxThreadMeta, sxAuthor, sxHandle, sxDot, sxTime, sxCategoryTag,
   sxContent, sxHashtag, sxActions, sxAction, sxEmpty, sxEmptyIcon,
-  sxEmptyTitle, sxEmptySub, sxToast, sxTab, sxTabs,
+  sxEmptyTitle, sxEmptySub, sxTab, sxTabs,
   sxRightSidebar, sxSearchBox, sxSearchIcon, sxSearchInput,
   sxSuggestBox, sxSuggestHeader, sxSuggestUser, sxSuggestAva,
   sxSuggestInfo, sxSuggestName, sxSuggestHandle, sxSuggestBio, sxFollowBtn,
@@ -70,7 +71,6 @@ export default function ForumPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const composeRef = useRef<HTMLTextAreaElement>(null);
-    const replyRef = useRef<HTMLTextAreaElement>(null);
 
     const [activeCategory, setActiveCategory] = useState<ForumCategory>('Toate');
     const [threads, setThreads] = useState<ForumThread[]>(INITIAL_THREADS);
@@ -80,7 +80,6 @@ export default function ForumPage() {
     const [replyText, setReplyText] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
-    const [toast, setToast] = useState({ msg: '', visible: false });
     const [heartAnims, setHeartAnims] = useState<Set<number>>(new Set());
 
     const userAvatar = user ? (user.firstName[0] + user.lastName[0]).toUpperCase() : 'FM';
@@ -88,16 +87,8 @@ export default function ForumPage() {
     const userHandle = user ? `@${user.username}` : '@user';
 
     const showToast = useCallback((msg: string) => {
-        setToast({ msg, visible: true });
-        setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2500);
+        message.info(msg);
     }, []);
-
-    useEffect(() => {
-        if (composeRef.current) { composeRef.current.style.height = 'auto'; composeRef.current.style.height = composeRef.current.scrollHeight + 'px'; }
-    }, [composeText]);
-    useEffect(() => {
-        if (replyRef.current) { replyRef.current.style.height = 'auto'; replyRef.current.style.height = replyRef.current.scrollHeight + 'px'; }
-    }, [replyText]);
 
     const handleLike = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -350,17 +341,16 @@ export default function ForumPage() {
                                     <Box sx={{ ...sxThreadAva, width: 36, height: 36, fontSize: '.75rem', background: `linear-gradient(135deg, ${ft.blue}, ${ft.cyan})` }}>{userAvatar}</Box>
                                     <Box
                                         component="textarea"
-                                        ref={replyRef}
                                         sx={{
                                             flex: 1, background: 'transparent', border: 'none', outline: 'none',
                                             color: ft.text, fontFamily: ft.font, fontSize: '.92rem',
                                             resize: 'none', minHeight: 40, p: '8px 0',
+                                            fieldSizing: 'content', overflow: 'hidden',
                                             '&::placeholder': { color: ft.muted },
                                         }}
                                         placeholder="Scrie un răspuns..."
                                         value={replyText}
                                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyText(e.target.value)}
-                                        rows={1}
                                     />
                                     <Box component="button" sx={{
                                         p: '7px 18px', borderRadius: 100, border: 'none', bgcolor: ft.blue, color: '#fff',
@@ -411,12 +401,12 @@ export default function ForumPage() {
                                                 width: '100%', background: 'transparent', border: 'none', outline: 'none',
                                                 color: ft.text, fontFamily: ft.font, fontSize: '1.1rem',
                                                 resize: 'none', minHeight: 54, p: '8px 0', lineHeight: 1.5,
+                                                fieldSizing: 'content', overflow: 'hidden',
                                                 '&::placeholder': { color: ft.muted },
                                             }}
                                             placeholder="Ce se întâmplă în lumea fitness?"
                                             value={composeText}
                                             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComposeText(e.target.value.slice(0, MAX_CHARS + 50))}
-                                            rows={1}
                                         />
                                         <Box sx={{ height: 1, bgcolor: ft.border, my: '8px' }} />
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -594,9 +584,6 @@ export default function ForumPage() {
 
                 </Box>
 
-                <Box sx={sxToast(toast.visible)}>
-                    {toast.msg}
-                </Box>
             </Box>
         </>
     );

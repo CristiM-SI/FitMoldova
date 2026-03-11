@@ -1,38 +1,51 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Global } from '@emotion/react'
+import { globalStyles } from './styles/globalStyles'
 import { AuthProvider } from './context/AuthContext'
 import { UserProvider } from './context/UserContext'
 import { ProgressProvider } from './context/ProgressContext'
 import { DashboardDataProvider } from './context/DashboardDataContext'
 import { useAuth } from './context/AuthContext'
+import { lazy, Suspense } from 'react'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import ScrollToTop from './components/ScrollToTop'
-import Home from './pages/Home'
-import Clubs from './pages/dashboard/Clubs.tsx'
 import { ROUTES } from './routes/paths'
-import SignUp from './pages/SignUp'
-import LoginPage from './pages/LoginPage'
-import Dashboard from './pages/dashboard/Dashboard.tsx'
-import Activitati from './pages/dashboard/Activitati.tsx'
-import CommunityPage from './pages/dashboard/CommunityPage.tsx'
-import Profile from './pages/dashboard/Profile.tsx'
-import Provocari from './pages/dashboard/Provocari.tsx'
-import EVENTS from './pages/dashboard/Evenimente.tsx'
-import EvenimentePublic from './pages/EvenimentePublic'
-import Contact from './pages/Contact'
-import Feedback from './pages/Feedback'
-import ForumPage from './pages/ForumPage'
-import RoutesPage from './pages/RoutesPage'
-import AdminLayout from './pages/admin/AdminLayout'
-import AdminOverview from './pages/admin/AdminOverview'
-import AdminUsers from './pages/admin/AdminUsers'
-import AdminEvents from './pages/admin/AdminEvents'
-import AdminClubs from './pages/admin/AdminClubs'
-import AdminChallenges from './pages/admin/AdminChallenges'
-import AdminRoutes from './pages/admin/AdminRoutes'
-import AdminFeedback from './pages/admin/AdminFeedback'
-import Gallery from './pages/Gallery';
+
+// Eager-load only the landing page for instant first paint
+import Home from './pages/Home'
+
+// Lazy-load everything else — each page becomes its own JS chunk
+const Clubs          = lazy(() => import('./pages/dashboard/Clubs'))
+const SignUp         = lazy(() => import('./pages/SignUp'))
+const LoginPage      = lazy(() => import('./pages/LoginPage'))
+const Dashboard      = lazy(() => import('./pages/dashboard/Dashboard'))
+const Activitati     = lazy(() => import('./pages/dashboard/Activitati'))
+const CommunityPage  = lazy(() => import('./pages/dashboard/CommunityPage'))
+const Profile        = lazy(() => import('./pages/dashboard/Profile'))
+const Provocari      = lazy(() => import('./pages/dashboard/Provocari'))
+const EVENTS         = lazy(() => import('./pages/dashboard/Evenimente'))
+const EvenimentePublic = lazy(() => import('./pages/EvenimentePublic'))
+const Contact        = lazy(() => import('./pages/Contact'))
+const Feedback       = lazy(() => import('./pages/Feedback'))
+const ForumPage      = lazy(() => import('./pages/ForumPage'))
+const RoutesPage     = lazy(() => import('./pages/RoutesPage'))
+const Gallery        = lazy(() => import('./pages/Gallery'))
+const AdminLayout    = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminOverview  = lazy(() => import('./pages/admin/AdminOverview'))
+const AdminUsers     = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminEvents    = lazy(() => import('./pages/admin/AdminEvents'))
+const AdminClubs     = lazy(() => import('./pages/admin/AdminClubs'))
+const AdminChallenges = lazy(() => import('./pages/admin/AdminChallenges'))
+const AdminRoutes    = lazy(() => import('./pages/admin/AdminRoutes'))
+const AdminFeedback  = lazy(() => import('./pages/admin/AdminFeedback'))
+
+const PageLoader = () => (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: '#0A1628' }}>
+        <CircularProgress size={40} />
+    </Box>
+)
 
 // Guard pentru rutele protejate (necesită autentificare)
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -123,12 +136,15 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 function App() {
     return (
+        <>
+        <Global styles={globalStyles} />
         <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
                 <UserProvider>
                     <ProgressProvider>
                         <DashboardDataProvider>
+                            <Suspense fallback={<PageLoader />}>
                             <Routes>
                                 {/* Rute publice */}
                                 <Route path={ROUTES.HOME} element={<Home />} />
@@ -261,11 +277,13 @@ function App() {
                                 {/* Fallback */}
                                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
                             </Routes>
+                            </Suspense>
                         </DashboardDataProvider>
                     </ProgressProvider>
                 </UserProvider>
             </AuthProvider>
         </BrowserRouter>
+        </>
     )
 }
 

@@ -1,4 +1,5 @@
 ﻿import React, { useState, useRef, useCallback } from 'react';
+import { message } from 'antd';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 
@@ -41,23 +42,20 @@ interface MediaItem {
 const MediaCard: React.FC<{ item: MediaItem; onClick: (item: MediaItem) => void }> = ({ item, onClick }) => {
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(item.likes);
+    const [hovered, setHovered] = useState(false);
 
     return (
         <div
             onClick={() => onClick(item)}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
             style={{
-                background: '#0d1b2e', border: '1px solid #1e3a5f', borderRadius: 16,
-                overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease',
-            }}
-            onMouseEnter={e => {
-                (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
-                (e.currentTarget as HTMLDivElement).style.borderColor = '#38bdf8';
-                (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(56,189,248,0.15)';
-            }}
-            onMouseLeave={e => {
-                (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                (e.currentTarget as HTMLDivElement).style.borderColor = '#1e3a5f';
-                (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+                background: '#0d1b2e',
+                border: `1px solid ${hovered ? '#38bdf8' : '#1e3a5f'}`,
+                borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+                boxShadow: hovered ? '0 8px 32px rgba(56,189,248,0.15)' : 'none',
             }}
         >
             <div style={{ height: 180, position: 'relative', overflow: 'hidden' }}>
@@ -328,7 +326,8 @@ const Gallery: React.FC = () => {
     const [showUpload, setShowUpload] = useState(false);
     const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
     const [uploadedItems, setUploadedItems] = useState<MediaItem[]>([]);
-    const [notification, setNotification] = useState<string | null>(null);
+    const [ctaHovered, setCtaHovered] = useState(false);
+    const [hoveredListId, setHoveredListId] = useState<number | null>(null);
 
     const allMedia = [...uploadedItems, ...SAMPLE_MEDIA];
     const filtered = activeCategory === 'Toate' ? allMedia : allMedia.filter(m => m.category === activeCategory);
@@ -346,8 +345,7 @@ const Gallery: React.FC = () => {
             newItems.push({ id: Date.now(), type: 'image', category, user: 'Tu', handle: '@user', time: 'acum', title, likes: 0, comments: 0, verified: false, color: '#1a2a3a', emoji: '📌' });
         }
         setUploadedItems(prev => [...newItems, ...prev]);
-        setNotification(`✅ ${newItems.length || 1} element publicat în galerie!`);
-        setTimeout(() => setNotification(null), 3500);
+        message.success(`${newItems.length || 1} element publicat în galerie!`);
     };
 
     return (
@@ -420,14 +418,15 @@ const Gallery: React.FC = () => {
                 </div>
 
                 {/* Upload CTA */}
-                <div onClick={() => setShowUpload(true)} style={{
+                <div onClick={() => setShowUpload(true)}
+                     onMouseEnter={() => setCtaHovered(true)}
+                     onMouseLeave={() => setCtaHovered(false)}
+                     style={{
                     background: 'linear-gradient(135deg, rgba(14,165,233,0.08), rgba(129,140,248,0.08))',
-                    border: '2px dashed #1e3a5f', borderRadius: 16, padding: 28,
+                    border: `2px dashed ${ctaHovered ? '#38bdf8' : '#1e3a5f'}`, borderRadius: 16, padding: 28,
                     textAlign: 'center', cursor: 'pointer', marginBottom: 24,
                     transition: 'all 0.2s',
                 }}
-                     onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#38bdf8'; }}
-                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#1e3a5f'; }}
                 >
                     <div style={{ fontSize: 40, marginBottom: 10 }}>📤</div>
                     <p style={{ color: '#94a3b8', fontSize: 16, fontWeight: 600, margin: '0 0 4px' }}>Adaugă conținut în galerie</p>
@@ -442,12 +441,15 @@ const Gallery: React.FC = () => {
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {filtered.map(item => (
-                            <div key={item.id} onClick={() => setSelectedItem(item)} style={{
-                                background: '#0d1b2e', border: '1px solid #1e3a5f', borderRadius: 14,
-                                padding: 16, display: 'flex', gap: 16, cursor: 'pointer', transition: 'all 0.2s',
+                            <div key={item.id} onClick={() => setSelectedItem(item)}
+                                 onMouseEnter={() => setHoveredListId(item.id)}
+                                 onMouseLeave={() => setHoveredListId(null)}
+                                 style={{
+                                background: '#0d1b2e',
+                                border: `1px solid ${hoveredListId === item.id ? '#38bdf8' : '#1e3a5f'}`,
+                                borderRadius: 14, padding: 16, display: 'flex', gap: 16,
+                                cursor: 'pointer', transition: 'all 0.2s',
                             }}
-                                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#38bdf8'}
-                                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#1e3a5f'}
                             >
                                 <div style={{
                                     width: 64, height: 64, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
@@ -488,15 +490,6 @@ const Gallery: React.FC = () => {
             {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={handleUpload} />}
             {selectedItem && <MediaModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
 
-            {notification && (
-                <div style={{
-                    position: 'fixed', bottom: 24, right: 24,
-                    background: '#0d1b2e', border: '1px solid #22c55e',
-                    borderRadius: 12, padding: '14px 20px',
-                    color: '#22c55e', fontWeight: 600, fontSize: 14,
-                    boxShadow: '0 4px 20px rgba(34,197,94,0.2)', zIndex: 2000,
-                }}>{notification}</div>
-            )}
         </div>
     );
 };

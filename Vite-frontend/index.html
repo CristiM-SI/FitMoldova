@@ -15,6 +15,7 @@
         transition: opacity 0.4s ease;
       }
       #app-loader.hidden { opacity: 0; pointer-events: none; }
+      body:has(#root:not(:empty)) #app-loader { opacity: 0; pointer-events: none; }
       .loader-logo { font-size: 1.6rem; font-weight: 900; letter-spacing: 0.04em; margin-bottom: 2rem; font-family: 'Rajdhani', 'Space Mono', monospace; }
       .loader-logo .w { color: #fff; }
       .loader-logo .b { color: #0066FF; }

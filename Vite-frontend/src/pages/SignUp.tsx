@@ -57,7 +57,7 @@ const SignUp = () => {
     const [showConfirm, setShowConfirm] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
-
+console.log("refresh")
     const strength = getPasswordStrength(formData.password);
 
     const validate = useCallback((data: FormData): FormErrors => {

@@ -1,9 +1,17 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useAuth } from '../context/AuthContext';
 import { useForumContext } from '../context/ForumContext';
+import {
+  ft, fontImportCSS, keyframesCSS,
+  sxPageRoot, sxBody, sxSidebar, sxNavItem, sxNavItemActive,
+  sxNavIcon, sxNavIconActive, sxNavBadge, sxPostBtn, sxMain,
+  sxHeader, sxHeaderTitle, sxEmpty, sxEmptyIcon, sxEmptyTitle,
+  sxEmptySub, sxToast, sxTab, sxTabs,
+} from '../styles/forumStyles';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,60 +32,15 @@ interface Notification {
 // ─── Mock notifications ───────────────────────────────────────────────────────
 
 const INITIAL_NOTIFS: Notification[] = [
-    {
-        id: 1, type: 'like',
-        fromName: 'Ion Ceban', fromHandle: '@ion_fitness', fromAvatar: 'IC', fromColor: '#1a6fff',
-        content: 'a apreciat postarea ta despre maratonul din septembrie.',
-        time: '2 min', read: false,
-    },
-    {
-        id: 2, type: 'follow',
-        fromName: 'Maria Lungu', fromHandle: '@maria_runs', fromAvatar: 'ML', fromColor: '#e91e8c',
-        content: 'a început să te urmărească.',
-        time: '15 min', read: false,
-    },
-    {
-        id: 3, type: 'reply',
-        fromName: 'Pavel Rotaru', fromHandle: '@pavel_rotaru', fromAvatar: 'PR', fromColor: '#00b894',
-        content: 'a răspuns la postarea ta: "Complet de acord! Antrenamentul de dimineață e 🔥"',
-        time: '1h', read: false,
-    },
-    {
-        id: 4, type: 'repost',
-        fromName: 'FitMoldova', fromHandle: '@fitmoldova', fromAvatar: 'FM', fromColor: '#9b59b6',
-        content: 'a repostat postarea ta despre nutriție.',
-        time: '2h', read: false,
-    },
-    {
-        id: 5, type: 'mention',
-        fromName: 'Ana Popescu', fromHandle: '@ana_fit', fromAvatar: 'AP', fromColor: '#e67e22',
-        content: 'te-a menționat într-o postare: "Mulțumesc @user pentru sfaturile despre recuperare!"',
-        time: '3h', read: true,
-    },
-    {
-        id: 6, type: 'like',
-        fromName: 'Dmitri Vasiliev', fromHandle: '@dmitri_runs', fromAvatar: 'DV', fromColor: '#2ecc71',
-        content: 'și alți 12 au apreciat postarea ta despre #LegDay.',
-        time: '5h', read: true,
-    },
-    {
-        id: 7, type: 'bookmark',
-        fromName: 'Cristina Moga', fromHandle: '@cristina_fit', fromAvatar: 'CM', fromColor: '#e74c3c',
-        content: 'a salvat postarea ta despre planul de antrenament.',
-        time: '1z', read: true,
-    },
-    {
-        id: 8, type: 'follow',
-        fromName: 'Radu Nistor', fromHandle: '@radu_athlete', fromAvatar: 'RN', fromColor: '#3498db',
-        content: 'a început să te urmărească.',
-        time: '1z', read: true,
-    },
-    {
-        id: 9, type: 'reply',
-        fromName: 'Ion Ceban', fromHandle: '@ion_fitness', fromAvatar: 'IC', fromColor: '#1a6fff',
-        content: 'a răspuns la comentariul tău: "Super plan! Ai inclus și exerciții pentru mobilitate?"',
-        time: '2z', read: true,
-    },
+    { id: 1, type: 'like', fromName: 'Ion Ceban', fromHandle: '@ion_fitness', fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a apreciat postarea ta despre maratonul din septembrie.', time: '2 min', read: false },
+    { id: 2, type: 'follow', fromName: 'Maria Lungu', fromHandle: '@maria_runs', fromAvatar: 'ML', fromColor: '#e91e8c', content: 'a început să te urmărească.', time: '15 min', read: false },
+    { id: 3, type: 'reply', fromName: 'Pavel Rotaru', fromHandle: '@pavel_rotaru', fromAvatar: 'PR', fromColor: '#00b894', content: 'a răspuns la postarea ta: "Complet de acord! Antrenamentul de dimineață e 🔥"', time: '1h', read: false },
+    { id: 4, type: 'repost', fromName: 'FitMoldova', fromHandle: '@fitmoldova', fromAvatar: 'FM', fromColor: '#9b59b6', content: 'a repostat postarea ta despre nutriție.', time: '2h', read: false },
+    { id: 5, type: 'mention', fromName: 'Ana Popescu', fromHandle: '@ana_fit', fromAvatar: 'AP', fromColor: '#e67e22', content: 'te-a menționat într-o postare: "Mulțumesc @user pentru sfaturile despre recuperare!"', time: '3h', read: true },
+    { id: 6, type: 'like', fromName: 'Dmitri Vasiliev', fromHandle: '@dmitri_runs', fromAvatar: 'DV', fromColor: '#2ecc71', content: 'și alți 12 au apreciat postarea ta despre #LegDay.', time: '5h', read: true },
+    { id: 7, type: 'bookmark', fromName: 'Cristina Moga', fromHandle: '@cristina_fit', fromAvatar: 'CM', fromColor: '#e74c3c', content: 'a salvat postarea ta despre planul de antrenament.', time: '1z', read: true },
+    { id: 8, type: 'follow', fromName: 'Radu Nistor', fromHandle: '@radu_athlete', fromAvatar: 'RN', fromColor: '#3498db', content: 'a început să te urmărească.', time: '1z', read: true },
+    { id: 9, type: 'reply', fromName: 'Ion Ceban', fromHandle: '@ion_fitness', fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a răspuns la comentariul tău: "Super plan! Ai inclus și exerciții pentru mobilitate?"', time: '2z', read: true },
 ];
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
@@ -90,193 +53,6 @@ const NOTIF_ICONS: Record<NotifType, { icon: string; color: string }> = {
     mention:  { icon: '@',  color: '#1a6fff' },
     bookmark: { icon: '🔖', color: '#00c8ff' },
 };
-
-// ─── CSS ─────────────────────────────────────────────────────────────────────
-
-const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap');
-
-  .nt *, .nt *::before, .nt *::after { box-sizing:border-box; margin:0; padding:0; }
-  .nt {
-    --bg:#050d1a; --card:#0a1628; --card2:#0d1f3a;
-    --blue:#1a6fff; --cyan:#00c8ff;
-    --text:#e8f0fe; --muted:#5a7aa0;
-    --border:rgba(0,200,255,0.08); --border2:rgba(0,200,255,0.14);
-    --radius:16px; --red:#ff4d6d; --green:#00b894;
-    font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
-    min-height:100vh; display:flex; flex-direction:column;
-  }
-  .nt::before {
-    content:''; position:fixed; inset:0;
-    background-image:linear-gradient(rgba(0,200,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.02) 1px,transparent 1px);
-    background-size:60px 60px; pointer-events:none; z-index:0;
-  }
-
-  .nt-body { position:relative; z-index:1; flex:1; display:flex; max-width:1200px; margin:0 auto; width:100%; }
-
-  /* ── SIDEBAR ── */
-  .nt-sidebar {
-    width:270px; flex-shrink:0; position:sticky; top:72px;
-    height:calc(100vh - 72px); overflow-y:auto; padding:20px 16px;
-    border-right:1px solid var(--border); display:flex; flex-direction:column; gap:4px;
-  }
-  .nt-nav-item {
-    display:flex; align-items:center; gap:14px; padding:12px 16px;
-    border-radius:100px; background:transparent; border:none;
-    color:var(--text); font-family:'Barlow',sans-serif; font-size:.95rem; font-weight:600;
-    cursor:pointer; transition:all .15s; width:100%; text-align:left;
-  }
-  .nt-nav-item:hover { background:rgba(0,200,255,0.06); }
-  .nt-nav-item--active { font-weight:800; color:#fff; }
-  .nt-nav-icon { width:24px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
-  .nt-nav-item--active .nt-nav-icon { color:var(--cyan); }
-  .nt-nav-badge {
-    margin-left:auto; background:var(--blue); color:#fff;
-    border-radius:100px; padding:2px 8px; font-size:.68rem; font-weight:700;
-  }
-  .nt-post-btn {
-    margin-top:16px; width:100%; padding:14px; border-radius:100px; border:none;
-    background:linear-gradient(135deg,var(--blue),#0099ff); color:#fff;
-    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem;
-    letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all .2s;
-    box-shadow:0 4px 20px rgba(26,111,255,.3);
-  }
-  .nt-post-btn:hover { background:linear-gradient(135deg,#2a7fff,#00aaff); transform:translateY(-1px); }
-
-  /* ── MAIN ── */
-  .nt-main { flex:1; min-width:0; border-right:1px solid var(--border); }
-
-  .nt-header {
-    position:sticky; top:72px; z-index:10;
-    background:rgba(5,13,26,0.9); backdrop-filter:blur(16px);
-    border-bottom:1px solid var(--border); padding:16px 20px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .nt-header-left { }
-  .nt-header-title { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.25rem; letter-spacing:.5px; }
-  .nt-header-sub { font-size:.78rem; color:var(--muted); margin-top:2px; }
-  .nt-mark-all-btn {
-    background:none; border:1.5px solid var(--border2); border-radius:100px;
-    color:var(--cyan); font-family:'Barlow',sans-serif; font-size:.78rem; font-weight:600;
-    padding:6px 16px; cursor:pointer; transition:all .15s; white-space:nowrap;
-  }
-  .nt-mark-all-btn:hover { background:rgba(0,200,255,0.06); border-color:var(--cyan); }
-
-  /* ── FILTER TABS ── */
-  .nt-tabs {
-    display:flex; overflow-x:auto; scrollbar-width:none;
-    border-bottom:1px solid var(--border);
-  }
-  .nt-tabs::-webkit-scrollbar { display:none; }
-  .nt-tab {
-    flex:1; min-width:max-content; padding:12px 18px;
-    background:none; border:none; border-bottom:2px solid transparent;
-    color:var(--muted); font-family:'Barlow',sans-serif;
-    font-size:.8rem; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap;
-  }
-  .nt-tab:hover { color:var(--text); }
-  .nt-tab--active { color:#fff; font-weight:700; border-bottom-color:var(--cyan); }
-
-  /* ── NOTIFICATION ITEM ── */
-  .nt-item {
-    display:flex; align-items:flex-start; gap:14px;
-    padding:16px 20px; border-bottom:1px solid var(--border);
-    cursor:pointer; transition:background .15s;
-    animation:ntFadeIn .3s ease both; position:relative;
-  }
-  .nt-item:hover { background:rgba(0,200,255,0.025); }
-  .nt-item--unread { background:rgba(26,111,255,0.04); }
-  .nt-item--unread:hover { background:rgba(26,111,255,0.07); }
-
-  .nt-unread-bar {
-    position:absolute; left:0; top:0; bottom:0;
-    width:3px; background:var(--blue); border-radius:0 2px 2px 0;
-  }
-
-  .nt-ava-wrap { position:relative; flex-shrink:0; }
-  .nt-ava {
-    width:44px; height:44px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-weight:900; font-size:.85rem; color:#fff;
-  }
-  .nt-type-badge {
-    position:absolute; bottom:-2px; right:-4px;
-    width:20px; height:20px; border-radius:50%;
-    background:var(--bg); border:2px solid var(--bg);
-    display:flex; align-items:center; justify-content:center;
-    font-size:.7rem; line-height:1;
-  }
-  .nt-type-badge--text {
-    font-weight:900; font-size:.58rem; color:#fff;
-    background:var(--blue);
-  }
-
-  .nt-body-text { flex:1; min-width:0; }
-  .nt-text {
-    font-size:.88rem; line-height:1.55; color:#c8daf0; margin-bottom:4px;
-  }
-  .nt-text strong { color:#fff; font-weight:700; }
-  .nt-time { font-size:.74rem; color:var(--muted); }
-
-  .nt-dismiss {
-    background:none; border:none; color:var(--muted); cursor:pointer;
-    padding:4px; border-radius:50%; opacity:0; transition:all .15s;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
-  .nt-item:hover .nt-dismiss { opacity:1; }
-  .nt-dismiss:hover { color:var(--red); background:rgba(255,77,109,0.1); }
-
-  /* ── EMPTY ── */
-  .nt-empty {
-    display:flex; flex-direction:column; align-items:center;
-    justify-content:center; padding:80px 32px; text-align:center;
-  }
-  .nt-empty-icon { font-size:3rem; opacity:.4; margin-bottom:16px; }
-  .nt-empty-title { font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:8px; }
-  .nt-empty-sub { font-size:.88rem; color:var(--muted); line-height:1.6; }
-
-  /* ── RIGHT PANEL ── */
-  .nt-right {
-    width:300px; flex-shrink:0; position:sticky; top:72px;
-    height:calc(100vh - 72px); overflow-y:auto; padding:20px 16px;
-    display:flex; flex-direction:column; gap:16px;
-  }
-  .nt-stats-box {
-    background:var(--card); border:1px solid var(--border);
-    border-radius:var(--radius); padding:18px;
-  }
-  .nt-stats-title { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.05rem; margin-bottom:14px; }
-  .nt-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .nt-stat-card {
-    background:var(--card2); border:1px solid var(--border2);
-    border-radius:12px; padding:12px; text-align:center;
-  }
-  .nt-stat-val { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; color:#fff; }
-  .nt-stat-label { font-size:.72rem; color:var(--muted); margin-top:2px; }
-
-  /* ── TOAST ── */
-  .nt-toast {
-    position:fixed; bottom:28px; left:50%; z-index:300;
-    background:var(--blue); border-radius:8px; padding:12px 20px;
-    font-size:.86rem; font-weight:600; color:#fff;
-    box-shadow:0 8px 32px rgba(0,0,0,.5);
-    transform:translate(-50%, 80px); opacity:0;
-    transition:all .4s cubic-bezier(.34,1.56,.64,1); pointer-events:none;
-  }
-  .nt-toast--show { transform:translate(-50%, 0); opacity:1; }
-
-  @keyframes ntFadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-  .nt ::-webkit-scrollbar { width:4px; }
-  .nt ::-webkit-scrollbar-thumb { background:rgba(0,200,255,.15); border-radius:100px; }
-
-  @media (max-width:1100px) { .nt-right { display:none; } }
-  @media (max-width:850px) {
-    .nt-sidebar { width:72px; padding:16px 8px; }
-    .nt-nav-item span:not(.nt-nav-icon), .nt-nav-badge, .nt-post-btn { display:none; }
-    .nt-nav-item { justify-content:center; padding:14px; }
-  }
-  @media (max-width:600px) { .nt-sidebar { display:none; } .nt-main { border-right:none; } }
-`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -302,18 +78,9 @@ export default function NotificationsPage() {
         return notifs.filter((n) => map[activeTab]?.includes(n.type));
     }, [notifs, activeTab]);
 
-    const markAllRead = () => {
-        setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
-    };
-
-    const markRead = (id: number) => {
-        setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
-    };
-
-    const dismiss = (id: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setNotifs((prev) => prev.filter((n) => n.id !== id));
-    };
+    const markAllRead = () => setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+    const markRead = (id: number) => setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+    const dismiss = (id: number, e: React.MouseEvent) => { e.stopPropagation(); setNotifs((prev) => prev.filter((n) => n.id !== id)); };
 
     const dismissIcon = (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -321,7 +88,6 @@ export default function NotificationsPage() {
         </svg>
     );
 
-    // Stats
     const totalLikes    = notifs.filter((n) => n.type === 'like').length;
     const totalReplies  = notifs.filter((n) => n.type === 'reply').length;
     const totalFollows  = notifs.filter((n) => n.type === 'follow').length;
@@ -329,162 +95,226 @@ export default function NotificationsPage() {
 
     return (
         <>
-            <style>{CSS}</style>
+            <style>{fontImportCSS}{keyframesCSS}</style>
             <Navbar />
-            <div className="nt">
-                <div className="nt-body">
+            <Box sx={sxPageRoot}>
+                <Box sx={sxBody}>
 
                     {/* ── SIDEBAR ── */}
-                    <aside className="nt-sidebar">
-                        <button className="nt-nav-item" onClick={() => navigate(ROUTES.FEED)}>
-                            <span className="nt-nav-icon">🏠</span>
-                            <span>Feed</span>
-                        </button>
-                        <button className="nt-nav-item" onClick={() => navigate(ROUTES.FORUM)}>
-                            <span className="nt-nav-icon">💬</span>
-                            <span>Forum</span>
-                        </button>
-                        <button className="nt-nav-item" onClick={() => navigate(ROUTES.COMMUNITY)}>
-                            <span className="nt-nav-icon">👥</span>
-                            <span>Comunitate</span>
-                        </button>
-                        <button className="nt-nav-item nt-nav-item--active">
-                            <span className="nt-nav-icon">🔔</span>
-                            <span>Notificări</span>
-                            {unreadCount > 0 && <span className="nt-nav-badge">{unreadCount}</span>}
-                        </button>
-                        <button className="nt-nav-item" onClick={() => navigate(ROUTES.SAVED)}>
-                            <span className="nt-nav-icon">🔖</span>
-                            <span>Salvate</span>
-                        </button>
-                        <button className="nt-nav-item" onClick={() => navigate(ROUTES.PROFILE)}>
-                            <span className="nt-nav-icon">👤</span>
-                            <span>Profil</span>
-                        </button>
-                        <button className="nt-post-btn" onClick={() => navigate(ROUTES.FORUM)}>
+                    <Box component="aside" sx={sxSidebar}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.FEED)}>
+                            <Box component="span" sx={sxNavIcon}>🏠</Box>
+                            <Box component="span" className="sidebar-text">Feed</Box>
+                        </Box>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.FORUM)}>
+                            <Box component="span" sx={sxNavIcon}>💬</Box>
+                            <Box component="span" className="sidebar-text">Forum</Box>
+                        </Box>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.COMMUNITY)}>
+                            <Box component="span" sx={sxNavIcon}>👥</Box>
+                            <Box component="span" className="sidebar-text">Comunitate</Box>
+                        </Box>
+                        <Box component="button" sx={sxNavItemActive} className="nav-item">
+                            <Box component="span" sx={sxNavIconActive}>🔔</Box>
+                            <Box component="span" className="sidebar-text">Notificări</Box>
+                            {unreadCount > 0 && <Box component="span" sx={sxNavBadge} className="nav-badge">{unreadCount}</Box>}
+                        </Box>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.SAVED)}>
+                            <Box component="span" sx={sxNavIcon}>🔖</Box>
+                            <Box component="span" className="sidebar-text">Salvate</Box>
+                        </Box>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.PROFILE)}>
+                            <Box component="span" sx={sxNavIcon}>👤</Box>
+                            <Box component="span" className="sidebar-text">Profil</Box>
+                        </Box>
+                        <Box component="button" sx={sxPostBtn} className="sidebar-text" onClick={() => navigate(ROUTES.FORUM)}>
                             Postează
-                        </button>
-                    </aside>
+                        </Box>
+                    </Box>
 
                     {/* ── MAIN ── */}
-                    <main className="nt-main">
-                        <div className="nt-header">
-                            <div className="nt-header-left">
-                                <div className="nt-header-title">🔔 Notificări</div>
-                                <div className="nt-header-sub">
-                                    {unreadCount > 0
-                                        ? `${unreadCount} necitite`
-                                        : 'Toate citite ✓'}
-                                </div>
-                            </div>
+                    <Box component="main" sx={sxMain}>
+                        <Box sx={{ ...sxHeader, bgcolor: 'rgba(5,13,26,0.9)' }}>
+                            <Box>
+                                <Box sx={sxHeaderTitle}>🔔 Notificări</Box>
+                                <Box sx={{ fontSize: '.78rem', color: ft.muted, mt: '2px' }}>
+                                    {unreadCount > 0 ? `${unreadCount} necitite` : 'Toate citite ✓'}
+                                </Box>
+                            </Box>
                             {unreadCount > 0 && (
-                                <button className="nt-mark-all-btn" onClick={markAllRead}>
+                                <Box
+                                    component="button"
+                                    sx={{
+                                        background: 'none',
+                                        border: `1.5px solid ${ft.border2}`,
+                                        borderRadius: 100,
+                                        color: ft.cyan,
+                                        fontFamily: ft.font,
+                                        fontSize: '.78rem',
+                                        fontWeight: 600,
+                                        p: '6px 16px',
+                                        cursor: 'pointer',
+                                        transition: 'all .15s',
+                                        whiteSpace: 'nowrap',
+                                        '&:hover': { bgcolor: 'rgba(0,200,255,0.06)', borderColor: ft.cyan },
+                                    }}
+                                    onClick={markAllRead}
+                                >
                                     Marchează toate ca citite
-                                </button>
+                                </Box>
                             )}
-                        </div>
+                        </Box>
 
                         {/* Filter tabs */}
-                        <div className="nt-tabs">
+                        <Box sx={{ ...sxTabs, borderBottom: `1px solid ${ft.border}` }}>
                             {FILTER_TABS.map((tab) => (
-                                <button
+                                <Box
+                                    component="button"
                                     key={tab}
-                                    className={`nt-tab${activeTab === tab ? ' nt-tab--active' : ''}`}
+                                    sx={{
+                                        ...sxTab(activeTab === tab),
+                                        p: '12px 18px',
+                                        fontSize: '.8rem',
+                                    }}
                                     onClick={() => setActiveTab(tab)}
                                 >
                                     {tab}
-                                </button>
+                                </Box>
                             ))}
-                        </div>
+                        </Box>
 
                         {/* Notifications list */}
                         {filtered.length === 0 ? (
-                            <div className="nt-empty">
-                                <div className="nt-empty-icon">🔔</div>
-                                <div className="nt-empty-title">Nicio notificare</div>
-                                <div className="nt-empty-sub">
+                            <Box sx={sxEmpty}>
+                                <Box sx={sxEmptyIcon}>🔔</Box>
+                                <Box sx={sxEmptyTitle}>Nicio notificare</Box>
+                                <Box sx={sxEmptySub}>
                                     {activeTab === 'Toate'
                                         ? 'Vei primi notificări când cineva îți apreciază sau răspunde la postări.'
                                         : `Nicio notificare în categoria „${activeTab}".`}
-                                </div>
-                            </div>
+                                </Box>
+                            </Box>
                         ) : (
                             filtered.map((notif, idx) => {
                                 const meta = NOTIF_ICONS[notif.type];
                                 const isText = notif.type === 'mention';
                                 return (
-                                    <div
+                                    <Box
                                         key={notif.id}
-                                        className={`nt-item${notif.read ? '' : ' nt-item--unread'}`}
-                                        style={{ animationDelay: `${idx * 40}ms` }}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '14px',
+                                            p: '16px 20px',
+                                            borderBottom: `1px solid ${ft.border}`,
+                                            cursor: 'pointer',
+                                            transition: 'background .15s',
+                                            animation: 'forumFadeIn .3s ease both',
+                                            animationDelay: `${idx * 40}ms`,
+                                            position: 'relative',
+                                            bgcolor: notif.read ? 'transparent' : 'rgba(26,111,255,0.04)',
+                                            '&:hover': { bgcolor: notif.read ? 'rgba(0,200,255,0.025)' : 'rgba(26,111,255,0.07)' },
+                                            '&:hover .notif-dismiss': { opacity: 1 },
+                                        }}
                                         onClick={() => { markRead(notif.id); navigate(ROUTES.FORUM); }}
                                     >
-                                        {!notif.read && <div className="nt-unread-bar" />}
+                                        {!notif.read && (
+                                            <Box sx={{
+                                                position: 'absolute', left: 0, top: 0, bottom: 0,
+                                                width: 3, bgcolor: ft.blue, borderRadius: '0 2px 2px 0',
+                                            }} />
+                                        )}
 
-                                        <div className="nt-ava-wrap">
-                                            <div className="nt-ava" style={{ background: notif.fromColor }}>
+                                        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                                            <Box sx={{
+                                                width: 44, height: 44, borderRadius: '50%',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontWeight: 900, fontSize: '.85rem', color: '#fff',
+                                                bgcolor: notif.fromColor,
+                                            }}>
                                                 {notif.fromAvatar}
-                                            </div>
-                                            <div
-                                                className={`nt-type-badge${isText ? ' nt-type-badge--text' : ''}`}
-                                                style={isText ? undefined : { fontSize: '.8rem' }}
-                                            >
+                                            </Box>
+                                            <Box sx={{
+                                                position: 'absolute', bottom: -2, right: -4,
+                                                width: 20, height: 20, borderRadius: '50%',
+                                                bgcolor: isText ? ft.blue : ft.bg,
+                                                border: `2px solid ${ft.bg}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: isText ? '.58rem' : '.8rem',
+                                                fontWeight: isText ? 900 : 400,
+                                                color: isText ? '#fff' : undefined,
+                                                lineHeight: 1,
+                                            }}>
                                                 {isText ? '@' : meta.icon}
-                                            </div>
-                                        </div>
+                                            </Box>
+                                        </Box>
 
-                                        <div className="nt-body-text">
-                                            <div className="nt-text">
-                                                <strong>{notif.fromName}</strong>{' '}
+                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                            <Box sx={{ fontSize: '.88rem', lineHeight: 1.55, color: ft.contentColor, mb: '4px' }}>
+                                                <strong style={{ color: '#fff', fontWeight: 700 }}>{notif.fromName}</strong>{' '}
                                                 {notif.content}
-                                            </div>
-                                            <div className="nt-time">{notif.time} în urmă</div>
-                                        </div>
+                                            </Box>
+                                            <Box sx={{ fontSize: '.74rem', color: ft.muted }}>{notif.time} în urmă</Box>
+                                        </Box>
 
-                                        <button
-                                            className="nt-dismiss"
+                                        <Box
+                                            component="button"
+                                            className="notif-dismiss"
+                                            sx={{
+                                                background: 'none', border: 'none', color: ft.muted, cursor: 'pointer',
+                                                p: '4px', borderRadius: '50%', opacity: 0, transition: 'all .15s',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                                '&:hover': { color: ft.red, bgcolor: 'rgba(255,77,109,0.1)' },
+                                            }}
                                             title="Șterge notificarea"
-                                            onClick={(e) => dismiss(notif.id, e)}
+                                            onClick={(e: React.MouseEvent) => dismiss(notif.id, e)}
                                         >
                                             {dismissIcon}
-                                        </button>
-                                    </div>
+                                        </Box>
+                                    </Box>
                                 );
                             })
                         )}
-                    </main>
+                    </Box>
 
                     {/* ── RIGHT PANEL ── */}
-                    <aside className="nt-right">
-                        <div className="nt-stats-box">
-                            <div className="nt-stats-title">📊 Activitatea ta</div>
-                            <div className="nt-stats-grid">
-                                <div className="nt-stat-card">
-                                    <div className="nt-stat-val" style={{ color: '#ff4d6d' }}>{totalLikes}</div>
-                                    <div className="nt-stat-label">Aprecieri</div>
-                                </div>
-                                <div className="nt-stat-card">
-                                    <div className="nt-stat-val" style={{ color: '#00c8ff' }}>{totalReplies}</div>
-                                    <div className="nt-stat-label">Răspunsuri</div>
-                                </div>
-                                <div className="nt-stat-card">
-                                    <div className="nt-stat-val" style={{ color: '#00b894' }}>{totalFollows}</div>
-                                    <div className="nt-stat-label">Urmăritori noi</div>
-                                </div>
-                                <div className="nt-stat-card">
-                                    <div className="nt-stat-val" style={{ color: '#1a6fff' }}>{totalMentions}</div>
-                                    <div className="nt-stat-label">Mențiuni</div>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
+                    <Box component="aside" sx={{
+                        width: 300, flexShrink: 0, position: 'sticky', top: 72,
+                        height: 'calc(100vh - 72px)', overflowY: 'auto', p: '20px 16px',
+                        display: 'flex', flexDirection: 'column', gap: '16px',
+                        '@media (max-width:1100px)': { display: 'none' },
+                    }}>
+                        <Box sx={{ bgcolor: ft.card, border: `1px solid ${ft.border}`, borderRadius: ft.radius, p: '18px' }}>
+                            <Box sx={{ fontFamily: ft.fontCondensed, fontWeight: 800, fontSize: '1.05rem', mb: '14px' }}>
+                                📊 Activitatea ta
+                            </Box>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                {[
+                                    { val: totalLikes, label: 'Aprecieri', color: '#ff4d6d' },
+                                    { val: totalReplies, label: 'Răspunsuri', color: '#00c8ff' },
+                                    { val: totalFollows, label: 'Urmăritori noi', color: '#00b894' },
+                                    { val: totalMentions, label: 'Mențiuni', color: '#1a6fff' },
+                                ].map((s) => (
+                                    <Box key={s.label} sx={{
+                                        bgcolor: ft.card2, border: `1px solid ${ft.border2}`,
+                                        borderRadius: '12px', p: '12px', textAlign: 'center',
+                                    }}>
+                                        <Box sx={{ fontFamily: ft.fontCondensed, fontSize: '1.5rem', fontWeight: 900, color: s.color }}>
+                                            {s.val}
+                                        </Box>
+                                        <Box sx={{ fontSize: '.72rem', color: ft.muted, mt: '2px' }}>{s.label}</Box>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Box>
 
-                </div>
+                </Box>
 
-                <div className={`nt-toast${toast.visible ? ' nt-toast--show' : ''}`}>
+                <Box sx={sxToast(toast.visible)}>
                     {toast.msg}
-                </div>
-            </div>
+                </Box>
+            </Box>
         </>
     );
 }

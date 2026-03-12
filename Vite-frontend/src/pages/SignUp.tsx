@@ -1,5 +1,5 @@
 import { useState, useCallback, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { ROUTES } from "../routes/paths";
 import { useAuth } from "../context/AuthContext";
 import { useUser } from "../context/UserContext";
@@ -120,7 +120,7 @@ console.log("refresh")
                 });
 
                 setSubmitted(true);
-                setTimeout(() => navigate(ROUTES.DASHBOARD), 800);
+                setTimeout(() => navigate({ to: ROUTES.DASHBOARD }), 800);
             }
         }
     };

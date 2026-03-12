@@ -13,7 +13,7 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-dom/client',
-      'react-router-dom',
+      '@tanstack/react-router',
       '@emotion/react',
       '@emotion/styled',
       '@emotion/react/jsx-runtime',

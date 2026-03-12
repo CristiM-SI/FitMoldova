@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
@@ -102,15 +102,15 @@ export default function NotificationsPage() {
 
                     {/* ── SIDEBAR ── */}
                     <Box component="aside" sx={sxSidebar}>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.FEED)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.FEED })}>
                             <Box component="span" sx={sxNavIcon}>🏠</Box>
                             <Box component="span" className="sidebar-text">Feed</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.FORUM)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.FORUM })}>
                             <Box component="span" sx={sxNavIcon}>💬</Box>
                             <Box component="span" className="sidebar-text">Forum</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.COMMUNITY)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.COMMUNITY })}>
                             <Box component="span" sx={sxNavIcon}>👥</Box>
                             <Box component="span" className="sidebar-text">Comunitate</Box>
                         </Box>
@@ -119,15 +119,15 @@ export default function NotificationsPage() {
                             <Box component="span" className="sidebar-text">Notificări</Box>
                             {unreadCount > 0 && <Box component="span" sx={sxNavBadge} className="nav-badge">{unreadCount}</Box>}
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.SAVED)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.SAVED })}>
                             <Box component="span" sx={sxNavIcon}>🔖</Box>
                             <Box component="span" className="sidebar-text">Salvate</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.PROFILE)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.PROFILE })}>
                             <Box component="span" sx={sxNavIcon}>👤</Box>
                             <Box component="span" className="sidebar-text">Profil</Box>
                         </Box>
-                        <Box component="button" sx={sxPostBtn} className="sidebar-text" onClick={() => navigate(ROUTES.FORUM)}>
+                        <Box component="button" sx={sxPostBtn} className="sidebar-text" onClick={() => navigate({ to: ROUTES.FORUM })}>
                             Postează
                         </Box>
                     </Box>
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
                                             '&:hover': { bgcolor: notif.read ? 'rgba(0,200,255,0.025)' : 'rgba(26,111,255,0.07)' },
                                             '&:hover .notif-dismiss': { opacity: 1 },
                                         }}
-                                        onClick={() => { markRead(notif.id); navigate(ROUTES.FORUM); }}
+                                        onClick={() => { markRead(notif.id); navigate({ to: ROUTES.FORUM }); }}
                                     >
                                         {!notif.read && (
                                             <Box sx={{

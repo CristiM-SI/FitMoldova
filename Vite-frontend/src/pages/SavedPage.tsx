@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
@@ -17,22 +17,7 @@ import {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const formatCount = (n: number): string => {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
-    return n.toString();
-};
-
-// ─── Icons ───────────────────────────────────────────────────────────────────
-
-const Icons = {
-    reply: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" /></svg>),
-    heart: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>),
-    heartFilled: (<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>),
-    bookmarkFilled: (<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>),
-    views: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>),
-    verified: (<svg width="16" height="16" viewBox="0 0 24 24" fill="#1a6fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /><circle cx="12" cy="12" r="11" fill="none" stroke="#1a6fff" strokeWidth="2" /><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="white" transform="scale(0.6) translate(8,8)" /></svg>),
-};
+import { formatCount, Icons, renderContent } from '../utils/forumHelpers';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -50,12 +35,6 @@ export default function SavedPage() {
         return saved.filter((t) => t.category === filter);
     }, [threads, filter]);
 
-    const renderContent = (content: string) =>
-        content.split(/(#\S+)/g).map((part, i) =>
-            part.startsWith('#')
-                ? <Box component="span" key={i} sx={sxHashtag}>{part}</Box>
-                : <span key={i}>{part}</span>
-        );
 
     return (
         <>
@@ -66,19 +45,19 @@ export default function SavedPage() {
 
                     {/* ── LEFT SIDEBAR ── */}
                     <Box component="aside" sx={sxSidebar}>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.FEED)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.FEED })}>
                             <Box component="span" sx={sxNavIcon}>🏠</Box>
                             <Box component="span" className="sidebar-text">Feed</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.FORUM)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.FORUM })}>
                             <Box component="span" sx={sxNavIcon}>💬</Box>
                             <Box component="span" className="sidebar-text">Forum</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.COMMUNITY)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.COMMUNITY })}>
                             <Box component="span" sx={sxNavIcon}>👥</Box>
                             <Box component="span" className="sidebar-text">Comunitate</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.MESSAGES)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.MESSAGES })}>
                             <Box component="span" sx={sxNavIcon}>✉️</Box>
                             <Box component="span" className="sidebar-text">Mesaje</Box>
                         </Box>
@@ -86,11 +65,11 @@ export default function SavedPage() {
                             <Box component="span" sx={sxNavIconActive}>🔖</Box>
                             <Box component="span" className="sidebar-text">Salvate</Box>
                         </Box>
-                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate(ROUTES.PROFILE)}>
+                        <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.PROFILE })}>
                             <Box component="span" sx={sxNavIcon}>👤</Box>
                             <Box component="span" className="sidebar-text">Profil</Box>
                         </Box>
-                        <Box component="button" sx={sxPostBtn} className="sidebar-text" onClick={() => navigate(ROUTES.FORUM)}>
+                        <Box component="button" sx={sxPostBtn} className="sidebar-text" onClick={() => navigate({ to: ROUTES.FORUM })}>
                             Postează
                         </Box>
                     </Box>
@@ -131,7 +110,7 @@ export default function SavedPage() {
                                         ? 'Apasă iconița bookmark pe orice postare din forum pentru a o salva aici.'
                                         : 'Nu ai postări salvate din această categorie.'}
                                 </Box>
-                                <Box component="button" sx={sxEmptyBtn} onClick={() => navigate(ROUTES.FORUM)}>
+                                <Box component="button" sx={sxEmptyBtn} onClick={() => navigate({ to: ROUTES.FORUM })}>
                                     Explorează Forum
                                 </Box>
                             </Box>
@@ -140,7 +119,7 @@ export default function SavedPage() {
                                 <Box
                                     key={thread.id}
                                     sx={{ ...sxThread, animationDelay: `${idx * 40}ms` }}
-                                    onClick={() => navigate(ROUTES.FORUM)}
+                                    onClick={() => navigate({ to: ROUTES.FORUM })}
                                 >
                                     <Box sx={sxThreadRow}>
                                         <Box sx={{ ...sxThreadAva, background: thread.color }}>

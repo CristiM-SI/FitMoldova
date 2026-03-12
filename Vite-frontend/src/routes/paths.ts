@@ -32,6 +32,11 @@ export const ROUTES = {
   ADMIN_CHALLENGES: '/admin/challenges',
   ADMIN_ROUTES: '/admin/routes',
   ADMIN_FEEDBACK: '/admin/feedback',
+
+  FEED: '/feed',
+  SAVED: '/saved',
+  MESSAGES: '/messages',
+  NOTIFICATIONS: '/notifications',
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;

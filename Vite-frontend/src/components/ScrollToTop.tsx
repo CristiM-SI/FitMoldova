@@ -1,21 +1,28 @@
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-
+import { useEffect, useState, useRef } from 'react'
+import { useLocation } from '@tanstack/react-router'
 
 export default function ScrollToTop() {
     const { pathname } = useLocation()
     const [visible, setVisible] = useState(false)
+    const rafRef = useRef<number | null>(null)
 
-    // Scroll to top on every route change
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' })
     }, [pathname])
 
-    // Show button when scrolled down more than 300px
     useEffect(() => {
-        const onScroll = () => setVisible(window.scrollY > 300)
+        const onScroll = () => {
+            if (rafRef.current !== null) return
+            rafRef.current = requestAnimationFrame(() => {
+                setVisible(window.scrollY > 300)
+                rafRef.current = null
+            })
+        }
         window.addEventListener('scroll', onScroll, { passive: true })
-        return () => window.removeEventListener('scroll', onScroll)
+        return () => {
+            window.removeEventListener('scroll', onScroll)
+            if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+        }
     }, [])
 
     return (

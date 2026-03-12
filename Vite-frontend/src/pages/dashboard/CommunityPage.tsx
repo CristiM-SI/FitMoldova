@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from '@tanstack/react-router';
 import {
     Box, Typography, Button, Avatar, Chip, TextField, IconButton,
     Divider, Dialog, DialogContent, Tooltip,
@@ -133,7 +133,7 @@ export default function CommunityPage() {
     }, []);
 
     const handlePublish = useCallback(() => {
-        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: { pathname: ROUTES.COMMUNITY } } }); return; }
+        if (!isAuthenticated) { navigate({ to: ROUTES.LOGIN }); return; }
         if (!postInput.trim()) { showToast('⚠️', 'Scrie ceva înainte de a publica!'); return; }
         const newPost: Post = {
             id: Date.now(), author: userName, color: T.blue,
@@ -151,7 +151,7 @@ export default function CommunityPage() {
     }, []);
 
     const handleJoin = useCallback((id: number) => {
-        if (!isAuthenticated) { navigate(ROUTES.LOGIN, { state: { from: { pathname: ROUTES.COMMUNITY } } }); return; }
+        if (!isAuthenticated) { navigate({ to: ROUTES.LOGIN }); return; }
         setChallenges((prev) => prev.map((c) => {
             if (c.id !== id) return c;
             const joining = !c.joined;
@@ -227,7 +227,7 @@ export default function CommunityPage() {
                     <Box component="aside" sx={{ width: 220, flexShrink: 0, display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: 0.75 }}>
 
                         {/* Profile chip */}
-                        <Box onClick={() => navigate(ROUTES.PROFILE)} sx={{
+                        <Box onClick={() => navigate({ to: ROUTES.PROFILE })} sx={{
                             display: 'flex', alignItems: 'center', gap: 1.25,
                             p: '12px 14px', bgcolor: T.card2, borderRadius: '10px',
                             border: `1px solid ${T.border}`, mb: 0.75, cursor: 'pointer',
@@ -253,8 +253,8 @@ export default function CommunityPage() {
                         ))}
 
 
-                        <NavBtn icon="💬" label="Forum" active={false} onClick={() => navigate(ROUTES.FORUM)} />
-                        <NavBtn icon="🏟️" label="Cluburi" active={false} onClick={() => navigate(ROUTES.CLUBS)} />
+                        <NavBtn icon="💬" label="Forum" active={false} onClick={() => navigate({ to: ROUTES.FORUM })} />
+                        <NavBtn icon="🏟️" label="Cluburi" active={false} onClick={() => navigate({ to: ROUTES.CLUBS })} />
 
 
                         {isAuthenticated ? (
@@ -292,11 +292,11 @@ export default function CommunityPage() {
                                 )}
                             </Box>
                         ))}
-                        <Box component="button" onClick={() => navigate(ROUTES.FORUM)}
+                        <Box component="button" onClick={() => navigate({ to: ROUTES.FORUM })}
                              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap', border: `1px solid ${T.border}`, bgcolor: T.card, color: T.muted, fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all .2s', flexShrink: 0, '&:hover': { bgcolor: T.cdim, color: '#fff' } }}>
                             <span style={{ fontSize: '1rem' }}>💬</span> Forum
                         </Box>
-                        <Box component="button" onClick={() => navigate(ROUTES.CLUBS)}
+                        <Box component="button" onClick={() => navigate({ to: ROUTES.CLUBS })}
                              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap', border: `1px solid ${T.border}`, bgcolor: T.card, color: T.muted, fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all .2s', flexShrink: 0, '&:hover': { bgcolor: T.cdim, color: '#fff' } }}>
                             <span style={{ fontSize: '1rem' }}>🏟️</span> Cluburi
                         </Box>
@@ -371,7 +371,7 @@ export default function CommunityPage() {
                                     <DarkCard sx={{ textAlign: 'center', py: 5 }}>
                                         <Typography sx={{ fontSize: '2.5rem', mb: 1.5, opacity: 0.4 }}>✍️</Typography>
                                         <Typography sx={{ color: T.muted, mb: 2 }}>Autentifică-te pentru a publica postări</Typography>
-                                        <Button variant="outlined" onClick={() => navigate(ROUTES.LOGIN, { state: { from: { pathname: ROUTES.COMMUNITY } } })}
+                                        <Button variant="outlined" onClick={() => navigate({ to: ROUTES.LOGIN })}
                                                 sx={{ borderColor: T.cyan, color: T.cyan, borderRadius: '8px', '&:hover': { bgcolor: T.cdim } }}>
                                             → Autentifică-te
                                         </Button>

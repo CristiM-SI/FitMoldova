@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../routes/paths";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
@@ -13,7 +13,7 @@ const UserAvatar = () => {
     return (
         <button
             className={styles.avatar}
-            onClick={() => navigate(ROUTES.PROFILE)}
+            onClick={() => navigate({ to: ROUTES.PROFILE })}
             title={user ? `${user.firstName} ${user.lastName}` : 'Profil'}
         >
             <UserCircleIcon className={styles.icon} />

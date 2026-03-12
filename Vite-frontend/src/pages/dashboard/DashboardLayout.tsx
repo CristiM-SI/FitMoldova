@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import {
     Box, Drawer, AppBar, Toolbar, Typography, List, ListItemButton,
     ListItemIcon, ListItemText, Avatar, IconButton, Divider, Tooltip,
@@ -116,7 +116,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const drawerWidth = collapsed && !isMobile ? DRAWER_COLLAPSED : DRAWER_WIDTH;
-    const handleLogout = () => { logout(); navigate(ROUTES.HOME); };
+    const handleLogout = () => { logout(); navigate({ to: ROUTES.HOME }); };
     const getInitials = () => !user ? '?' : `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
 
     const drawerContent = (
@@ -148,7 +148,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     return (
                         <Tooltip key={item.path} title={collapsed && !isMobile ? item.label : ''} placement="right">
                             <ListItemButton
-                                onClick={() => { navigate(item.path); if (isMobile) setMobileOpen(false); }}
+                                onClick={() => { navigate({ to: item.path }); if (isMobile) setMobileOpen(false); }}
                                 sx={{
                                     borderRadius: '10px', mb: 0.5, px: 1.5,
                                     justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',

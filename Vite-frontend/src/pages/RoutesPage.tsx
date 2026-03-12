@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { ROUTES } from '../routes/paths';
@@ -59,7 +59,7 @@ const RoutesPage: React.FC = () => {
       return;
     }
     if (!isAuthenticated) {
-      navigate(ROUTES.LOGIN, { state: { from: location } });
+      navigate({ to: ROUTES.LOGIN });
       return;
     }
     if (isAlreadySaved) {

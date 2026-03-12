@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useCallback, useRef } from 'react';
+import { useClickOutside } from '../hooks/useClickOutside';
+import { Link } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 
@@ -89,15 +90,8 @@ const Contact: React.FC = () => {
     { value: 'altele',          label: 'Altele' },
   ];
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (subjectRef.current && !subjectRef.current.contains(e.target as Node)) {
-        setSubjectOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const closeSubject = useCallback(() => setSubjectOpen(false), []);
+  useClickOutside(subjectRef, closeSubject);
 
   const validate = (): boolean => {
     const newErrors: Partial<typeof form> = {};

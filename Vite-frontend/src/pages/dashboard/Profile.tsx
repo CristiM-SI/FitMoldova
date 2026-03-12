@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import {
     Box, Typography, Card, CardContent, Button, Avatar, Chip,
     TextField, Snackbar, Alert, Divider, Paper, LinearProgress,
@@ -46,7 +46,7 @@ const Profile: React.FC = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
                     <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', p: 4, textAlign: 'center', maxWidth: 400 }}>
                         <Typography variant="h6" fontWeight={800} gutterBottom>Nu esti autentificat</Typography>
-                        <Button variant="contained" onClick={() => navigate(ROUTES.REGISTER)} sx={{ borderRadius: 2, boxShadow: 'none', mt: 2 }}>
+                        <Button variant="contained" onClick={() => navigate({ to: ROUTES.REGISTER })} sx={{ borderRadius: 2, boxShadow: 'none', mt: 2 }}>
                             Creeaza cont
                         </Button>
                     </Card>

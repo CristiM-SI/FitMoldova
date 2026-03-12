@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { Link, useLocation } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import { scrollToSection } from '../utils/navigation';
 import { useAuth } from '../context/AuthContext';
+
+const scrollToSection = (id: string) => {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 
 
 interface Feature {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import EventMap from '../components/EventMap';
@@ -78,7 +78,7 @@ const EvenimentePublic: React.FC = () => {
     const handleJoin = (ev: Eveniment, e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!isAuthenticated) {
-            navigate(ROUTES.LOGIN);
+            navigate({ to: ROUTES.LOGIN });
             return;
         }
         if (isJoined(ev.id)) {
@@ -442,7 +442,7 @@ const EvenimentePublic: React.FC = () => {
                                 {!isAuthenticated ? (
                                     <button
                                         className="ep-overlay-btn-join"
-                                        onClick={() => navigate(ROUTES.LOGIN)}
+                                        onClick={() => navigate({ to: ROUTES.LOGIN })}
                                     >
                                         🔐 Autentifică-te pentru a participa
                                     </button>

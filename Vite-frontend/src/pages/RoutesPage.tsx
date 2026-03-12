@@ -41,6 +41,11 @@ const RoutesPage: React.FC = () => {
       [traseeSalvate, selectedRoute],
   );
 
+  const routeStats = useMemo(() => ({
+    totalKm: Math.round(MOCK_TRASEE.reduce((s, t) => s + t.distance, 0)),
+    regionCount: new Set(MOCK_TRASEE.map((t) => t.region)).size,
+  }), []);
+
   // Dacă traseul selectat dispare după filtrare, resetăm selecția
   useEffect(() => {
     if (selectedId && !filteredTrasee.some((t) => t.id === selectedId)) {
@@ -91,13 +96,13 @@ const RoutesPage: React.FC = () => {
               </div>
               <div className="routes-stat">
               <span className="routes-stat-value">
-                {Math.round(MOCK_TRASEE.reduce((s, t) => s + t.distance, 0))} km
+                {routeStats.totalKm} km
               </span>
                 <span className="routes-stat-label">Distanță totală</span>
               </div>
               <div className="routes-stat">
               <span className="routes-stat-value">
-                {[...new Set(MOCK_TRASEE.map((t) => t.region))].length}
+                {routeStats.regionCount}
               </span>
                 <span className="routes-stat-label">Regiuni</span>
               </div>

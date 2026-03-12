@@ -1,4 +1,4 @@
-import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet, Navigate, redirect } from '@tanstack/react-router'
+import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet, Navigate } from '@tanstack/react-router'
 import { Global } from '@emotion/react'
 import { globalStyles } from './styles/globalStyles'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -7,45 +7,87 @@ import { ProgressProvider } from './context/ProgressContext'
 import { DashboardDataProvider } from './context/DashboardDataContext'
 import { ForumProvider } from './context/ForumContext'
 import { lazy, Suspense } from 'react'
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
-import Typography from '@mui/material/Typography'
 import ScrollToTop from './components/ScrollToTop'
 import { ROUTES } from './routes/paths'
 
 import Home from './pages/Home'
 
-const Clubs          = lazy(() => import('./pages/dashboard/Clubs'))
-const SignUp         = lazy(() => import('./pages/SignUp'))
-const LoginPage      = lazy(() => import('./pages/LoginPage'))
-const Dashboard      = lazy(() => import('./pages/dashboard/Dashboard'))
-const Activitati     = lazy(() => import('./pages/dashboard/Activitati'))
-const CommunityPage  = lazy(() => import('./pages/dashboard/CommunityPage'))
-const Profile        = lazy(() => import('./pages/dashboard/Profile'))
-const Provocari      = lazy(() => import('./pages/dashboard/Provocari'))
-const EVENTS         = lazy(() => import('./pages/dashboard/Evenimente'))
-const EvenimentePublic = lazy(() => import('./pages/EvenimentePublic'))
-const Contact        = lazy(() => import('./pages/Contact'))
-const Feedback       = lazy(() => import('./pages/Feedback'))
-const ForumPage      = lazy(() => import('./pages/ForumPage'))
-const FeedPage       = lazy(() => import('./pages/Feedpage'))
-const SavedPage      = lazy(() => import('./pages/SavedPage'))
-const NotificationsPage = lazy(() => import('./pages/NotificationsPage'))
-const RoutesPage     = lazy(() => import('./pages/RoutesPage'))
-const Gallery        = lazy(() => import('./pages/Gallery'))
-const AdminLayout    = lazy(() => import('./pages/admin/AdminLayout'))
-const AdminOverview  = lazy(() => import('./pages/admin/AdminOverview'))
-const AdminUsers     = lazy(() => import('./pages/admin/AdminUsers'))
-const AdminEvents    = lazy(() => import('./pages/admin/AdminEvents'))
-const AdminClubs     = lazy(() => import('./pages/admin/AdminClubs'))
-const AdminChallenges = lazy(() => import('./pages/admin/AdminChallenges'))
-const AdminRoutes    = lazy(() => import('./pages/admin/AdminRoutes'))
-const AdminFeedback  = lazy(() => import('./pages/admin/AdminFeedback'))
+// ─── Eager imports ────────────────────────────────────────────────────────────
+// Calling import() HERE (module level) starts ALL chunk downloads immediately
+// and in parallel, while the user is still on the landing page.
+// lazy() receives the already-started Promise so it resolves instantly once
+// the download finishes — no blank screen on first navigation.
+const _imp = {
+    Clubs:             import('./pages/dashboard/Clubs'),
+    SignUp:            import('./pages/SignUp'),
+    LoginPage:         import('./pages/LoginPage'),
+    Dashboard:         import('./pages/dashboard/Dashboard'),
+    Activitati:        import('./pages/dashboard/Activitati'),
+    CommunityPage:     import('./pages/dashboard/CommunityPage'),
+    Profile:           import('./pages/dashboard/Profile'),
+    Provocari:         import('./pages/dashboard/Provocari'),
+    EVENTS:            import('./pages/dashboard/Evenimente'),
+    EvenimentePublic:  import('./pages/EvenimentePublic'),
+    Contact:           import('./pages/Contact'),
+    Feedback:          import('./pages/Feedback'),
+    ForumPage:         import('./pages/ForumPage'),
+    FeedPage:          import('./pages/Feedpage'),
+    SavedPage:         import('./pages/SavedPage'),
+    NotificationsPage: import('./pages/NotificationsPage'),
+    RoutesPage:        import('./pages/RoutesPage'),
+    Gallery:           import('./pages/Gallery'),
+    AdminLayout:       import('./pages/admin/AdminLayout'),
+    AdminOverview:     import('./pages/admin/AdminOverview'),
+    AdminUsers:        import('./pages/admin/AdminUsers'),
+    AdminEvents:       import('./pages/admin/AdminEvents'),
+    AdminClubs:        import('./pages/admin/AdminClubs'),
+    AdminChallenges:   import('./pages/admin/AdminChallenges'),
+    AdminRoutes:       import('./pages/admin/AdminRoutes'),
+    AdminFeedback:     import('./pages/admin/AdminFeedback'),
+}
 
+const Clubs             = lazy(() => _imp.Clubs)
+const SignUp            = lazy(() => _imp.SignUp)
+const LoginPage         = lazy(() => _imp.LoginPage)
+const Dashboard         = lazy(() => _imp.Dashboard)
+const Activitati        = lazy(() => _imp.Activitati)
+const CommunityPage     = lazy(() => _imp.CommunityPage)
+const Profile           = lazy(() => _imp.Profile)
+const Provocari         = lazy(() => _imp.Provocari)
+const EVENTS            = lazy(() => _imp.EVENTS)
+const EvenimentePublic  = lazy(() => _imp.EvenimentePublic)
+const Contact           = lazy(() => _imp.Contact)
+const Feedback          = lazy(() => _imp.Feedback)
+const ForumPage         = lazy(() => _imp.ForumPage)
+const FeedPage          = lazy(() => _imp.FeedPage)
+const SavedPage         = lazy(() => _imp.SavedPage)
+const NotificationsPage = lazy(() => _imp.NotificationsPage)
+const RoutesPage        = lazy(() => _imp.RoutesPage)
+const Gallery           = lazy(() => _imp.Gallery)
+const AdminLayout       = lazy(() => _imp.AdminLayout)
+const AdminOverview     = lazy(() => _imp.AdminOverview)
+const AdminUsers        = lazy(() => _imp.AdminUsers)
+const AdminEvents       = lazy(() => _imp.AdminEvents)
+const AdminClubs        = lazy(() => _imp.AdminClubs)
+const AdminChallenges   = lazy(() => _imp.AdminChallenges)
+const AdminRoutes       = lazy(() => _imp.AdminRoutes)
+const AdminFeedback     = lazy(() => _imp.AdminFeedback)
+
+// Pure inline-CSS fallback — renders in the same frame as the Suspense trigger,
+// no MUI dependency, no extra render cycle, no blank flash.
 const PageLoader = () => (
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: '#0A1628' }}>
-        <CircularProgress size={40} />
-    </Box>
+    <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', background: '#0A1628',
+    }}>
+        <div style={{
+            width: 36, height: 36,
+            border: '3px solid rgba(255,255,255,0.08)',
+            borderTopColor: '#0066FF',
+            borderRadius: '50%',
+            animation: 'lspin 0.7s linear infinite',
+        }} />
+    </div>
 )
 
 const LoadingScreen = () => (
@@ -216,7 +258,12 @@ const routeTree = rootRoute.addChildren([
     ]),
 ])
 
-const router = createRouter({ routeTree })
+const router = createRouter({
+    routeTree,
+    defaultPreload: 'intent',       // preload chunks on hover/focus — makes navigation instant
+    defaultPreloadDelay: 80,        // start after 80 ms of intent to avoid noise
+    defaultStaleTime: 5 * 60_000,   // treat loaded route data as fresh for 5 min
+})
 
 declare module '@tanstack/react-router' {
     interface Register {

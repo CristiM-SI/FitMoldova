@@ -145,8 +145,8 @@ const Home: React.FC = () => {
           </div>
 
           <div className="features-grid">
-            {features.map((feature, index) => (
-                <Link key={index} to={feature.link} className="feature-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
+            {features.map((feature) => (
+                <Link key={feature.link} to={feature.link} className="feature-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
                   <div className="feature-icon">{feature.icon}</div>
                   <h3 className="feature-title">{feature.title}</h3>
                   <p className="feature-description">{feature.description}</p>
@@ -176,8 +176,8 @@ const Home: React.FC = () => {
                 { score: '4.7', label: 'Rating general', stars: 5 },
                 { score: '94%', label: 'Utilizatori mulțumiți', stars: 5 },
                 { score: '3.2K+', label: 'Recenzii scrise', stars: 4 },
-              ].map((item, i) => (
-                  <div key={i} className="home-feedback-rating-card">
+              ].map((item) => (
+                  <div key={item.label} className="home-feedback-rating-card">
                     <div className="home-feedback-score">{item.score}</div>
                     <div className="home-feedback-stars">
                       {'★'.repeat(item.stars)}

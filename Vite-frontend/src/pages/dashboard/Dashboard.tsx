@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
   Box, Typography, Card, CardContent, Button, LinearProgress,
@@ -39,21 +39,34 @@ const Dashboard: React.FC = () => {
   const { progress } = useProgress();
   const { activitatiCurente, provocariInscrise, cluburiJoined, evenimenteInscrise } = useDashboardData();
 
-  const registeredDate = user?.registeredAt
+  const registeredDate = useMemo(() =>
+    user?.registeredAt
       ? new Date(user.registeredAt).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })
-      : '';
+      : '',
+  [user?.registeredAt]);
 
-  const totalCalories = activitatiCurente.reduce((s, a) => s + a.calories, 0);
-  const totalDist = activitatiCurente.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0);
-  const statValues = [
-    String(activitatiCurente.length),
-    `${totalDist.toFixed(1)} km`,
-    String(totalCalories),
-    String(activitatiCurente.length),
-  ];
+  const { totalCalories, totalDist, statValues } = useMemo(() => {
+    const calories = activitatiCurente.reduce((s, a) => s + a.calories, 0);
+    const dist = activitatiCurente.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0);
+    return {
+      totalCalories: calories,
+      totalDist: dist,
+      statValues: [
+        String(activitatiCurente.length),
+        `${dist.toFixed(1)} km`,
+        String(calories),
+        String(activitatiCurente.length),
+      ],
+    };
+  }, [activitatiCurente]);
 
-  const completedSteps = PROGRESS_STEPS.filter(s => progress[s.key]).length;
-  const progressPct = Math.round((completedSteps / PROGRESS_STEPS.length) * 100);
+  const { completedSteps, progressPct } = useMemo(() => {
+    const completed = PROGRESS_STEPS.filter(s => progress[s.key]).length;
+    return {
+      completedSteps: completed,
+      progressPct: Math.round((completed / PROGRESS_STEPS.length) * 100),
+    };
+  }, [progress]);
 
   return (
       <DashboardLayout>

@@ -6,21 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FitMoldova</title>
     <style>
-      body { margin: 0; background: #0A1628; }
+      body { margin: 0; background: #0A1628; cursor: default; }
       #app-loader {
         position: fixed; inset: 0; z-index: 99999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         background: radial-gradient(ellipse at 30% 20%, rgba(0,102,255,0.15), transparent 50%),
                     radial-gradient(ellipse at 70% 80%, rgba(0,208,132,0.1), transparent 50%), #0A1628;
-        transition: opacity 0.4s ease;
+        transition: opacity 0.35s ease;
+        cursor: default;
+        user-select: none;
+        -webkit-user-select: none;
       }
       #app-loader.hidden { opacity: 0; pointer-events: none; }
       body:has(#root:not(:empty)) #app-loader { opacity: 0; pointer-events: none; }
-      .loader-logo { font-size: 1.6rem; font-weight: 900; letter-spacing: 0.04em; margin-bottom: 2rem; font-family: 'Rajdhani', 'Space Mono', monospace; }
+      .loader-logo { font-size: 1.6rem; font-weight: 900; letter-spacing: 0.04em; margin-bottom: 2rem; font-family: 'Rajdhani', 'Space Mono', monospace; cursor: default; }
       .loader-logo .w { color: #fff; }
       .loader-logo .b { color: #0066FF; }
       .loader-spin { width: 44px; height: 44px; margin-bottom: 1.25rem; border: 3px solid rgba(255,255,255,0.08); border-top-color: #0066FF; border-radius: 50%; animation: lspin 0.8s linear infinite; }
-      .loader-text { color: rgba(255,255,255,0.5); font-size: 0.9rem; font-family: -apple-system, sans-serif; }
+      .loader-text { color: rgba(255,255,255,0.5); font-size: 0.9rem; font-family: -apple-system, sans-serif; cursor: default; }
       @keyframes lspin { to { transform: rotate(360deg); } }
     </style>
   </head>

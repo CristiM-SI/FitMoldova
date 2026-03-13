@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import {
     INITIAL_THREADS,
     SUGGESTED_USERS,
@@ -93,6 +93,13 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
     const [toast, setToast] = useState({ msg: '', visible: false });
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
 
+    // Ref that always points to the latest threads without being a dep in callbacks.
+    // This eliminates the cascading re-renders caused by having `threads` in
+    // useCallback dependency arrays — every like/reply update was recreating
+    // handleRepost and handleBookmark, which in turn re-rendered all consumers.
+    const threadsRef = useRef(threads);
+    threadsRef.current = threads;
+
     const showToast = useCallback((msg: string) => {
         setToast({ msg, visible: true });
         setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2500);
@@ -111,6 +118,7 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         );
     }, []);
 
+    // Uses threadsRef instead of threads in deps — stable reference, no cascades.
     const handleRepost = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
         setThreads((prev) =>
@@ -120,20 +128,21 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
                     : t
             )
         );
-        const thread = threads.find((t) => t.id === threadId);
+        const thread = threadsRef.current.find((t) => t.id === threadId);
         if (thread && !thread.reposted) showToast('Repostat cu succes!');
-    }, [threads, showToast]);
+    }, [showToast]);
 
+    // Uses threadsRef instead of threads in deps — stable reference, no cascades.
     const handleBookmark = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        const thread = threads.find((t) => t.id === threadId);
+        const thread = threadsRef.current.find((t) => t.id === threadId);
         setThreads((prev) =>
             prev.map((t) =>
                 t.id === threadId ? { ...t, bookmarked: !t.bookmarked } : t
             )
         );
         showToast(thread?.bookmarked ? 'Eliminat din salvate' : 'Adăugat la salvate! 🔖');
-    }, [threads, showToast]);
+    }, [showToast]);
 
     const handleReplyLike = useCallback((threadId: number, replyId: number) => {
         setThreads((prev) =>
@@ -267,16 +276,27 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         );
     }, []);
 
+    // Memoized context value — prevents re-rendering all consumers when unrelated
+    // state changes (e.g. toast appearing should not re-render thread list).
+    const ctxValue = useMemo<ForumContextValue>(() => ({
+        threads, setThreads,
+        followedUsers, handleFollow,
+        handleLike, handleRepost, handleBookmark,
+        handleReplyLike, handlePollVote,
+        handlePublish, handleReplySubmit,
+        heartAnims, toast, showToast,
+        messages, sendMessage, markAsRead,
+    }), [
+        threads, followedUsers, handleFollow,
+        handleLike, handleRepost, handleBookmark,
+        handleReplyLike, handlePollVote,
+        handlePublish, handleReplySubmit,
+        heartAnims, toast, showToast,
+        messages, sendMessage, markAsRead,
+    ]);
+
     return (
-        <ForumContext.Provider value={{
-            threads, setThreads,
-            followedUsers, handleFollow,
-            handleLike, handleRepost, handleBookmark,
-            handleReplyLike, handlePollVote,
-            handlePublish, handleReplySubmit,
-            heartAnims, toast, showToast,
-            messages, sendMessage, markAsRead,
-        }}>
+        <ForumContext.Provider value={ctxValue}>
             {children}
         </ForumContext.Provider>
     );

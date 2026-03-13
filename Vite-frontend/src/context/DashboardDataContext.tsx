@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { MOCK_ACTIVITATI } from '../services/mock/activitati';
 import type { Activitate } from '../services/mock/activitati';
 import { MOCK_PROVOCARI } from '../services/mock/provocari';
@@ -92,7 +92,12 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     });
 
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        // Defer the serialization so it never runs synchronously on the
+        // render-commit phase — avoids blocking the main thread on state updates.
+        const id = setTimeout(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }, 0);
+        return () => clearTimeout(id);
     }, [data]);
 
     /* ---- Activitati ---- */
@@ -209,16 +214,18 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         localStorage.removeItem(STORAGE_KEY);
     }, []);
 
+    const ctxValue = useMemo(() => ({
+        ...data,
+        addActivitate, removeActivitate,
+        addProvocare, removeProvocare,
+        addClub, removeClub,
+        addEveniment, removeEveniment,
+        addTraseu, removeTraseu,
+        resetAll,
+    }), [data, addActivitate, removeActivitate, addProvocare, removeProvocare, addClub, removeClub, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
+
     return (
-        <DashboardDataContext.Provider value={{
-            ...data,
-            addActivitate, removeActivitate,
-            addProvocare, removeProvocare,
-            addClub, removeClub,
-            addEveniment, removeEveniment,
-            addTraseu, removeTraseu,
-            resetAll,
-        }}>
+        <DashboardDataContext.Provider value={ctxValue}>
             {children}
         </DashboardDataContext.Provider>
     );

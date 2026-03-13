@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import {
     Box, Drawer, AppBar, Toolbar, Typography, List, ListItemButton,
@@ -12,17 +12,6 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../routes/paths';
-
-/* Light sub-theme for Dashboard pages */
-const dashboardLightTheme = createTheme({
-    palette: {
-        mode: 'light',
-        primary: { main: '#1a6fff' },
-        background: { default: '#f0f4f8', paper: '#fff' },
-        text: { primary: '#0f172a', secondary: '#64748b' },
-    },
-    shape: { borderRadius: 12 },
-});
 
 const DRAWER_WIDTH = 240;
 const DRAWER_COLLAPSED = 64;
@@ -114,6 +103,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    /* Light sub-theme for Dashboard pages — memoised so createTheme() runs
+       once per component instance, not on every render or at module parse time. */
+    const dashboardLightTheme = useMemo(() => createTheme({
+        palette: {
+            mode: 'light',
+            primary: { main: '#1a6fff' },
+            background: { default: '#f0f4f8', paper: '#fff' },
+            text: { primary: '#0f172a', secondary: '#64748b' },
+        },
+        shape: { borderRadius: 12 },
+    }), [])
 
     const drawerWidth = collapsed && !isMobile ? DRAWER_COLLAPSED : DRAWER_WIDTH;
     const handleLogout = () => { logout(); navigate({ to: ROUTES.HOME }); };

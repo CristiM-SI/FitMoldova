@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, Button, Chip, IconButton,
   Divider, LinearProgress, Tabs, Tab, Paper,
@@ -23,8 +23,10 @@ const Activitati: React.FC = () => {
     completeFirstActivity();
   };
 
-  const totalCalories = activitatiCurente.reduce((s, a) => s + a.calories, 0);
-  const totalDist = activitatiCurente.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0);
+  const { totalCalories, totalDist } = useMemo(() => ({
+    totalCalories: activitatiCurente.reduce((s, a) => s + a.calories, 0),
+    totalDist: activitatiCurente.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0),
+  }), [activitatiCurente]);
 
   return (
       <DashboardLayout>

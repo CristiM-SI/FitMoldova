@@ -1,5 +1,5 @@
 import { useState, useCallback, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { ROUTES } from "../routes/paths";
 import { useAuth } from "../context/AuthContext";
 import { useUser } from "../context/UserContext";
@@ -57,7 +57,6 @@ const SignUp = () => {
     const [showConfirm, setShowConfirm] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
-console.log("refresh")
     const strength = getPasswordStrength(formData.password);
 
     const validate = useCallback((data: FormData): FormErrors => {
@@ -120,7 +119,7 @@ console.log("refresh")
                 });
 
                 setSubmitted(true);
-                setTimeout(() => navigate(ROUTES.DASHBOARD), 800);
+                setTimeout(() => navigate({ to: ROUTES.DASHBOARD }), 800);
             }
         }
     };

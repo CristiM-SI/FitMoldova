@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../context/AuthContext";
 import { LoginForm, LoginFormErrors } from "../types/login.types";
 import { ROUTES } from "../routes/paths";
@@ -82,7 +82,7 @@ export function useLoginForm() {
         setIsLoading(false);
 
         if (result.success) {
-            navigate(ROUTES.HOME);   // ← redirecționează la homepage cu iconița de profil
+            navigate({ to: ROUTES.HOME });   // ← redirecționează la homepage cu iconița de profil
         } else {
             setLoginError("Utilizator sau parolă incorectă");
         }

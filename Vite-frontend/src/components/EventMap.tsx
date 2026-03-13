@@ -1,62 +1,84 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useEffect, useRef } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-// Fix marker icon path pentru Vite/bundlers
-const markerIcon = new L.Icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-});
-
-// Componentă helper — resetează view-ul când se schimbă evenimentul
-const FlyTo = ({ lat, lng }: { lat: number; lng: number }) => {
-    const map = useMap();
-    useEffect(() => {
-        map.setView([lat, lng], 15, { animate: true });
-    }, [lat, lng, map]);
-    return null;
+/* ---- OSM tile style ---- */
+const OSM_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    },
+  },
+  layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
 };
 
 interface EventMapProps {
-    lat: number;
-    lng: number;
-    name: string;
-    location: string;
-    city: string;
+  lat: number;
+  lng: number;
+  name: string;
+  location: string;
+  city: string;
 }
 
 const EventMap: React.FC<EventMapProps> = ({ lat, lng, name, location, city }) => {
-    return (
-        <MapContainer
-            center={[lat, lng]}
-            zoom={15}
-            scrollWheelZoom={false}
-            style={{ height: '260px', width: '100%', borderRadius: '12px', zIndex: 1 }}
-            className="event-map"
-        >
-            <FlyTo lat={lat} lng={lng} />
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={[lat, lng]} icon={markerIcon}>
-                <Popup>
-                    <div style={{ fontFamily: 'sans-serif', minWidth: '160px' }}>
-                        <strong style={{ display: 'block', marginBottom: '4px' }}>{name}</strong>
-                        <span style={{ fontSize: '0.85rem', color: '#555' }}>
-                            📍 {location}, {city}
-                        </span>
-                    </div>
-                </Popup>
-            </Marker>
-        </MapContainer>
-    );
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef       = useRef<maplibregl.Map | null>(null);
+  const markerRef    = useRef<maplibregl.Marker | null>(null);
+
+  /* ── Initialise map once ── */
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: OSM_STYLE,
+      center: [lng, lat],
+      zoom: 15,
+    });
+    map.scrollZoom.disable();
+    mapRef.current = map;
+
+    map.on('load', () => {
+      const popup = new maplibregl.Popup({ offset: 25, closeButton: false })
+        .setHTML(`
+          <div style="font-family:sans-serif;min-width:160px">
+            <strong style="display:block;margin-bottom:4px">${name}</strong>
+            <span style="font-size:.85rem;color:#555">📍 ${location}, ${city}</span>
+          </div>
+        `);
+
+      markerRef.current = new maplibregl.Marker()
+        .setLngLat([lng, lat])
+        .setPopup(popup)
+        .addTo(map);
+    });
+
+    return () => {
+      map.remove();
+      mapRef.current  = null;
+      markerRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Animate to new location when event changes ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.easeTo({ center: [lng, lat], duration: 500 });
+    markerRef.current?.setLngLat([lng, lat]);
+  }, [lat, lng]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="event-map"
+      style={{ height: '260px', width: '100%', borderRadius: '12px', zIndex: 1, overflow: 'hidden' }}
+    />
+  );
 };
 
 export default EventMap;

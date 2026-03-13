@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     Box, Typography, Card, CardContent, Button, Chip,
     LinearProgress, Paper, Tabs, Tab,
@@ -27,7 +27,10 @@ const Provocari: React.FC = () => {
     const [tab, setTab] = useState(0);
 
     const inscrieTe = (p: Provocare) => { addProvocare(p); completeChallenge(); };
-    const totalParticipanti = inscrise.reduce((s, p) => s + p.participants, 0);
+    const totalParticipanti = useMemo(
+        () => inscrise.reduce((s, p) => s + p.participants, 0),
+        [inscrise]
+    );
 
     return (
         <DashboardLayout>

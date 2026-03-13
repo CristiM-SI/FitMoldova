@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useClickOutside } from '../../hooks/useClickOutside';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
 import { ROUTES } from '../../routes/paths';
 import { UserCircleIcon, Squares2X2Icon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
-
 
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState<boolean>(false);
@@ -14,29 +14,30 @@ const Navbar: React.FC = () => {
   const { user: userCtx } = useUser();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleScroll = (): void => {
-      setScrolled(window.scrollY > 50);
+      if (rafRef.current !== null) return;
+      rafRef.current = requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 50);
+        rafRef.current = null;
+      });
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent): void => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const closeDropdown = useCallback(() => setDropdownOpen(false), []);
+  useClickOutside(dropdownRef, closeDropdown);
 
   const handleLogout = (): void => {
     setDropdownOpen(false);
     logout();
-    navigate(ROUTES.HOME);
+    navigate({ to: ROUTES.HOME });
   };
 
   const closeMenu = () => setMenuOpen(false);
@@ -52,45 +53,49 @@ const Navbar: React.FC = () => {
         <Link to={ROUTES.HOME} className="logo">FitMoldova</Link>
 
         <ul className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
-          <li><button onClick={() => { navigate({ pathname: ROUTES.HOME, hash: '#features' }); closeMenu(); }} className="nav-link-btn">Features</button></li>
-          <li><button onClick={() => { navigate(ROUTES.COMMUNITY); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
-          <li><button onClick={() => { navigate(ROUTES.EVENTS); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
+          <li><button onClick={() => { navigate({ to: ROUTES.HOME, hash: 'features' }); closeMenu(); }} className="nav-link-btn">Features</button></li>
+          <li><button onMouseEnter={() => import('../../pages/dashboard/CommunityPage').catch(() => {})} onClick={() => { navigate({ to: ROUTES.COMMUNITY }); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
+          <li><button onMouseEnter={() => import('../../pages/EvenimentePublic').catch(() => {})} onClick={() => { navigate({ to: ROUTES.EVENTS }); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
           <li>
-            <NavLink
+            <Link
                 to={ROUTES.ROUTES_MAP}
-                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                className="nav-link-btn"
+                activeProps={{ className: 'nav-link-btn nav-link-btn--active' }}
                 onClick={closeMenu}
             >
               Trasee
-            </NavLink>
+            </Link>
           </li>
           <li>
-            <NavLink
+            <Link
                 to={ROUTES.GALLERY}
-                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                className="nav-link-btn"
+                activeProps={{ className: 'nav-link-btn nav-link-btn--active' }}
                 onClick={closeMenu}
             >
               Galerie
-            </NavLink>
+            </Link>
           </li>
           <li>
-            <NavLink
+            <Link
                 to={ROUTES.CONTACT}
-                className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                className="nav-link-btn"
+                activeProps={{ className: 'nav-link-btn nav-link-btn--active' }}
                 onClick={closeMenu}
             >
               Contact
-            </NavLink>
+            </Link>
           </li>
           {isAuthenticated && (
               <li>
-                <NavLink
+                <Link
                     to={ROUTES.FEEDBACK}
-                    className={({ isActive }) => `nav-link-btn${isActive ? ' nav-link-btn--active' : ''}`}
+                    className="nav-link-btn"
+                    activeProps={{ className: 'nav-link-btn nav-link-btn--active' }}
                     onClick={closeMenu}
                 >
                   Feedback
-                </NavLink>
+                </Link>
               </li>
           )}
         </ul>
@@ -115,14 +120,16 @@ const Navbar: React.FC = () => {
                       <div className="nav-dropdown-divider" />
                       <button
                           className="nav-dropdown-item"
-                          onClick={() => { setDropdownOpen(false); navigate(ROUTES.DASHBOARD); }}
+                          onMouseEnter={() => import('../../pages/dashboard/Dashboard').catch(() => {})}
+                          onClick={() => { setDropdownOpen(false); navigate({ to: ROUTES.DASHBOARD }); }}
                       >
                         <Squares2X2Icon className="nav-dropdown-icon" />
                         Dashboard
                       </button>
                       <button
                           className="nav-dropdown-item"
-                          onClick={() => { setDropdownOpen(false); navigate(ROUTES.PROFILE); }}
+                          onMouseEnter={() => import('../../pages/dashboard/Profile').catch(() => {})}
+                          onClick={() => { setDropdownOpen(false); navigate({ to: ROUTES.PROFILE }); }}
                       >
                         <Cog6ToothIcon className="nav-dropdown-icon" />
                         Setări
@@ -130,7 +137,8 @@ const Navbar: React.FC = () => {
                       {isAdmin && (
                           <button
                               className="nav-dropdown-item"
-                              onClick={() => { setDropdownOpen(false); navigate(ROUTES.ADMIN); }}
+                              onMouseEnter={() => import('../../pages/admin/AdminLayout').catch(() => {})}
+                              onClick={() => { setDropdownOpen(false); navigate({ to: ROUTES.ADMIN }); }}
                           >
                             <ShieldCheckIcon className="nav-dropdown-icon" />
                             Admin Panel

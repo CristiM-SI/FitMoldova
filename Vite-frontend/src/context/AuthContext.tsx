@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { MOCK_USERS } from '../services/mock/Mockdata';
 export interface User {
   id: number;
@@ -31,26 +31,28 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
+// Read auth state synchronously from localStorage during the very first render.
+// This eliminates the loading:true → loading:false transition (and the
+// <LoadingScreen /> it triggers) on every page refresh.
+function readStoredAuth(): { user: User | null; isAuthenticated: boolean; isAdmin: boolean } {
+  try {
     const saved = localStorage.getItem('fitmoldova_user');
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as User;
-        setUser(parsed);
-        setIsAuthenticated(true);
-        setIsAdmin(parsed.isAdmin === true);
-      } catch {
-        localStorage.removeItem('fitmoldova_user');
-      }
+      const parsed = JSON.parse(saved) as User;
+      return { user: parsed, isAuthenticated: true, isAdmin: parsed.isAdmin === true };
     }
-    setLoading(false);
-  }, []);
+  } catch {
+    localStorage.removeItem('fitmoldova_user');
+  }
+  return { user: null, isAuthenticated: false, isAdmin: false };
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const initial = readStoredAuth();
+  const [user, setUser] = useState<User | null>(initial.user);
+  const [isAuthenticated, setIsAuthenticated] = useState(initial.isAuthenticated);
+  const [isAdmin, setIsAdmin] = useState(initial.isAdmin);
+  const [loading] = useState(false); // always false — auth is known synchronously
 
   const register = (data: { firstName: string; lastName: string; email: string; password: string }) => {
     const newUser: User = {

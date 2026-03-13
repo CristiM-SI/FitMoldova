@@ -13,7 +13,8 @@ import {
     MenuUnfoldOutlined,
     ArrowLeftOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+
+import { useNavigate, useLocation, Outlet } from '@tanstack/react-router';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../routes/paths';
 
@@ -40,7 +41,7 @@ const AdminLayout: React.FC = () => {
 
     const handleLogout = () => {
         logout();
-        navigate(ROUTES.HOME);
+        navigate({ to: ROUTES.HOME });
     };
 
     return (
@@ -69,7 +70,7 @@ const AdminLayout: React.FC = () => {
                     selectedKeys={[selectedKey]}
                     mode="inline"
                     items={menuItems}
-                    onClick={({ key }) => navigate(key)}
+                    onClick={({ key }) => navigate({ to: key })}
                     style={{ marginTop: 8, borderInlineEnd: 'none' }}
                 />
 
@@ -134,7 +135,7 @@ const AdminLayout: React.FC = () => {
                     <Space>
                         <Button
                             icon={<ArrowLeftOutlined />}
-                            onClick={() => navigate(ROUTES.DASHBOARD)}
+                            onClick={() => navigate({ to: ROUTES.DASHBOARD })}
                         >
                             Înapoi la site
                         </Button>

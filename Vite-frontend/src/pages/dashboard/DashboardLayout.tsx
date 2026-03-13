@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import {
     Box, Drawer, AppBar, Toolbar, Typography, List, ListItemButton,
     ListItemIcon, ListItemText, Avatar, IconButton, Divider, Tooltip,
@@ -13,19 +13,22 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../routes/paths';
 
-/* Light sub-theme for Dashboard pages */
-const dashboardLightTheme = createTheme({
-    palette: {
-        mode: 'light',
-        primary: { main: '#1a6fff' },
-        background: { default: '#f0f4f8', paper: '#fff' },
-        text: { primary: '#0f172a', secondary: '#64748b' },
-    },
-    shape: { borderRadius: 12 },
-});
-
 const DRAWER_WIDTH = 240;
 const DRAWER_COLLAPSED = 64;
+
+// Hover-intent preloaders — called when the user mouses over a nav item.
+// By this point Vite has always settled (user is already interacting with the
+// app), so these imports succeed and the browser caches the module. When the
+// user then clicks, the lazy() import finds it already cached → instant nav.
+const PRELOAD: Record<string, () => void> = {
+    [ROUTES.DASHBOARD]:        () => import('./Dashboard').catch(() => {}),
+    [ROUTES.ACTIVITIES]:       () => import('./Activitati').catch(() => {}),
+    [ROUTES.CHALLENGES]:       () => import('./Provocari').catch(() => {}),
+    [ROUTES.COMMUNITY]:        () => import('./CommunityPage').catch(() => {}),
+    [ROUTES.CLUBS]:            () => import('./Clubs').catch(() => {}),
+    [ROUTES.EVENTS_DASHBOARD]: () => import('./Evenimente').catch(() => {}),
+    [ROUTES.PROFILE]:          () => import('./Profile').catch(() => {}),
+};
 
 const NAV_ITEMS = [
     { label: 'Dashboard', icon: <DashboardIcon />, path: ROUTES.DASHBOARD },
@@ -115,8 +118,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    /* Light sub-theme for Dashboard pages — memoised so createTheme() runs
+       once per component instance, not on every render or at module parse time. */
+    const dashboardLightTheme = useMemo(() => createTheme({
+        palette: {
+            mode: 'light',
+            primary: { main: '#1a6fff' },
+            background: { default: '#f0f4f8', paper: '#fff' },
+            text: { primary: '#0f172a', secondary: '#64748b' },
+        },
+        shape: { borderRadius: 12 },
+    }), [])
+
     const drawerWidth = collapsed && !isMobile ? DRAWER_COLLAPSED : DRAWER_WIDTH;
-    const handleLogout = () => { logout(); navigate(ROUTES.HOME); };
+    const handleLogout = () => { logout(); navigate({ to: ROUTES.HOME }); };
     const getInitials = () => !user ? '?' : `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
 
     const drawerContent = (
@@ -148,7 +163,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     return (
                         <Tooltip key={item.path} title={collapsed && !isMobile ? item.label : ''} placement="right">
                             <ListItemButton
-                                onClick={() => { navigate(item.path); if (isMobile) setMobileOpen(false); }}
+                                onMouseEnter={() => PRELOAD[item.path]?.()}
+                                onClick={() => { navigate({ to: item.path }); if (isMobile) setMobileOpen(false); }}
                                 sx={{
                                     borderRadius: '10px', mb: 0.5, px: 1.5,
                                     justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',

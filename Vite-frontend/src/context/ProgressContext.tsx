@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 
 export interface ProgressState {
   accountCreated: boolean;      // Mereu true dacă user-ul e autentificat
@@ -38,37 +38,45 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
     return DEFAULT_PROGRESS;
   });
 
-  // Persist la fiecare schimbare
+  // Persist on change — deferred so it never blocks the render-commit phase
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    const id = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    }, 0);
+    return () => clearTimeout(id);
   }, [progress]);
 
-  const completeProfile = () =>
-    setProgress((prev) => ({ ...prev, profileCompleted: true }));
+  // Memoized setters — stable references prevent unnecessary re-renders in
+  // consumers that only use one of these functions (e.g. Clubs only needs
+  // completeJoinClub, and won't re-render when other progress flags change).
+  const completeProfile = useCallback(() =>
+    setProgress((prev) => ({ ...prev, profileCompleted: true })), []);
 
-  const completeFirstActivity = () =>
-    setProgress((prev) => ({ ...prev, firstActivity: true }));
+  const completeFirstActivity = useCallback(() =>
+    setProgress((prev) => ({ ...prev, firstActivity: true })), []);
 
-  const completeJoinClub = () =>
-    setProgress((prev) => ({ ...prev, joinedClub: true }));
+  const completeJoinClub = useCallback(() =>
+    setProgress((prev) => ({ ...prev, joinedClub: true })), []);
 
-  const completeChallenge = () =>
-    setProgress((prev) => ({ ...prev, joinedChallenge: true }));
+  const completeChallenge = useCallback(() =>
+    setProgress((prev) => ({ ...prev, joinedChallenge: true })), []);
 
-  const resetProgress = () => {
+  const resetProgress = useCallback(() => {
     setProgress(DEFAULT_PROGRESS);
     localStorage.removeItem(STORAGE_KEY);
-  };
+  }, []);
+
+  const ctxValue = useMemo(() => ({
+    progress,
+    completeProfile,
+    completeFirstActivity,
+    completeJoinClub,
+    completeChallenge,
+    resetProgress,
+  }), [progress, completeProfile, completeFirstActivity, completeJoinClub, completeChallenge, resetProgress]);
 
   return (
-    <ProgressContext.Provider value={{
-      progress,
-      completeProfile,
-      completeFirstActivity,
-      completeJoinClub,
-      completeChallenge,
-      resetProgress,
-    }}>
+    <ProgressContext.Provider value={ctxValue}>
       {children}
     </ProgressContext.Provider>
   );

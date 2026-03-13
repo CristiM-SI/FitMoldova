@@ -7,12 +7,13 @@ import { ForumProvider } from './context/ForumContext'
 import { lazy, Suspense } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import { ROUTES } from './routes/paths'
+import { useRoutePreloader } from './hooks/useRoutePreloader'
 
 import Home from './pages/Home'
 
 // Standard lazy — each chunk is only downloaded when first needed.
-// Idle-time preloading is handled in main.tsx after the first paint,
-// so these never block the initial render or the main thread.
+// Background preloading is triggered by useRoutePreloader() inside
+// the root route component, after React's first successful render.
 const Clubs             = lazy(() => import('./pages/dashboard/Clubs'))
 const SignUp            = lazy(() => import('./pages/SignUp'))
 const LoginPage         = lazy(() => import('./pages/LoginPage'))
@@ -78,13 +79,16 @@ const PageLoader: React.FC = () => (
 )
 
 // ── Root route ────────────────────────────────────────────────────────────────
+// Named component so React hooks (useRoutePreloader) can run here.
 // Mounts auth, user, progress, and dashboard-data contexts on every page.
-// Several public pages (e.g. /clubs, /routes) call useDashboardData and
-// useProgress, so both providers must be available at the root level.
-// ForumProvider is the only heavy provider — it is scoped to the forum layout
-// route below so it never runs on unrelated pages.
-const rootRoute = createRootRoute({
-    component: () => (
+// ForumProvider is scoped to the forum layout route — never runs on other pages.
+const RootComponent: React.FC = () => {
+    // Kicks off background chunk preloading via requestIdleCallback after
+    // the first render. Safe from Vite dep-discovery restarts because React
+    // has already rendered the home page (all entry deps are settled).
+    useRoutePreloader()
+
+    return (
         <>
             <AuthProvider>
                 <UserProvider>
@@ -99,7 +103,11 @@ const rootRoute = createRootRoute({
                 </UserProvider>
             </AuthProvider>
         </>
-    ),
+    )
+}
+
+const rootRoute = createRootRoute({
+    component: RootComponent,
     notFoundComponent: () => <Navigate to={ROUTES.HOME} />,
 })
 

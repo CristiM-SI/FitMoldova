@@ -20,7 +20,7 @@ export default defineConfig({
           'vendor-mui':      ['@mui/material', '@mui/icons-material'],
           'vendor-antd':     ['antd', '@ant-design/icons'],
           'vendor-charts':   ['recharts'],
-          'vendor-maps':     ['leaflet', 'react-leaflet'],
+          'vendor-maps':     ['maplibre-gl'],
           'vendor-heroicons':['@heroicons/react'],
         },
       },
@@ -29,7 +29,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 800,
   },
 
-  // Pre-bundle all heavy deps at startup so the browser never waits for them
+  // Pre-bundle all heavy deps at startup so the browser never waits for them.
   optimizeDeps: {
     include: [
       'react',
@@ -40,6 +40,7 @@ export default defineConfig({
       '@emotion/styled',
       '@emotion/react/jsx-runtime',
       '@mui/material',
+      '@mui/material/styles',
       '@mui/material/Box',
       '@mui/material/CircularProgress',
       '@mui/material/Typography',
@@ -48,8 +49,7 @@ export default defineConfig({
       '@ant-design/icons',
       '@heroicons/react/24/solid',
       'recharts',
-      'leaflet',
-      'react-leaflet',
+      'maplibre-gl',
     ],
     esbuildOptions: {
       target: 'esnext',

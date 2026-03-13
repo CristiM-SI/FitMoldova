@@ -16,6 +16,20 @@ import { ROUTES } from '../../routes/paths';
 const DRAWER_WIDTH = 240;
 const DRAWER_COLLAPSED = 64;
 
+// Hover-intent preloaders — called when the user mouses over a nav item.
+// By this point Vite has always settled (user is already interacting with the
+// app), so these imports succeed and the browser caches the module. When the
+// user then clicks, the lazy() import finds it already cached → instant nav.
+const PRELOAD: Record<string, () => void> = {
+    [ROUTES.DASHBOARD]:        () => import('./Dashboard').catch(() => {}),
+    [ROUTES.ACTIVITIES]:       () => import('./Activitati').catch(() => {}),
+    [ROUTES.CHALLENGES]:       () => import('./Provocari').catch(() => {}),
+    [ROUTES.COMMUNITY]:        () => import('./CommunityPage').catch(() => {}),
+    [ROUTES.CLUBS]:            () => import('./Clubs').catch(() => {}),
+    [ROUTES.EVENTS_DASHBOARD]: () => import('./Evenimente').catch(() => {}),
+    [ROUTES.PROFILE]:          () => import('./Profile').catch(() => {}),
+};
+
 const NAV_ITEMS = [
     { label: 'Dashboard', icon: <DashboardIcon />, path: ROUTES.DASHBOARD },
     { label: 'Activități', icon: <DirectionsRun />, path: ROUTES.ACTIVITIES },
@@ -149,6 +163,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     return (
                         <Tooltip key={item.path} title={collapsed && !isMobile ? item.label : ''} placement="right">
                             <ListItemButton
+                                onMouseEnter={() => PRELOAD[item.path]?.()}
                                 onClick={() => { navigate({ to: item.path }); if (isMobile) setMobileOpen(false); }}
                                 sx={{
                                     borderRadius: '10px', mb: 0.5, px: 1.5,

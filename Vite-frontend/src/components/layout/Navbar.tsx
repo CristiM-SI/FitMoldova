@@ -54,8 +54,8 @@ const Navbar: React.FC = () => {
 
         <ul className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
           <li><button onClick={() => { navigate({ to: ROUTES.HOME, hash: 'features' }); closeMenu(); }} className="nav-link-btn">Features</button></li>
-          <li><button onClick={() => { navigate({ to: ROUTES.COMMUNITY }); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
-          <li><button onClick={() => { navigate({ to: ROUTES.EVENTS }); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
+          <li><button onMouseEnter={() => import('../../pages/dashboard/CommunityPage').catch(() => {})} onClick={() => { navigate({ to: ROUTES.COMMUNITY }); closeMenu(); }} className="nav-link-btn">Comunitate</button></li>
+          <li><button onMouseEnter={() => import('../../pages/EvenimentePublic').catch(() => {})} onClick={() => { navigate({ to: ROUTES.EVENTS }); closeMenu(); }} className="nav-link-btn">Evenimente</button></li>
           <li>
             <Link
                 to={ROUTES.ROUTES_MAP}
@@ -120,6 +120,7 @@ const Navbar: React.FC = () => {
                       <div className="nav-dropdown-divider" />
                       <button
                           className="nav-dropdown-item"
+                          onMouseEnter={() => import('../../pages/dashboard/Dashboard').catch(() => {})}
                           onClick={() => { setDropdownOpen(false); navigate({ to: ROUTES.DASHBOARD }); }}
                       >
                         <Squares2X2Icon className="nav-dropdown-icon" />
@@ -127,6 +128,7 @@ const Navbar: React.FC = () => {
                       </button>
                       <button
                           className="nav-dropdown-item"
+                          onMouseEnter={() => import('../../pages/dashboard/Profile').catch(() => {})}
                           onClick={() => { setDropdownOpen(false); navigate({ to: ROUTES.PROFILE }); }}
                       >
                         <Cog6ToothIcon className="nav-dropdown-icon" />
@@ -135,6 +137,7 @@ const Navbar: React.FC = () => {
                       {isAdmin && (
                           <button
                               className="nav-dropdown-item"
+                              onMouseEnter={() => import('../../pages/admin/AdminLayout').catch(() => {})}
                               onClick={() => { setDropdownOpen(false); navigate({ to: ROUTES.ADMIN }); }}
                           >
                             <ShieldCheckIcon className="nav-dropdown-icon" />

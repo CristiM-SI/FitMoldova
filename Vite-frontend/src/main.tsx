@@ -20,3 +20,4 @@ requestAnimationFrame(() => {
         setTimeout(() => loader.remove(), 400)
     }
 })
+

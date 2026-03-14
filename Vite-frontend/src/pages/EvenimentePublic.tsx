@@ -9,14 +9,19 @@ import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
 import { ROUTES } from '../routes/paths';
 
-
 const CATEGORIES = ['Toate', 'Maraton', 'Ciclism', 'Yoga', 'Fitness', 'Trail', 'Înot', 'Social'] as const;
 const DIFFICULTIES = ['Toate', 'Ușor', 'Mediu', 'Avansat'] as const;
 const PRICES = ['Toate', 'Gratuit', 'Cu taxă'] as const;
 
-const CATEGORY_ICONS: Record<string, string> = {
-    Toate: '📅', Maraton: '🏅', Ciclism: '🚴', Yoga: '🧘',
-    Fitness: '💪', Trail: '🌲', Înot: '🏊', Social: '🤝',
+const CATEGORY_IMAGES: Record<string, string> = {
+    Toate:   'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=48&q=80&auto=format&fit=crop',
+    Maraton: 'https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=48&q=80&auto=format&fit=crop',
+    Ciclism: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=48&q=80&auto=format&fit=crop',
+    Yoga:    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=48&q=80&auto=format&fit=crop',
+    Fitness: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=48&q=80&auto=format&fit=crop',
+    Trail:   'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=48&q=80&auto=format&fit=crop',
+    Înot:    'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=48&q=80&auto=format&fit=crop',
+    Social:  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=48&q=80&auto=format&fit=crop',
 };
 
 const CATEGORY_GRADIENTS: Record<string, string> = {
@@ -135,7 +140,6 @@ const EvenimentePublic: React.FC = () => {
                     <p className="ep-hero-sub">
                         Înscrie-te la maratoane, ture cicliste, sesiuni de yoga și multe altele direct din Moldova
                     </p>
-                    {/* SEARCH BAR centered */}
                     <div className="ep-search-wrap">
                         <span className="ep-search-icon">🔍</span>
                         <input
@@ -167,7 +171,19 @@ const EvenimentePublic: React.FC = () => {
                                 className={`ep-filter-btn ${catFilter === cat ? 'ep-filter-btn--active' : ''}`}
                                 onClick={() => setCatFilter(cat)}
                             >
-                                <span className="ep-filter-icon">{CATEGORY_ICONS[cat]}</span>
+                                <img
+                                    src={CATEGORY_IMAGES[cat]}
+                                    alt={cat}
+                                    loading="lazy"
+                                    style={{
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        flexShrink: 0,
+                                        border: catFilter === cat ? '2px solid #1a7fff' : '2px solid transparent',
+                                    }}
+                                />
                                 <span className="ep-filter-label">{cat}</span>
                                 <span className="ep-filter-count">
                                     {cat === 'Toate'
@@ -271,8 +287,31 @@ const EvenimentePublic: React.FC = () => {
                                         onKeyDown={(e) => e.key === 'Enter' && openDetail(ev)}
                                     >
                                         {/* ── IMAGE AREA ── */}
-                                        <div className="ep-card-img" style={{ background: getGradient(ev.category) }}>
-                                            <span className="ep-card-emoji">{ev.icon}</span>
+                                        <div
+                                            className="ep-card-img"
+                                            style={{
+                                                background: ev.image ? 'none' : getGradient(ev.category),
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            {ev.image ? (
+                                                <img
+                                                    src={ev.image}
+                                                    alt={ev.name}
+                                                    loading="lazy"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover',
+                                                        display: 'block',
+                                                        position: 'absolute',
+                                                        inset: 0,
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="ep-card-emoji">{ev.icon}</span>
+                                            )}
                                             <div className="ep-card-img-overlay">
                                                 <span className="ep-cat-chip">{ev.category}</span>
                                                 {joined && (
@@ -309,7 +348,6 @@ const EvenimentePublic: React.FC = () => {
                                                     {ev.participants}/{ev.maxParticipants}
                                                 </span>
                                             </div>
-
                                             <div className="ep-card-footer">
                                                 <span className="ep-diff-badge">{ev.difficulty}</span>
                                                 <button
@@ -340,9 +378,39 @@ const EvenimentePublic: React.FC = () => {
                         <button className="ep-overlay-close" onClick={closeDetail} aria-label="Închide">✕</button>
 
                         {/* Hero banner */}
-                        <div className="ep-overlay-hero" style={{ background: getGradient(detail.category) }}>
-                            <span className="ep-overlay-emoji">{detail.icon}</span>
-                            <div className="ep-overlay-hero-chips">
+                        <div
+                            className="ep-overlay-hero"
+                            style={{
+                                background: detail.image ? 'none' : getGradient(detail.category),
+                                position: 'relative',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {detail.image ? (
+                                <>
+                                    <img
+                                        src={detail.image}
+                                        alt={detail.name}
+                                        loading="lazy"
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            display: 'block',
+                                            position: 'absolute',
+                                            inset: 0,
+                                        }}
+                                    />
+                                    <div style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.15) 60%, transparent 100%)',
+                                    }} />
+                                </>
+                            ) : (
+                                <span className="ep-overlay-emoji">{detail.icon}</span>
+                            )}
+                            <div className="ep-overlay-hero-chips" style={{ position: 'relative', zIndex: 1 }}>
                                 <span className="ep-overlay-chip">{detail.category}</span>
                                 <span className="ep-overlay-chip">{detail.difficulty}</span>
                                 <span className={`ep-overlay-chip ${detail.price === 'Gratuit' ? 'ep-overlay-chip--free' : ''}`}>

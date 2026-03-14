@@ -2,15 +2,16 @@ export interface Eveniment {
   id: number;
   name: string;
   icon: string;
+  image: string;
   description: string;
-  date: string;        // ISO date string e.g. '2026-04-15'
-  time: string;        // e.g. '08:00'
+  date: string;
+  time: string;
   location: string;
   city: string;
   category: 'Maraton' | 'Ciclism' | 'Yoga' | 'Fitness' | 'Trail' | 'Înot' | 'Social';
   participants: number;
   maxParticipants: number;
-  price: string;       // 'Gratuit' or '150 MDL'
+  price: string;
   organizer: string;
   difficulty: 'Ușor' | 'Mediu' | 'Avansat' | 'Toate';
   tags: string[];
@@ -23,6 +24,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 301,
     name: 'Maratonul Chișinău 2026',
     icon: '🏅',
+    image: 'https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=800&q=80&auto=format&fit=crop',
     description: 'Cel mai mare eveniment de alergare din Moldova. Distanțe: 5K, 10K, 21K, 42K. Start și finish în Piața Marii Adunări Naționale cu suport medical, puncte de hidratare și medalie pentru fiecare finisher.',
     date: '2026-04-15',
     time: '08:00',
@@ -41,6 +43,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 302,
     name: 'Tura Ciclistă a Vinului',
     icon: '🚴',
+    image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80&auto=format&fit=crop',
     description: 'Pedalăm prin cele mai frumoase crame din Moldova. 60 km de peisaje unice cu opriri la Cricova și Mileștii Mici. Include degustare de vinuri la final.',
     date: '2026-05-22',
     time: '07:30',
@@ -59,6 +62,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 303,
     name: 'Yoga în Parc – Sesiune Gratuită',
     icon: '🧘',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80&auto=format&fit=crop',
     description: 'Sesiune deschisă de yoga în aer liber, potrivită pentru toate nivelurile. Aduceți propriul covoraș! Instructor certificat Yoga Alliance.',
     date: '2026-03-08',
     time: '09:00',
@@ -77,6 +81,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 304,
     name: 'CrossFit Open Day',
     icon: '💪',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80&auto=format&fit=crop',
     description: 'Zi porți deschise la sala CrossFit. Antrenament gratuit de probă + consultanță nutriție + măsurători corporale. Perfect pentru cei curioși!',
     date: '2026-04-01',
     time: '10:00',
@@ -95,6 +100,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 305,
     name: 'Trail Run – Codrii Moldovei',
     icon: '🌲',
+    image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800&q=80&auto=format&fit=crop',
     description: 'Alergare pe trasee forestiere. 15 km prin natura sălbatică a Codrilor. Teren variat, urcări moderate. Punct de alimentare la km 8.',
     date: '2026-05-10',
     time: '08:30',
@@ -113,6 +119,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 306,
     name: 'Competiția de Înot „Aqua Moldova"',
     icon: '🏊',
+    image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80&auto=format&fit=crop',
     description: 'Competiție amicală de înot. Categorii pentru adulți și copii. Distanțe: 50m, 100m, 200m liber. Premii pentru primii 3 din fiecare categorie.',
     date: '2026-06-20',
     time: '10:00',
@@ -131,6 +138,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 307,
     name: 'FitMoldova Community Run',
     icon: '🤝',
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80&auto=format&fit=crop',
     description: 'Alergare socială de 5 km urmată de mic dejun în aer liber. Eveniment lunar de socializare pentru membrii comunității FitMoldova.',
     date: '2026-03-22',
     time: '09:00',
@@ -149,6 +157,7 @@ export const MOCK_EVENIMENTE: Eveniment[] = [
     id: 308,
     name: 'Night Ride Chișinău',
     icon: '🌙',
+    image: 'https://bbixf9qemfuckcbs.public.blob.vercel-storage.com/blog/d%C3%BCsseldorf-night-cycling-tours-T04zecKrMCxw9B4cJGPZ99o726boDY.webp',
     description: 'Tură ciclistă nocturnă prin centrul Chișinăului. 20 km pe străzi iluminate cu oprire la cafenea. Lumini obligatorii!',
     date: '2026-04-05',
     time: '20:30',

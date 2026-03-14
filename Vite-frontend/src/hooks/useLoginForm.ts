@@ -70,7 +70,8 @@ export function useLoginForm() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (): Promise<void> => {
+    const handleSubmit = async (e?: React.FormEvent): Promise<void> => {
+        e?.preventDefault();
         setLoginError("");
         if (!validate()) return;
 

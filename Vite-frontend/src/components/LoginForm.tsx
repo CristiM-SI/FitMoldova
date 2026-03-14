@@ -38,7 +38,7 @@ interface LoginFormProps {
     showPassword: boolean;
     isLoading: boolean;
     onChange: (field: keyof LoginForm, value: string | boolean) => void;
-    onSubmit: () => void;
+    onSubmit: (e?: React.FormEvent) => void;
     onTogglePassword: () => void;
 }
 
@@ -86,7 +86,9 @@ export function LoginForm({
                 </div>
             )}
 
-            <div>
+            {/* ── Form — previne refresh la Enter ── */}
+            <form onSubmit={(e) => { e.preventDefault(); onSubmit(e); }} noValidate>
+
                 {/* Câmp username */}
                 <div className="form-group">
                     <label className="form-label" htmlFor="username">Nume utilizator</label>
@@ -181,7 +183,7 @@ export function LoginForm({
                 </div>
 
                 {/* Submit */}
-                <button className="submit-btn" type="button" onClick={onSubmit} disabled={isLoading}>
+                <button className="submit-btn" type="submit" disabled={isLoading}>
                     {isLoading && <CircularProgress size={18} sx={{ color: '#fff' }} />}
                     {isLoading ? "Se conectează..." : "Intră în cont"}
                 </button>
@@ -190,7 +192,8 @@ export function LoginForm({
                     Nu ai cont?{" "}
                     <a href="/register">Creează cont gratuit</a>
                 </div>
-            </div>
+
+            </form>
         </div>
     );
 }

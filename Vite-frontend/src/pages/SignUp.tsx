@@ -119,7 +119,7 @@ const SignUp = () => {
                 });
 
                 setSubmitted(true);
-                setTimeout(() => navigate({ to: ROUTES.DASHBOARD }), 800);
+                navigate({ to: ROUTES.DASHBOARD });
             }
         }
     };

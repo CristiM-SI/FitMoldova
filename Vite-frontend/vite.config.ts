@@ -32,10 +32,12 @@ export default defineConfig({
   // Pre-bundle all heavy deps at startup so the browser never waits for them.
   optimizeDeps: {
     include: [
+      // Core — always in the initial bundle
       'react',
       'react-dom',
       'react-dom/client',
       '@tanstack/react-router',
+      // MUI — used by dashboard/forum pages (lazy but very common path)
       '@emotion/react',
       '@emotion/styled',
       '@emotion/react/jsx-runtime',
@@ -44,12 +46,10 @@ export default defineConfig({
       '@mui/material/Box',
       '@mui/material/CircularProgress',
       '@mui/material/Typography',
-      '@mui/icons-material',
-      'antd',
-      '@ant-design/icons',
-      '@heroicons/react/24/solid',
-      'recharts',
-      'maplibre-gl',
+      // antd, @ant-design/icons, maplibre-gl and recharts are omitted:
+      // they are only imported by lazy admin/map pages, so Vite will
+      // discover and bundle them on-demand the first time those pages load —
+      // no need to slow down dev-server startup for every user.
     ],
     esbuildOptions: {
       target: 'esnext',
@@ -61,83 +61,35 @@ export default defineConfig({
   server: {
     warmup: {
       clientFiles: [
-        // Entry & shell
+        // Entry & shell — always executed on every page load
         './src/main.tsx',
         './src/App.tsx',
-        './src/styles/globalStyles.ts',
         './src/routes/paths.ts',
 
-        // Shared components (mounted on every page)
+        // Shared components on every page
         './src/components/layout/Navbar.tsx',
-        './src/components/layout/Footer.tsx',
         './src/components/ScrollToTop.tsx',
 
-        // Contexts (all initialized at startup)
+        // Contexts mounted at root (run on every page)
         './src/context/AuthContext.tsx',
         './src/context/UserContext.tsx',
         './src/context/ProgressContext.tsx',
         './src/context/DashboardDataContext.tsx',
-        './src/context/ForumContext.tsx',
-        './src/context/useDashboardData.ts',
 
-        // Styles & utilities
-        './src/styles/forumStyles.ts',
-        './src/utils/forumHelpers.tsx',
-        './src/utils/navigation.ts',
-        './src/hooks/useClickOutside.ts',
-        './src/hooks/useLoginForm.ts',
-
-        // Mock data (imported by contexts at startup)
+        // Mock data pulled in by the root contexts
         './src/services/mock/Mockdata.tsx',
         './src/services/mock/activitati.ts',
         './src/services/mock/provocari.ts',
         './src/services/mock/cluburi.ts',
         './src/services/mock/evenimente.ts',
         './src/services/mock/trasee.ts',
-        './src/services/mock/forum.ts',
-        './src/services/mock/community.ts',
 
-        // Public pages
+        // The one non-lazy page (home is always the first paint)
         './src/pages/Home.tsx',
+
+        // Login / Register — second-most-common first destination
         './src/pages/LoginPage.tsx',
         './src/pages/SignUp.tsx',
-        './src/pages/Contact.tsx',
-        './src/pages/RoutesPage.tsx',
-        './src/pages/Gallery.tsx',
-        './src/pages/EvenimentePublic.tsx',
-        './src/pages/Feedback.tsx',
-        './src/pages/NotificationsPage.tsx',
-        './src/pages/NotFound.tsx',
-
-        // Forum / Feed pages
-        './src/pages/ForumPage.tsx',
-        './src/pages/Feedpage.tsx',
-        './src/pages/SavedPage.tsx',
-
-        // Dashboard pages
-        './src/pages/dashboard/Dashboard.tsx',
-        './src/pages/dashboard/DashboardLayout.tsx',
-        './src/pages/dashboard/Activitati.tsx',
-        './src/pages/dashboard/Provocari.tsx',
-        './src/pages/dashboard/Profile.tsx',
-        './src/pages/dashboard/Clubs.tsx',
-        './src/pages/dashboard/CommunityPage.tsx',
-        './src/pages/dashboard/Evenimente.tsx',
-
-        // Admin pages
-        './src/pages/admin/AdminLayout.tsx',
-        './src/pages/admin/AdminOverview.tsx',
-        './src/pages/admin/AdminUsers.tsx',
-        './src/pages/admin/AdminEvents.tsx',
-        './src/pages/admin/AdminClubs.tsx',
-        './src/pages/admin/AdminChallenges.tsx',
-        './src/pages/admin/AdminRoutes.tsx',
-        './src/pages/admin/AdminFeedback.tsx',
-
-        // Map components (heavy — warm up early)
-        './src/components/MoldovaRoutesMap.tsx',
-        './src/components/RoutesSidebar.tsx',
-        './src/components/EventMap.tsx',
       ],
     },
   },

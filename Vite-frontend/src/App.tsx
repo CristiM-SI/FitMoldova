@@ -1,4 +1,5 @@
 import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet, Navigate } from '@tanstack/react-router'
+import { globalStyles } from './styles/globalStyles'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { UserProvider } from './context/UserContext'
 import { ProgressProvider } from './context/ProgressContext'
@@ -90,6 +91,7 @@ const RootComponent: React.FC = () => {
 
     return (
         <>
+            <style>{globalStyles}</style>
             <AuthProvider>
                 <UserProvider>
                     <ProgressProvider>

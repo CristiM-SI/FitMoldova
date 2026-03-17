@@ -4,11 +4,6 @@ import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useAuth } from '../context/AuthContext';
 
-const scrollToSection = (id: string) => {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
-
-
 interface Feature {
   icon: string;
   title: string;
@@ -19,10 +14,15 @@ interface Feature {
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
+  const featuresRef = useRef<HTMLElement>(null);
+
+  const scrollToFeatures = () => {
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     if (location.hash === '#features') {
-      setTimeout(() => scrollToSection('features'), 100);
+      featuresRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [location.hash]);
 
@@ -112,7 +112,7 @@ const Home: React.FC = () => {
               ) : (
                   <Link to={ROUTES.REGISTER} className="btn btn-primary">Creează Cont Gratuit</Link>
               )}
-              <button onClick={() => scrollToSection("features")} className="btn btn-outline">Descoperă Mai Mult</button>
+              <button onClick={() => scrollToFeatures()} className="btn btn-outline">Descoperă Mai Mult</button>
             </div>
 
             <div className="stats">
@@ -136,7 +136,7 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-        <section id="features" className="features">
+        <section id="features" className="features" ref={featuresRef}>
           <div className="section-header">
             <h2 className="section-title">Totul ce ai nevoie pentru succes</h2>
             <p className="section-subtitle">
@@ -216,7 +216,7 @@ const Home: React.FC = () => {
             <div className="footer-section">
               <h3>Platformă</h3>
               <ul>
-                <li><button onClick={() => scrollToSection("features")} className="footer-link">Features</button></li>
+                <li><button onClick={() => scrollToFeatures()} className="footer-link">Features</button></li>
                 <li><Link to={ROUTES.ACTIVITIES} className="footer-link">Tracking Activități</Link></li>
                 <li><Link to={ROUTES.EVENTS} className="footer-link">Evenimente</Link></li>
                 <li><Link to={ROUTES.CHALLENGES} className="footer-link">Provocări</Link></li>

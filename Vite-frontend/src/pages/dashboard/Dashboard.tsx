@@ -45,12 +45,10 @@ const Dashboard: React.FC = () => {
       : '',
   [user?.registeredAt]);
 
-  const { totalCalories, totalDist, statValues } = useMemo(() => {
+  const { statValues } = useMemo(() => {
     const calories = activitatiCurente.reduce((s, a) => s + a.calories, 0);
     const dist = activitatiCurente.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0);
     return {
-      totalCalories: calories,
-      totalDist: dist,
       statValues: [
         String(activitatiCurente.length),
         `${dist.toFixed(1)} km`,

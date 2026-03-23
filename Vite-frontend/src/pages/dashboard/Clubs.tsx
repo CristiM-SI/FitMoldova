@@ -55,7 +55,7 @@ const ClubsDashboard: React.FC = () => {
             { label: 'Total Membri', value: totalMembers.toLocaleString(), emoji: '🏃', bg: '#fffbeb', color: '#f59e0b' },
             { label: 'Categorii', value: CATEGORIES.length - 1, emoji: '🏅', bg: '#fdf4ff', color: '#a855f7' },
           ].map((s) => (
-              <Grid item xs={6} sm={3} key={s.label}>
+              <Grid size={{ xs: 6, sm: 3 }} key={s.label}>
                 <Card elevation={0} sx={{ borderRadius: 3, bgcolor: s.bg, border: '1px solid rgba(0,0,0,0.04)', height: '100%' }}>
                   <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -109,7 +109,7 @@ const ClubsDashboard: React.FC = () => {
                 const joined_ = isJoined(club.id);
                 const catColor = CAT_COLORS[club.category] || '#6366f1';
                 return (
-                    <Grid item xs={12} sm={6} md={4} key={club.id}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={club.id}>
                       <Card elevation={0} onClick={() => setDetailClub(club)}
                             sx={{ borderRadius: 3, border: `1px solid ${joined_ ? '#1a6fff30' : '#e8edf3'}`, cursor: 'pointer', '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transform: 'translateY(-2px)' }, transition: 'all 0.2s', height: '100%' }}>
                         <CardContent sx={{ p: 2.5 }}>
@@ -181,7 +181,7 @@ const ClubsDashboard: React.FC = () => {
                       { label: 'Program', value: detailClub.schedule },
                       { label: 'Următor eveniment', value: detailClub.nextEvent },
                     ].filter(r => r.value).map((row) => (
-                        <Grid item xs={6} key={row.label}>
+                        <Grid size={6} key={row.label}>
                           <Typography variant="caption" color="text.secondary">{row.label}</Typography>
                           <Typography variant="body2" fontWeight={700}>{row.value}</Typography>
                         </Grid>

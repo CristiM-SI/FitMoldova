@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../context/AuthContext";
-import { LoginForm, LoginFormErrors } from "../types/login.types";
+import type { LoginForm, LoginFormErrors } from "../types/login.types";
 import { ROUTES } from "../routes/paths";
 
 const INITIAL_FORM: LoginForm = {

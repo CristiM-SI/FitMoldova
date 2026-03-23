@@ -3,7 +3,6 @@ import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import { useAuth } from '../context/AuthContext';
 import { useForumContext } from '../context/ForumContext';
 import {
   ft, fontImportCSS, keyframesCSS,

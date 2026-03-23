@@ -1,5 +1,5 @@
-﻿import { LoginFormErrors, LoginForm } from "../types/login.types";
-import { PasswordStrength } from "../hooks/useLoginForm";
+﻿import type { LoginFormErrors, LoginForm } from "../types/login.types";
+import type { PasswordStrength } from "../hooks/useLoginForm";
 import CircularProgress from '@mui/material/CircularProgress';
 
 function EyeOpenIcon() {
@@ -38,7 +38,7 @@ interface LoginFormProps {
     showPassword: boolean;
     isLoading: boolean;
     onChange: (field: keyof LoginForm, value: string | boolean) => void;
-    onSubmit: (e?: React.FormEvent) => void;
+    onSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
     onTogglePassword: () => void;
 }
 

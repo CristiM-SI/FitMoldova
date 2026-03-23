@@ -1,4 +1,4 @@
-﻿import { LeftPanelProps } from "../types/login.types";
+﻿import type { LeftPanelProps } from "../types/login.types";
 
 export function LeftPanel({ stats }: LeftPanelProps) {
     return (

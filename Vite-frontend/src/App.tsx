@@ -168,9 +168,10 @@ const notificationsRoute   = createRoute({ getParentRoute: () => forumLayoutRout
 const feedbackRoute        = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/feedback',         component: () => <Feedback /> })
 
 // ── Forum routes (ForumProvider only mounts for these three pages) ────────────
-const forumRoute = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/forum', component: () => <ForumPage /> })
-const feedRoute  = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/feed',  component: () => <FeedPage /> })
-const savedRoute = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/saved', component: () => <SavedPage /> })
+const forumRoute    = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/forum',    component: () => <ForumPage /> })
+const feedRoute     = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/feed',     component: () => <FeedPage /> })
+const savedRoute    = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/saved',    component: () => <SavedPage /> })
+const messagesRoute = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/messages', component: () => <NotificationsPage /> })
 
 // ── Admin routes ──────────────────────────────────────────────────────────────
 const adminRoute           = createRoute({ getParentRoute: () => rootRoute, path: '/admin',       component: () => <AdminRoute><AdminLayout /></AdminRoute> })
@@ -204,6 +205,7 @@ const routeTree = rootRoute.addChildren([
             feedRoute,
             savedRoute,
             notificationsRoute,
+            messagesRoute,
         ]),
     ]),
     adminRoute.addChildren([

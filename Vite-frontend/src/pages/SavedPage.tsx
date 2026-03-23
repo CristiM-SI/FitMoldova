@@ -3,7 +3,6 @@ import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import { useAuth } from '../context/AuthContext';
 import { useForumContext } from '../context/ForumContext';
 import {
   ft, fontImportCSS, keyframesCSS,
@@ -11,7 +10,7 @@ import {
   sxNavIcon, sxNavIconActive, sxPostBtn, sxMain, sxHeader,
   sxHeaderTitle, sxThread, sxThreadRow, sxThreadAva, sxThreadBody,
   sxThreadMeta, sxAuthor, sxHandle, sxDot, sxTime, sxCategoryTag,
-  sxContent, sxHashtag, sxActions, sxAction, sxEmpty, sxEmptyIcon,
+  sxContent, sxActions, sxAction, sxEmpty, sxEmptyIcon,
   sxEmptyTitle, sxEmptySub, sxEmptyBtn, sxToast, sxFilterBar, sxFilterChip,
 } from '../styles/forumStyles';
 
@@ -25,7 +24,6 @@ const CATEGORIES = ['Toate', 'Antrenament', 'Nutri»õie', 'Recuperare', 'Competi»
 
 export default function SavedPage() {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const { threads, handleLike, handleBookmark, heartAnims, toast } = useForumContext();
     const [filter, setFilter] = useState('Toate');
 

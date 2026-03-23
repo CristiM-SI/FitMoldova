@@ -3,17 +3,14 @@ import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import { useAuth } from '../context/AuthContext';
 import { useForumContext, SUGGESTED_USERS } from '../context/ForumContext';
-import { FORUM_CATEGORIES } from '../services/mock/forum';
-import type { ForumCategory } from '../services/mock/forum';
 import {
   ft, fontImportCSS, keyframesCSS,
   sxPageRoot, sxBody, sxSidebar, sxNavItem, sxNavItemActive,
   sxNavIcon, sxNavIconActive, sxPostBtn, sxMain, sxHeader as sxHeaderBase,
   sxHeaderTitle, sxThread, sxThreadRow, sxThreadAva, sxThreadBody,
   sxThreadMeta, sxAuthor, sxHandle, sxDot, sxTime, sxCategoryTag,
-  sxContent, sxHashtag, sxActions, sxAction, sxEmpty, sxEmptyIcon,
+  sxContent, sxActions, sxAction, sxEmpty, sxEmptyIcon,
   sxEmptyTitle, sxEmptySub, sxEmptyBtn, sxToast, sxTab, sxTabs,
   sxRightSidebar, sxSearchBox, sxSearchIcon, sxSearchInput,
   sxSuggestBox, sxSuggestHeader, sxSuggestUser, sxSuggestAva,
@@ -26,7 +23,6 @@ import { formatCount, getInitials, Icons, renderContent } from '../utils/forumHe
 
 export default function FeedPage() {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const {
         threads,
         followedUsers, handleFollow,

@@ -3,8 +3,6 @@
  * Replaces inline CSS strings that were in each page component.
  * All values are compatible with MUI's sx prop.
  */
-import { alpha } from '@mui/material/styles';
-
 // ── Design tokens (forum dark-blue palette) ──────────────
 export const ft = {
   bg: '#050d1a',

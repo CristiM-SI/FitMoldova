@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../context/AuthContext";
-import { LoginForm, LoginFormErrors } from "../types/login.types";
+import type { LoginForm, LoginFormErrors } from "../types/login.types";
 import { ROUTES } from "../routes/paths";
 
 const INITIAL_FORM: LoginForm = {
@@ -70,13 +70,12 @@ export function useLoginForm() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e?: React.FormEvent): Promise<void> => {
+    const handleSubmit = (e?: React.FormEvent<HTMLFormElement>): void => {
         e?.preventDefault();
         setLoginError("");
         if (!validate()) return;
 
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 800));
 
         const result = login(form.username, form.password);
 

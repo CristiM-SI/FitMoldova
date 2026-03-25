@@ -116,3 +116,21 @@ dist
 dist-ssr
 *.local
 
+#################################
+# .NET Backend
+#################################
+# NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+# Publish output
+publish/
+launchSettings.json
+
+# User secrets
+secrets.json

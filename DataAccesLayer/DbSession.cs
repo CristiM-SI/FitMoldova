@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FitMoldova.DataAccesLayer;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace FitMoldova.DataAccesLayer
 {
@@ -11,7 +6,10 @@ namespace FitMoldova.DataAccesLayer
      {
           public FitMoldovaContext FitMoldovaContext()
           {
-               return new FitMoldovaContext();
+               var options = new DbContextOptionsBuilder<FitMoldovaContext>()
+                    .UseSqlServer(@"Server=localhost\SQLEXPRESS;Database=FitMoldovaDb;Trusted_Connection=True;TrustServerCertificate=True;")
+                    .Options;
+               return new FitMoldovaContext(options);
           }
      }
 }

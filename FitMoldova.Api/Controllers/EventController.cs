@@ -3,6 +3,7 @@ using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Event;
 using Microsoft.AspNetCore.Mvc;
 
+
 [ApiController]
 [Route("api/event")]
 public class EventController : ControllerBase
@@ -40,6 +41,16 @@ public class EventController : ControllerBase
           var result = _eventLogic.CreateEvent(dto);
           if (!result.isSuccess)
                return BadRequest(result);
+          return Ok(result);
+     }
+
+
+     [HttpPut("{id}")]
+     public IActionResult Update(int id, [FromBody] EventUpdateDto dto)
+     {
+          var result = _eventLogic.UpdateEvent(id, dto);
+          if (!result.isSuccess)
+               return NotFound(result);
           return Ok(result);
      }
 

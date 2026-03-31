@@ -1,5 +1,6 @@
 ﻿using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.User;
+using FitMoldova.Domain.Enums;
 using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
 
@@ -22,7 +23,7 @@ namespace FitMoldova.BusinessLogic.Core
                     Email = dto.Email,
                     Password = dto.Password,
                     CreatedAt = DateTime.UtcNow,
-                    Role = "user"
+                    Role = UserRole.User
                };
                ctx.Users.Add(user);
                ctx.SaveChanges();

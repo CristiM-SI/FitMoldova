@@ -85,7 +85,7 @@ const SignUp = () => {
         setErrors(validate(formData));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const allTouched = Object.keys(formData).reduce(
             (acc, key) => ({ ...acc, [key]: true }),
@@ -96,7 +96,7 @@ const SignUp = () => {
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            const result = register({
+            const result = await register({
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 email: formData.email,

@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using FitMoldova.Domain.Entities.Activity;
 using FitMoldova.Domain.Entities.Post;
+using FitMoldova.Domain.Enums;
 
 namespace FitMoldova.Domain.Entities.User
 {
@@ -25,8 +26,7 @@ namespace FitMoldova.Domain.Entities.User
 
           public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-          [StringLength(10)]
-          public string Role { get; set; } = "user";
+          public UserRole Role { get; set; } = UserRole.User;
 
           public ICollection<ActivityEntity> Activities { get; set; } = new List<ActivityEntity>();
           public ICollection<PostEntity> Posts { get; set; } = new List<PostEntity>();

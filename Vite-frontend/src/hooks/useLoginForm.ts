@@ -70,14 +70,14 @@ export function useLoginForm() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e?: React.FormEvent<HTMLFormElement>): void => {
+    const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e?.preventDefault();
         setLoginError("");
         if (!validate()) return;
 
         setIsLoading(true);
 
-        const result = login(form.username, form.password);
+        const result = await login(form.username, form.password);
 
         setIsLoading(false);
 

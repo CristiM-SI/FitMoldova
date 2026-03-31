@@ -10,6 +10,7 @@ namespace FitMoldova.Domain.Entities.Activity
           [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
           public int Id { get; set; }
 
+          // Păstrăm UserId ca în migrația originală (cine a creat = adminul)
           [Required]
           public int UserId { get; set; }
 
@@ -32,5 +33,16 @@ namespace FitMoldova.Domain.Entities.Activity
           public int Calories { get; set; }
 
           public DateTime Date { get; set; } = DateTime.UtcNow;
+
+          // Câmpuri noi adăugate prin migrație
+          public string Description { get; set; } = string.Empty;
+
+          [StringLength(300)]
+          public string ImageUrl { get; set; } = string.Empty;
+
+          public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+          // Participanți — tabelă nouă
+          public ICollection<ActivityParticipantEntity> Participants { get; set; } = new List<ActivityParticipantEntity>();
      }
 }

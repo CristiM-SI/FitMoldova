@@ -10,6 +10,7 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse GetAll() => GetAllExecution();
           public ServiceResponse GetById(int id) => GetByIdExecution(id);
           public ServiceResponse CreateEvent(EventCreateDto dto) => CreateEventExecution(dto);
+          public ServiceResponse UpdateEvent(int id, EventUpdateDto dto) => UpdateEventExecution(id, dto);
           public ServiceResponse JoinEvent(int eId, int uId) => JoinEventExecution(eId, uId);
           public ServiceResponse Delete(int id) => DeleteExecution(id);
      }

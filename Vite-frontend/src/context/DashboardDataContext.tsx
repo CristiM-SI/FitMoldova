@@ -24,6 +24,7 @@ interface DashboardData {
 export interface DashboardDataContextType extends DashboardData {
     addActivitate: (item: Activitate) => void;
     removeActivitate: (id: number) => void;
+    addRecomandare: (item: Activitate) => void;
     addProvocare: (item: Provocare) => void;
     removeProvocare: (id: number) => void;
     addClub: (item: Club) => void;
@@ -110,6 +111,13 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             ...p,
             activitatiCurente: [nou, ...p.activitatiCurente],
             activitatiDisponibile: p.activitatiDisponibile.filter((a) => a.id !== item.id),
+        }));
+    }, []);
+
+    const addRecomandare = useCallback((item: Activitate) => {
+        setData((p) => ({
+            ...p,
+            activitatiDisponibile: [item, ...p.activitatiDisponibile],
         }));
     }, []);
 
@@ -216,13 +224,13 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
 
     const ctxValue = useMemo(() => ({
         ...data,
-        addActivitate, removeActivitate,
+        addActivitate, removeActivitate, addRecomandare,
         addProvocare, removeProvocare,
         addClub, removeClub,
         addEveniment, removeEveniment,
         addTraseu, removeTraseu,
         resetAll,
-    }), [data, addActivitate, removeActivitate, addProvocare, removeProvocare, addClub, removeClub, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
+    }), [data, addActivitate, removeActivitate, addRecomandare, addProvocare, removeProvocare, addClub, removeClub, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
 
     return (
         <DashboardDataContext.Provider value={ctxValue}>

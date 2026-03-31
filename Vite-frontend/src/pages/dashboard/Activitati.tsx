@@ -2,11 +2,22 @@ import React, { useState, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, Button, Chip, IconButton,
   Divider, LinearProgress, Tabs, Tab, Paper,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Select, MenuItem, FormControl, InputLabel, Alert,
+  CircularProgress,
 } from '@mui/material';
 import { Add, Close, DirectionsRun, LocalFireDepartment, Straighten } from '@mui/icons-material';
 import DashboardLayout from './DashboardLayout';
 import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
+import { activitateApi, type ActivitateCreatePayload } from '../../services/API/activitateApi';
+
+const TIPURI_ACTIVITATE = ['Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Trail', 'Înot', 'Mers pe jos'];
+
+const FORM_INITIAL: ActivitateCreatePayload = {
+  name: '', type: 'Alergare', duration: '', distance: '', calories: 0,
+};
+
 
 const TYPE_COLORS: Record<string, string> = {
   Alergare: '#3b82f6', Ciclism: '#10b981', Inot: '#06b6d4',
@@ -15,8 +26,61 @@ const TYPE_COLORS: Record<string, string> = {
 
 const Activitati: React.FC = () => {
   const { completeFirstActivity } = useProgress();
-  const { activitatiCurente, activitatiDisponibile: recomandari, addActivitate, removeActivitate } = useDashboardData();
+  const { activitatiCurente, activitatiDisponibile: recomandari, addActivitate, removeActivitate, addRecomandare } = useDashboardData();
   const [tab, setTab] = useState(0);
+
+  // Modal creare activitate (admin)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState<ActivitateCreatePayload>(FORM_INITIAL);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFormChange = (field: keyof ActivitateCreatePayload, value: string | number) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreate = async () => {
+    if (!form.name.trim() || !form.duration.trim() || form.calories <= 0) {
+      setError('Completeaza toate campurile obligatorii.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      // Trimite la backend — conecteaza URL-ul in activitateApi.ts
+      await activitateApi.create(form);
+
+      // Adauga local ca recomandare noua
+      addRecomandare({
+        id: Date.now(),
+        name: form.name,
+        type: form.type,
+        duration: form.duration,
+        distance: form.distance || '—',
+        calories: form.calories,
+        date: '',
+      });
+      setModalOpen(false);
+      setForm(FORM_INITIAL);
+    } catch (err) {
+      // Daca backend-ul nu e conectat inca, adauga doar local
+      addRecomandare({
+        id: Date.now(),
+        name: form.name,
+        type: form.type,
+        duration: form.duration,
+        distance: form.distance || '—',
+        calories: form.calories,
+        date: '',
+      });
+      setModalOpen(false);
+      setForm(FORM_INITIAL);
+      // Decomenteaza linia urmatoare cand conectezi backend-ul:
+      // setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const adaugaActivitate = (activitate: typeof recomandari[0]) => {
     addActivitate(activitate);
@@ -30,9 +94,20 @@ const Activitati: React.FC = () => {
 
   return (
       <DashboardLayout>
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" fontWeight={800} color="#0f172a">Activitati</Typography>
-          <Typography variant="body2" color="text.secondary">Gestioneaza activitatile tale sportive</Typography>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h5" fontWeight={800} color="#0f172a">Activitati</Typography>
+            <Typography variant="body2" color="text.secondary">Gestioneaza activitatile tale sportive</Typography>
+          </Box>
+          {/* Buton vizibil doar pentru admin */}
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => { setModalOpen(true); setError(null); }}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, bgcolor: '#1a6fff', '&:hover': { bgcolor: '#1558d6' } }}
+          >
+            Creeaza Activitate
+          </Button>
         </Box>
 
         {/* Stats — 4 per row flex */}
@@ -236,6 +311,82 @@ const Activitati: React.FC = () => {
               </CardContent>
             </Card>
         )}
+        {/* Modal creare activitate (admin) */}
+        <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth
+                PaperProps={{ sx: { borderRadius: 3 } }}>
+          <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+            Creeaza Activitate Noua
+            <IconButton onClick={() => setModalOpen(false)} size="small"
+                        sx={{ position: 'absolute', right: 12, top: 12, color: '#94a3b8' }}>
+              <Close fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+
+            <TextField
+              label="Denumire activitate *"
+              value={form.name}
+              onChange={(e) => handleFormChange('name', e.target.value)}
+              fullWidth size="small"
+              InputProps={{ sx: { borderRadius: 2 } }}
+            />
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Tip activitate *</InputLabel>
+              <Select
+                value={form.type}
+                label="Tip activitate *"
+                onChange={(e) => handleFormChange('type', e.target.value)}
+                sx={{ borderRadius: 2 }}
+              >
+                {TIPURI_ACTIVITATE.map((t) => (
+                  <MenuItem key={t} value={t}>{t}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Durata * (ex: 30 min)"
+                value={form.duration}
+                onChange={(e) => handleFormChange('duration', e.target.value)}
+                fullWidth size="small"
+                InputProps={{ sx: { borderRadius: 2 } }}
+              />
+              <TextField
+                label="Distanta (ex: 5 km)"
+                value={form.distance}
+                onChange={(e) => handleFormChange('distance', e.target.value)}
+                fullWidth size="small"
+                InputProps={{ sx: { borderRadius: 2 } }}
+              />
+            </Box>
+
+            <TextField
+              label="Calorii arse * (kcal)"
+              type="number"
+              value={form.calories || ''}
+              onChange={(e) => handleFormChange('calories', parseInt(e.target.value) || 0)}
+              fullWidth size="small"
+              InputProps={{ sx: { borderRadius: 2 }, inputProps: { min: 1 } }}
+            />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+            <Button onClick={() => setModalOpen(false)} sx={{ borderRadius: 2, textTransform: 'none', color: '#64748b' }}>
+              Anuleaza
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <Add />}
+              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, bgcolor: '#1a6fff', '&:hover': { bgcolor: '#1558d6' } }}
+            >
+              {loading ? 'Se salveaza...' : 'Creeaza Activitate'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </DashboardLayout>
   );
 };

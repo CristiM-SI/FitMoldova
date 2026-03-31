@@ -7,9 +7,11 @@ namespace FitMoldova.BusinessLogic.Structure
 {
      public class ActivityLogic : ActivityAction, IActivityLogic
      {
-          public ServiceResponse CreateActivity(ActivityCreateDto dto) => CreateActivityExecution(dto);
-          public ServiceResponse GetByUser(int userId) => GetByUserExecution(userId);
+          public ServiceResponse GetAll() => GetAllExecution();
           public ServiceResponse GetById(int id) => GetByIdExecution(id);
+          public ServiceResponse CreateActivity(ActivityCreateDto dto) => CreateActivityExecution(dto);
           public ServiceResponse Delete(int id) => DeleteExecution(id);
+          public ServiceResponse JoinActivity(int activityId, int userId) => JoinActivityExecution(activityId, userId);
+          public ServiceResponse GetParticipants(int activityId) => GetParticipantsExecution(activityId);
      }
 }

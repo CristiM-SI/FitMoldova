@@ -42,7 +42,7 @@ namespace FitMoldova.BusinessLogic.Core
                {
                     isSuccess = true,
                     Message = "Login reușit.",
-                    Data = new { user.Id, user.Username, user.Email, user.Role }
+                    Data = new { user.Id, user.Username, user.Email, Role = user.Role.ToString() }
                };
           }
 
@@ -55,7 +55,7 @@ namespace FitMoldova.BusinessLogic.Core
                return new ServiceResponse
                {
                     isSuccess = true,
-                    Data = new { user.Id, user.Username, user.Email, user.Role, user.CreatedAt }
+                    Data = new { user.Id, user.Username, user.Email, Role = user.Role.ToString(), user.CreatedAt }
                };
           }
 

@@ -45,7 +45,7 @@ export const MOCK_USERS: MockUser[] = [
         registeredAt: "2024-03-10T08:00:00.000Z",
     },
     {
-        id: 4,
+        id: 1, // ← schimbă cu ID-ul real al adminului din DB (SELECT Id FROM Users WHERE Username='admin.fitmoldova')
         username: "admin.fitmoldova",
         firstName: "Admin",
         lastName: "FitMoldova",

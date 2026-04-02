@@ -7,6 +7,7 @@ using FitMoldova.Domain.Entities.Club;
 using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Enums;
+namespace FitMoldova.DataAccesLayer; 
 
 public class FitMoldovaContext : DbContext
 {

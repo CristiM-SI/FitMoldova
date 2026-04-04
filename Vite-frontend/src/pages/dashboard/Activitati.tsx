@@ -11,7 +11,7 @@ import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 import { activityApi, type ActivityDto, type ActivityCreatePayload } from '../../services/API/activityApi';
-import { MOCK_ACTIVITATI } from '../../services/mock/activitati';
+
 
 const TYPE_COLORS: Record<string, string> = {
   Alergare: '#3b82f6', Ciclism: '#10b981', Inot: '#06b6d4',

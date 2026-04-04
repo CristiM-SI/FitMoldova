@@ -41,6 +41,7 @@ const AdminClubs        = lazy(() => import('./pages/admin/AdminClubs'))
 const AdminChallenges   = lazy(() => import('./pages/admin/AdminChallenges'))
 const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
+const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
 
 // Redirect logged-in users away from public-only pages (login / register)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -147,7 +148,11 @@ const galleryRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/ga
 const eventsRoute    = createRoute({ getParentRoute: () => rootRoute, path: '/events',  component: () => <EvenimentePublic /> })
 const routesMapRoute = createRoute({ getParentRoute: () => rootRoute, path: '/routes',  component: () => <RoutesPage /> })
 const contactRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/contact', component: () => <Contact /> })
-
+const activitiesPublicRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/activitati',
+    component: () => <ActivitiesPage />
+})
 const loginRoute    = createRoute({
     getParentRoute: () => rootRoute, path: '/login',
     component: () => <PublicRoute><LoginPage /></PublicRoute>,
@@ -190,6 +195,7 @@ const routeTree = rootRoute.addChildren([
     eventsRoute,
     routesMapRoute,
     contactRoute,
+    activitiesPublicRoute,
     loginRoute,
     registerRoute,
     protectedLayoutRoute.addChildren([

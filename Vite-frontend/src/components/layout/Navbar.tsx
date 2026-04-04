@@ -76,6 +76,16 @@ const Navbar: React.FC = () => {
               Galerie
             </Link>
           </li>
+            <li>
+                <Link
+                    to={ROUTES.ACTIVITIES_PUBLIC}
+                    className="nav-link-btn"
+                    activeProps={{ className: 'nav-link-btn nav-link-btn--active' }}
+                    onClick={closeMenu}
+                >
+                    Activități
+                </Link>
+            </li>
           <li>
             <Link
                 to={ROUTES.CONTACT}

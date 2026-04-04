@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { MOCK_USERS } from '../services/mock/Mockdata';
 import { userApi } from '../services/API/userApi';
 
 export interface User {
@@ -95,6 +96,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const login = async (username: string, password: string): Promise<AuthResult> => {
+        // ── Verificare mock users ──────────────────────────────────────
+        const mockUser = MOCK_USERS.find(
+            (u) => u.username === username && u.password === password
+        );
+        if (mockUser) {
+            const loggedUser: User = {
+                id: mockUser.id,
+                username: mockUser.username,
+                firstName: mockUser.firstName,
+                lastName: mockUser.lastName,
+                email: mockUser.email,
+                avatar: mockUser.avatar,
+                registeredAt: mockUser.registeredAt,
+                isAdmin: mockUser.isAdmin === true,
+            };
+            applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
+            return { success: true };
+        }
+        // ── Apel API real (backend) ────────────────────────────────────
         try {
             const res = await userApi.login(username, password);
             if (res.isSuccess && res.data) {

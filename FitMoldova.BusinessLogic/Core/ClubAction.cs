@@ -1,4 +1,4 @@
-﻿using FitMoldova.DataAccesLayer;
+using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Club;
 using FitMoldova.Domain.Models.Club;
 using FitMoldova.Domain.Models.Services;
@@ -41,7 +41,26 @@ namespace FitMoldova.BusinessLogic.Core
                };
                ctx.Clubs.Add(club);
                ctx.SaveChanges();
-               return new ServiceResponse { isSuccess = true, Message = "Club creat.", Data = club.Id };
+               return new ServiceResponse { isSuccess = true, Message = "Club creat.", Data = club };
+          }
+
+          public ServiceResponse UpdateClubExecution(int id, ClubUpdateDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var club = ctx.Clubs.FirstOrDefault(c => c.Id == id);
+               if (club == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Clubul nu a fost găsit." };
+
+               club.Name = dto.Name;
+               club.Category = dto.Category;
+               club.Location = dto.Location;
+               club.Description = dto.Description;
+               club.Schedule = dto.Schedule;
+               club.Level = dto.Level;
+               club.Rating = dto.Rating;
+
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Club actualizat.", Data = club };
           }
 
           public ServiceResponse JoinClubExecution(int clubId, int userId)

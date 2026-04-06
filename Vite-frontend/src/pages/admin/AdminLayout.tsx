@@ -12,6 +12,7 @@ import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     ArrowLeftOutlined,
+    ThunderboltOutlined,
 } from '@ant-design/icons';
 
 import { useNavigate, useLocation, Outlet } from '@tanstack/react-router';

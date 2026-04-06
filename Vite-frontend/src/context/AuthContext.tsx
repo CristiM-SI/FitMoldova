@@ -14,10 +14,10 @@ export interface User {
     isAdmin?: boolean;
 }
 
-interface AuthResult {
-    success: boolean;
-    error?: string;
-}
+// interface AuthResult {
+//     success: boolean;
+//     error?: string;
+// }
 
 interface AuthContextType {
   user: User | null;

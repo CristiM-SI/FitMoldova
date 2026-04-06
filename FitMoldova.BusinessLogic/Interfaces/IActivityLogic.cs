@@ -5,11 +5,12 @@ namespace FitMoldova.BusinessLogic.Interfaces
 {
      public interface IActivityLogic
      {
-          ServiceResponse GetAll();                                  // pagina principală — toți userii
-          ServiceResponse GetById(int id);                           // detalii activitate
-          ServiceResponse CreateActivity(ActivityCreateDto dto);     // doar admin
-          ServiceResponse Delete(int id);                            // doar admin
-          ServiceResponse JoinActivity(int activityId, int userId);  // orice user
-          ServiceResponse GetParticipants(int activityId);           // lista participanților
+          ServiceResponse GetAll();
+          ServiceResponse GetById(int id);
+          ServiceResponse CreateActivity(ActivityCreateDto dto);
+          ServiceResponse UpdateActivity(int id, ActivityUpdateDto dto);
+          ServiceResponse Delete(int id);
+          ServiceResponse JoinActivity(int activityId, int userId);
+          ServiceResponse GetParticipants(int activityId);
      }
 }

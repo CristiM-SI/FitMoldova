@@ -39,6 +39,7 @@ const AdminUsers        = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminEvents       = lazy(() => import('./pages/admin/AdminEvents'))
 const AdminClubs        = lazy(() => import('./pages/admin/AdminClubs'))
 const AdminChallenges   = lazy(() => import('./pages/admin/AdminChallenges'))
+const AdminActivities = lazy(() => import('./pages/admin/AdminActivities'))
 const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
@@ -56,6 +57,12 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (!isAuthenticated || !isAdmin) return <Navigate to={ROUTES.HOME} />
     return <>{children}</>
 }
+
+const adminActivitiesRoute = createRoute({
+    getParentRoute: () => adminRoute,
+    path: '/activities',
+    component: () => <AdminActivities />
+})
 
 // Inline spinner shown while a lazy chunk is being downloaded.
 // Uses a <style> tag for the keyframe so no .css file is needed.

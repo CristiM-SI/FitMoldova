@@ -26,6 +26,17 @@ export interface ActivityCreatePayload {
     imageUrl: string;
 }
 
+export interface ActivityUpdatePayload {
+    name: string;
+    type: string;
+    distance: string;
+    duration: string;
+    calories: number;
+    date: string;
+    description: string;
+    imageUrl: string;
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
     const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' },
@@ -41,12 +52,17 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 export const activityApi = {
     getAll: () => request<ActivityDto[]>(BASE),
 
+    getById: (id: number) => request<ActivityDto>(`${BASE}/${id}`),
+
     create: (payload: ActivityCreatePayload) =>
-        request<ActivityDto>(BASE, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        }),
+        request<number>(BASE, { method: 'POST', body: JSON.stringify(payload) }),
+
+    update: (id: number, payload: ActivityUpdatePayload) =>
+        request<number>(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
 
     delete: (id: number) =>
         request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
+
+    join: (activityId: number, userId: number) =>
+        request<void>(`${BASE}/${activityId}/join/${userId}`, { method: 'POST' }),
 };

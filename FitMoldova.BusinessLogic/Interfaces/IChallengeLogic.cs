@@ -8,6 +8,7 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse GetAll();
           ServiceResponse GetById(int id);
           ServiceResponse CreateChallenge(ChallengeCreateDto dto);
+          ServiceResponse UpdateChallenge(int id, ChallengeUpdateDto dto);
           ServiceResponse JoinChallenge(int challengeId, int userId);
           ServiceResponse Delete(int id);
      }

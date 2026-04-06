@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { MOCK_USERS } from '../services/mock/Mockdata';
-
-const API_BASE = 'http://localhost:5296/api/user';
+import axiosInstance from '../services/api/axiosInstance';
 
 export interface User {
     id: number;
@@ -82,20 +81,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (data: { firstName: string; lastName: string; email: string; password: string }): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(`${API_BASE}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          password: data.password,
-        }),
+      type RegisterResult = { isSuccess: boolean; message?: string; data: Parameters<typeof buildUserFromApiData>[0] };
+      const { data: result } = await axiosInstance.post<RegisterResult>('/user/register', {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
       });
 
-      const result = await response.json();
-
-      if (response.ok && result.isSuccess) {
+      if (result.isSuccess) {
         const newUser = buildUserFromApiData(result.data);
         setUser(newUser);
         setIsAuthenticated(true);
@@ -146,15 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Try real API
     try {
-      const response = await fetch(`${API_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      type LoginResult = { isSuccess: boolean; message?: string; data: Parameters<typeof buildUserFromApiData>[0] };
+      const { data: result } = await axiosInstance.post<LoginResult>('/user/login', { username, password });
 
-      const result = await response.json();
-
-      if (response.ok && result.isSuccess) {
+      if (result.isSuccess) {
         const loggedUser = buildUserFromApiData(result.data);
         setUser(loggedUser);
         setIsAuthenticated(true);

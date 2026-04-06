@@ -1,36 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Table, Card, Input, Space, Tag, Button, Modal, Form,
-    Select, InputNumber, Typography, Popconfirm, message,
-    Progress, Row, Col, Statistic,
+    Select, Typography, Popconfirm, message,
+    Progress, Row, Col, Statistic, Spin, Alert,
 } from 'antd';
 import {
     SearchOutlined, PlusOutlined, EditOutlined,
     DeleteOutlined, TrophyOutlined, FireOutlined,
-    TeamOutlined,
+    TeamOutlined, ReloadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { MOCK_PROVOCARI, type Provocare } from '../../services/mock/provocari';
+import {
+    challengeApi,
+    type ChallengeDto,
+    type ChallengeCreatePayload,
+} from '../../services/API/challengeApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-type Difficulty = Provocare['difficulty'];
-
-const DIFFICULTIES: Difficulty[] = ['Ușor', 'Mediu', 'Greu'];
-const DIFFICULTY_COLORS: Record<Difficulty, string> = {
+const DIFFICULTIES = ['Ușor', 'Mediu', 'Greu'];
+const DIFFICULTY_COLORS: Record<string, string> = {
     Ușor: 'green', Mediu: 'orange', Greu: 'red',
 };
 
 const AdminChallenges: React.FC = () => {
-    const [challenges, setChallenges] = useState<Provocare[]>(MOCK_PROVOCARI);
-    const [search, setSearch] = useState('');
-    const [filterDiff, setFilterDiff] = useState<Difficulty | 'all'>('all');
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<Provocare | null>(null);
-    const [form] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
+    const [challenges, setChallenges] = useState<ChallengeDto[]>([]);
+    const [loading, setLoading]       = useState(false);
+    const [saving, setSaving]         = useState(false);
+    const [apiError, setApiError]     = useState<string | null>(null);
+    const [search, setSearch]         = useState('');
+    const [filterDiff, setFilterDiff] = useState<string>('all');
+    const [modalOpen, setModalOpen]   = useState(false);
+    const [editTarget, setEditTarget] = useState<ChallengeDto | null>(null);
+    const [form]                      = Form.useForm();
+    const [messageApi, ctxHolder]     = message.useMessage();
+
+    const fetchChallenges = useCallback(async () => {
+        setLoading(true);
+        setApiError(null);
+        try {
+            const data = await challengeApi.getAll();
+            setChallenges(data ?? []);
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Nu s-a putut conecta la server.';
+            setApiError(msg);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchChallenges(); }, [fetchChallenges]);
 
     const filtered = challenges.filter(c => {
         const term = search.toLowerCase();
@@ -43,6 +64,7 @@ const AdminChallenges: React.FC = () => {
 
     const totalParticipants = challenges.reduce((s, c) => s + c.participants, 0);
     const mostPopular = [...challenges].sort((a, b) => b.participants - a.participants)[0];
+    const maxParticipants = Math.max(...challenges.map(c => c.participants), 1);
 
     const openAdd = () => {
         setEditTarget(null);
@@ -50,43 +72,60 @@ const AdminChallenges: React.FC = () => {
         setModalOpen(true);
     };
 
-    const openEdit = (record: Provocare) => {
+    const openEdit = (record: ChallengeDto) => {
         setEditTarget(record);
-        form.setFieldsValue(record);
+        form.setFieldsValue({
+            name: record.name,
+            description: record.description,
+            duration: record.duration,
+            difficulty: record.difficulty,
+        });
         setModalOpen(true);
     };
 
-    const handleSave = () => {
-        form.validateFields().then(values => {
+    const handleSave = async () => {
+        let values: ChallengeCreatePayload;
+        try { values = await form.validateFields(); } catch { return; }
+
+        setSaving(true);
+        try {
             if (editTarget) {
-                setChallenges(prev =>
-                    prev.map(c => c.id === editTarget.id ? { ...editTarget, ...values } : c)
-                );
+                const updated = await challengeApi.update(editTarget.id, values);
+                setChallenges(prev => prev.map(c => c.id === editTarget.id ? updated : c));
                 messageApi.success('Provocarea a fost actualizată.');
             } else {
-                const newChallenge: Provocare = { ...values, id: Date.now() };
-                setChallenges(prev => [newChallenge, ...prev]);
+                const created = await challengeApi.create(values);
+                setChallenges(prev => [created, ...prev]);
                 messageApi.success('Provocarea a fost adăugată.');
             }
             setModalOpen(false);
-        });
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Eroare la salvare.';
+            messageApi.error(msg);
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleDelete = (id: number) => {
-        setChallenges(prev => prev.filter(c => c.id !== id));
-        messageApi.success('Provocarea a fost ștearsă.');
+    const handleDelete = async (id: number) => {
+        try {
+            await challengeApi.delete(id);
+            setChallenges(prev => prev.filter(c => c.id !== id));
+            messageApi.success('Provocarea a fost ștearsă.');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Eroare la ștergere.';
+            messageApi.error(msg);
+        }
     };
 
-    const maxParticipants = Math.max(...challenges.map(c => c.participants));
-
-    const columns: ColumnsType<Provocare> = [
+    const columns: ColumnsType<ChallengeDto> = [
         {
             title: 'Provocare',
             key: 'name',
-            render: (_, record) => (
+            render: (_, r) => (
                 <div>
-                    <Text strong style={{ display: 'block' }}>{record.name}</Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>{record.description}</Text>
+                    <Text strong style={{ display: 'block' }}>{r.name}</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{r.description}</Text>
                 </div>
             ),
         },
@@ -94,7 +133,7 @@ const AdminChallenges: React.FC = () => {
             title: 'Dificultate',
             dataIndex: 'difficulty',
             key: 'difficulty',
-            render: (diff: Difficulty) => <Tag color={DIFFICULTY_COLORS[diff]}>{diff}</Tag>,
+            render: (d: string) => <Tag color={DIFFICULTY_COLORS[d] ?? 'default'}>{d}</Tag>,
         },
         {
             title: 'Durată',
@@ -120,26 +159,17 @@ const AdminChallenges: React.FC = () => {
             ),
         },
         {
-            title: 'Progres mediu',
-            dataIndex: 'progress',
-            key: 'progress',
-            render: (p?: number) =>
-                p != null
-                    ? <Progress percent={p} size="small" style={{ width: 100 }} />
-                    : <Text type="secondary">—</Text>,
-        },
-        {
             title: 'Acțiuni',
             key: 'actions',
-            render: (_, record) => (
+            render: (_, r) => (
                 <Space>
-                    <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>
+                    <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)}>
                         Editează
                     </Button>
                     <Popconfirm
                         title="Șterge provocarea"
                         description="Această acțiune este ireversibilă."
-                        onConfirm={() => handleDelete(record.id)}
+                        onConfirm={() => handleDelete(r.id)}
                         okText="Șterge"
                         cancelText="Anulează"
                         okButtonProps={{ danger: true }}
@@ -153,13 +183,29 @@ const AdminChallenges: React.FC = () => {
 
     return (
         <div>
-            {contextHolder}
+            {ctxHolder}
+
             <div style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ margin: 0 }}>Gestionare Provocări</Title>
-                <Text type="secondary">Adaugă, editează sau șterge provocările sportive</Text>
+                <Text type="secondary">Date live din baza de date SQL Server</Text>
             </div>
 
-            {/* Summary cards */}
+            {apiError && (
+                <Alert
+                    type="error"
+                    message="Nu s-a putut conecta la backend"
+                    description={`${apiError} — Verifică că serverul .NET rulează și că CORS este configurat.`}
+                    style={{ marginBottom: 16 }}
+                    action={
+                        <Button size="small" icon={<ReloadOutlined />} onClick={fetchChallenges}>
+                            Reîncearcă
+                        </Button>
+                    }
+                    closable
+                    onClose={() => setApiError(null)}
+                />
+            )}
+
             <Row gutter={16} style={{ marginBottom: 16 }}>
                 <Col xs={24} sm={8}>
                     <Card style={{ borderRadius: 12, background: '#fffbe6', border: 'none' }}>
@@ -201,11 +247,14 @@ const AdminChallenges: React.FC = () => {
                         style={{ width: 280 }}
                         allowClear
                     />
-                    <Select value={filterDiff} onChange={setFilterDiff} style={{ width: 160 }}>
+                    <Select value={filterDiff} onChange={setFilterDiff} style={{ width: 180 }}>
                         <Option value="all">Toate dificultățile</Option>
                         {DIFFICULTIES.map(d => <Option key={d} value={d}>{d}</Option>)}
                     </Select>
-                    <Text type="secondary">{filtered.length} provocări găsite</Text>
+                    <Text type="secondary">{filtered.length} provocări</Text>
+                    <Button icon={<ReloadOutlined />} onClick={fetchChallenges} loading={loading}>
+                        Reîncarcă
+                    </Button>
                     <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>
                         Adaugă provocare
                     </Button>
@@ -213,13 +262,16 @@ const AdminChallenges: React.FC = () => {
             </Card>
 
             <Card style={{ borderRadius: 12 }}>
-                <Table
-                    columns={columns}
-                    dataSource={filtered}
-                    rowKey="id"
-                    pagination={{ pageSize: 8 }}
-                    size="middle"
-                />
+                <Spin spinning={loading}>
+                    <Table
+                        columns={columns}
+                        dataSource={filtered}
+                        rowKey="id"
+                        pagination={{ pageSize: 8, showSizeChanger: true }}
+                        size="middle"
+                        locale={{ emptyText: apiError ? 'Backend indisponibil' : 'Nicio provocare găsită' }}
+                    />
+                </Spin>
             </Card>
 
             <Modal
@@ -234,12 +286,13 @@ const AdminChallenges: React.FC = () => {
                 onOk={handleSave}
                 okText={editTarget ? 'Salvează' : 'Adaugă'}
                 cancelText="Anulează"
+                confirmLoading={saving}
                 width={560}
                 destroyOnClose
             >
                 <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
                     <Form.Item name="name" label="Denumire provocare"
-                        rules={[{ required: true, message: 'Câmp obligatoriu' }]}>
+                               rules={[{ required: true, message: 'Câmp obligatoriu' }]}>
                         <Input placeholder="Ex: 100 km în Martie" />
                     </Form.Item>
 
@@ -248,29 +301,20 @@ const AdminChallenges: React.FC = () => {
                     </Form.Item>
 
                     <Row gutter={16}>
-                        <Col span={8}>
+                        <Col span={12}>
                             <Form.Item name="difficulty" label="Dificultate"
-                                rules={[{ required: true, message: 'Selectează' }]}>
+                                       rules={[{ required: true, message: 'Selectează dificultatea' }]}>
                                 <Select placeholder="Selectează...">
                                     {DIFFICULTIES.map(d => <Option key={d} value={d}>{d}</Option>)}
                                 </Select>
                             </Form.Item>
                         </Col>
-                        <Col span={8}>
+                        <Col span={12}>
                             <Form.Item name="duration" label="Durată">
                                 <Input placeholder="Ex: 30 zile" />
                             </Form.Item>
                         </Col>
-                        <Col span={8}>
-                            <Form.Item name="participants" label="Participanți">
-                                <InputNumber min={0} style={{ width: '100%' }} />
-                            </Form.Item>
-                        </Col>
                     </Row>
-
-                    <Form.Item name="progress" label="Progres mediu (%)">
-                        <InputNumber min={0} max={100} style={{ width: '100%' }} />
-                    </Form.Item>
                 </Form>
             </Modal>
         </div>

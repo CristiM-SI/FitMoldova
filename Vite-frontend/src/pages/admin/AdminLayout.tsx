@@ -26,6 +26,7 @@ const menuItems = [
     { key: ROUTES.ADMIN_USERS, icon: <UserOutlined />, label: 'Utilizatori' },
     { key: ROUTES.ADMIN_EVENTS, icon: <CalendarOutlined />, label: 'Evenimente' },
     { key: ROUTES.ADMIN_CLUBS, icon: <TeamOutlined />, label: 'Cluburi' },
+    { key: ROUTES.ADMIN_ACTIVITIES, icon: <ThunderboltOutlined />, label: 'Activități' },
     { key: ROUTES.ADMIN_CHALLENGES, icon: <TrophyOutlined />, label: 'Provocări' },
     { key: ROUTES.ADMIN_ROUTES, icon: <CompassOutlined />, label: 'Trasee' },
     { key: ROUTES.ADMIN_FEEDBACK, icon: <MessageOutlined />, label: 'Forum & Feedback' },

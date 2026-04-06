@@ -227,6 +227,7 @@ const routeTree = rootRoute.addChildren([
         adminEventsRoute,
         adminClubsRoute,
         adminChallengesRoute,
+        adminActivitiesRoute,
         adminRoutesRoute,
         adminFeedbackRoute,
     ]),

@@ -71,8 +71,23 @@ const Activitati: React.FC = () => {
     setFormError(null);
     try {
       const payload: ActivityCreatePayload = { ...formData, userId: user.id };
-      const created = await activityApi.create(payload);
-      setApiActivities(prev => [created, ...prev]);
+        const createdId = await activityApi.create(payload);
+
+        const created: ActivityDto = {
+            id: createdId,
+            name: payload.name,
+            type: payload.type,
+            distance: payload.distance,
+            duration: payload.duration,
+            calories: payload.calories,
+            date: payload.date,
+            description: payload.description,
+            imageUrl: payload.imageUrl,
+            createdBy: user?.id?.toString() || '',
+            participantsCount: 0,
+        };
+
+        setApiActivities(prev => [created, ...prev]);
       setModalOpen(false);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Eroare la creare.');

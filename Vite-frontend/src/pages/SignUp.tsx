@@ -120,6 +120,8 @@ const SignUp = () => {
 
                 setSubmitted(true);
                 navigate({ to: ROUTES.DASHBOARD });
+            } else {
+                setErrors((prev) => ({ ...prev, email: result.error }));
             }
         }
     };

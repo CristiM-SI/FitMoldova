@@ -82,9 +82,9 @@ export function useLoginForm() {
         setIsLoading(false);
 
         if (result.success) {
-            navigate({ to: ROUTES.HOME });   // ← redirecționează la homepage cu iconița de profil
+            navigate({ to: ROUTES.HOME });
         } else {
-            setLoginError("Utilizator sau parolă incorectă");
+            setLoginError(result.error ?? "Utilizator sau parolă incorectă");
         }
     };
 

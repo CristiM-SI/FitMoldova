@@ -70,21 +70,21 @@ export function useLoginForm() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e?: React.FormEvent<HTMLFormElement>): void => {
+    const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e?.preventDefault();
         setLoginError("");
         if (!validate()) return;
 
         setIsLoading(true);
 
-        const result = login(form.username, form.password);
+        const result = await login(form.username, form.password);
 
         setIsLoading(false);
 
         if (result.success) {
-            navigate({ to: ROUTES.HOME });   // ← redirecționează la homepage cu iconița de profil
+            navigate({ to: ROUTES.HOME });
         } else {
-            setLoginError("Utilizator sau parolă incorectă");
+            setLoginError(result.error ?? "Utilizator sau parolă incorectă");
         }
     };
 

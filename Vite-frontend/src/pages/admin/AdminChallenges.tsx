@@ -14,7 +14,7 @@ import {
     challengeApi,
     type ChallengeDto,
     type ChallengeCreatePayload,
-} from '../../services/API/challengeApi';
+} from '../../services/api/challengeApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

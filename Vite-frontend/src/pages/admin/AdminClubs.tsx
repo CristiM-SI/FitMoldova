@@ -9,7 +9,7 @@ import {
   DeleteOutlined, TeamOutlined, ReloadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { clubApi, type ClubDto, type ClubCreatePayload, type ClubUpdatePayload } from '../../services/API/clubApi';
+import { clubApi, type ClubDto, type ClubCreatePayload, type ClubUpdatePayload } from '../../services/api/clubApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

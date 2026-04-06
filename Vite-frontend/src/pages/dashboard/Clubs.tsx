@@ -8,7 +8,7 @@ import { Search, Group, Add, ExitToApp, Close, LocationOn, Refresh } from '@mui/
 import DashboardLayout from './DashboardLayout.tsx';
 import { useProgress } from '../../context/ProgressContext.tsx';
 import { useAuth } from '../../context/AuthContext.tsx';
-import { clubApi, type ClubDto } from '../../services/API/clubApi.ts';
+import { clubApi, type ClubDto } from '../../services/api/clubApi';
 
 const CATEGORIES = ['Toate', 'Alergare', 'Ciclism', 'Fitness', 'Yoga', 'Înot', 'Trail'] as const;
 

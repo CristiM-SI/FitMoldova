@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { MOCK_USERS } from '../services/mock/Mockdata';
-import { userApi } from '../services/API/userApi';
+import { userApi } from '../services/api/userApi';
 
 export interface User {
     id: number;

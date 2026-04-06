@@ -16,7 +16,8 @@ builder.Services.AddCors(options =>
           policy.WithOrigins(
                     "http://localhost:5173",
                     "http://localhost:5174",
-                    "https://vite-frontend-danielus-hehes-projects.vercel.app/"
+                    "https://vite-frontend-danielus-hehes-projects.vercel.app/",
+                    "https://test2-ruby-two.vercel.app/"
                )
                .AllowAnyHeader()
                .AllowAnyMethod());

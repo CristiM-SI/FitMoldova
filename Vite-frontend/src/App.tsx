@@ -39,8 +39,10 @@ const AdminUsers        = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminEvents       = lazy(() => import('./pages/admin/AdminEvents'))
 const AdminClubs        = lazy(() => import('./pages/admin/AdminClubs'))
 const AdminChallenges   = lazy(() => import('./pages/admin/AdminChallenges'))
+const AdminActivities = lazy(() => import('./pages/admin/AdminActivities'))
 const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
+const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
 
 // Redirect logged-in users away from public-only pages (login / register)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,6 +57,12 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (!isAuthenticated || !isAdmin) return <Navigate to={ROUTES.HOME} />
     return <>{children}</>
 }
+
+const adminActivitiesRoute = createRoute({
+    getParentRoute: () => adminRoute,
+    path: '/activities',
+    component: () => <AdminActivities />
+})
 
 // Inline spinner shown while a lazy chunk is being downloaded.
 // Uses a <style> tag for the keyframe so no .css file is needed.
@@ -147,7 +155,11 @@ const galleryRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/ga
 const eventsRoute    = createRoute({ getParentRoute: () => rootRoute, path: '/events',  component: () => <EvenimentePublic /> })
 const routesMapRoute = createRoute({ getParentRoute: () => rootRoute, path: '/routes',  component: () => <RoutesPage /> })
 const contactRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/contact', component: () => <Contact /> })
-
+const activitiesPublicRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/activitati',
+    component: () => <ActivitiesPage />
+})
 const loginRoute    = createRoute({
     getParentRoute: () => rootRoute, path: '/login',
     component: () => <PublicRoute><LoginPage /></PublicRoute>,
@@ -190,6 +202,7 @@ const routeTree = rootRoute.addChildren([
     eventsRoute,
     routesMapRoute,
     contactRoute,
+    activitiesPublicRoute,
     loginRoute,
     registerRoute,
     protectedLayoutRoute.addChildren([
@@ -214,6 +227,7 @@ const routeTree = rootRoute.addChildren([
         adminEventsRoute,
         adminClubsRoute,
         adminChallengesRoute,
+        adminActivitiesRoute,
         adminRoutesRoute,
         adminFeedbackRoute,
     ]),

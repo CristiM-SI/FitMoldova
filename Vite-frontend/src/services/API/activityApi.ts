@@ -39,6 +39,8 @@ export const activityApi = {
     getAll: () =>
         axiosInstance.get('/activity').then((r) => unwrap<ActivityDto[]>(r.data)),
 
+    getById: (id: number) => request<ActivityDto>(`${BASE}/${id}`),
+
     create: (payload: ActivityCreatePayload) =>
         axiosInstance.post('/activity', payload).then((r) => unwrap<ActivityDto>(r.data)),
 

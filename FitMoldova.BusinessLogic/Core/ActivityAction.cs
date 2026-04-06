@@ -11,7 +11,6 @@ namespace FitMoldova.BusinessLogic.Core
     {
         private readonly DbSession _dbSession = new DbSession();
 
-        // GET ALL — pagina principală
         public ServiceResponse GetAllExecution()
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -37,7 +36,6 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Data = list };
         }
 
-        // GET BY ID
         public ServiceResponse GetByIdExecution(int id)
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -68,23 +66,16 @@ namespace FitMoldova.BusinessLogic.Core
             };
         }
 
-        // CREATE — doar admin
         public ServiceResponse CreateActivityExecution(ActivityCreateDto dto)
         {
             using var ctx = _dbSession.FitMoldovaContext();
-
-            // Caută userul exact; dacă nu-l găsește, fallback pe primul admin din DB
             var creator = ctx.Users.FirstOrDefault(u => u.Id == dto.UserId);
             if (creator == null)
             {
                 creator = ctx.Users.FirstOrDefault(u => u.Role == UserRole.Admin);
                 if (creator == null)
-                    return new ServiceResponse { isSuccess = false, Message = "Nu există niciun admin în baza de date. Creează un user admin mai întâi." };
+                    return new ServiceResponse { isSuccess = false, Message = "Nu există niciun admin în baza de date." };
             }
-
-            // TODO: re-activează verificarea admin după ce login-ul real e funcțional
-            // if (creator.Role != UserRole.Admin)
-            //     return new ServiceResponse { isSuccess = false, Message = "Doar adminii pot crea activități." };
 
             var activity = new ActivityEntity
             {
@@ -104,7 +95,26 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Activitate creată.", Data = activity.Id };
         }
 
-        // DELETE
+        public ServiceResponse UpdateActivityExecution(int id, ActivityUpdateDto dto)
+        {
+            using var ctx = _dbSession.FitMoldovaContext();
+            var activity = ctx.Activities.FirstOrDefault(a => a.Id == id);
+            if (activity == null)
+                return new ServiceResponse { isSuccess = false, Message = "Activitatea nu a fost găsită." };
+
+            activity.Name      = dto.Name;
+            activity.Type      = dto.Type;
+            activity.Distance  = dto.Distance;
+            activity.Duration  = dto.Duration;
+            activity.Calories  = dto.Calories;
+            activity.Date      = dto.Date;
+            activity.Description = dto.Description;
+            activity.ImageUrl  = dto.ImageUrl;
+
+            ctx.SaveChanges();
+            return new ServiceResponse { isSuccess = true, Message = "Activitate actualizată.", Data = activity.Id };
+        }
+
         public ServiceResponse DeleteExecution(int id)
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -116,48 +126,39 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Activitate ștearsă." };
         }
 
-        // JOIN — orice user
         public ServiceResponse JoinActivityExecution(int activityId, int userId)
         {
             using var ctx = _dbSession.FitMoldovaContext();
-
             var activity = ctx.Activities.FirstOrDefault(a => a.Id == activityId);
             if (activity == null)
                 return new ServiceResponse { isSuccess = false, Message = "Activitatea nu a fost găsită." };
-
             var userExists = ctx.Users.Any(u => u.Id == userId);
             if (!userExists)
                 return new ServiceResponse { isSuccess = false, Message = "Userul nu există." };
-
-            var alreadyJoined = ctx.ActivityParticipants
-                .Any(ap => ap.ActivityId == activityId && ap.UserId == userId);
+            var alreadyJoined = ctx.ActivityParticipants.Any(ap => ap.ActivityId == activityId && ap.UserId == userId);
             if (alreadyJoined)
                 return new ServiceResponse { isSuccess = false, Message = "Participi deja la această activitate." };
-
             ctx.ActivityParticipants.Add(new ActivityParticipantEntity
             {
                 ActivityId = activityId,
-                UserId = userId,
-                JoinedAt = DateTime.UtcNow
+                UserId     = userId,
+                JoinedAt   = DateTime.UtcNow
             });
             ctx.SaveChanges();
             return new ServiceResponse { isSuccess = true, Message = "Te-ai alăturat activității." };
         }
 
-        // GET PARTICIPANTS
         public ServiceResponse GetParticipantsExecution(int activityId)
         {
             using var ctx = _dbSession.FitMoldovaContext();
             var exists = ctx.Activities.Any(a => a.Id == activityId);
             if (!exists)
                 return new ServiceResponse { isSuccess = false, Message = "Activitatea nu a fost găsită." };
-
             var participants = ctx.ActivityParticipants
                 .Include(ap => ap.User)
                 .Where(ap => ap.ActivityId == activityId)
                 .Select(ap => new { ap.User.Id, ap.User.Username, ap.JoinedAt })
                 .ToList();
-
             return new ServiceResponse { isSuccess = true, Data = participants };
         }
     }

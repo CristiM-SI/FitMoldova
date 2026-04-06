@@ -12,6 +12,7 @@ import { useDashboardData } from '../../context/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 import { activityApi, type ActivityDto, type ActivityCreatePayload } from '../../services/api/activityApi';
 
+
 const TYPE_COLORS: Record<string, string> = {
   Alergare: '#3b82f6', Ciclism: '#10b981', Inot: '#06b6d4',
   Fitness: '#f59e0b', Yoga: '#a855f7', Trail: '#84cc16',
@@ -70,8 +71,23 @@ const Activitati: React.FC = () => {
     setFormError(null);
     try {
       const payload: ActivityCreatePayload = { ...formData, userId: user.id };
-      const created = await activityApi.create(payload);
-      setApiActivities(prev => [created, ...prev]);
+        const createdId = await activityApi.create(payload);
+
+        const created: ActivityDto = {
+            id: createdId,
+            name: payload.name,
+            type: payload.type,
+            distance: payload.distance,
+            duration: payload.duration,
+            calories: payload.calories,
+            date: payload.date,
+            description: payload.description,
+            imageUrl: payload.imageUrl,
+            createdBy: user?.id?.toString() || '',
+            participantsCount: 0,
+        };
+
+        setApiActivities(prev => [created, ...prev]);
       setModalOpen(false);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Eroare la creare.');

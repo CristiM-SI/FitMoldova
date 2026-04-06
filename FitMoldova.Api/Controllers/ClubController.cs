@@ -1,4 +1,4 @@
-﻿using FitMoldova.BusinessLogic;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Club;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +15,6 @@ public class ClubController : ControllerBase
           _clubLogic = bl.ClubLogic();
      }
 
-    
      [HttpGet]
      public IActionResult GetAll()
      {
@@ -23,7 +22,6 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-    
      [HttpGet("{id}")]
      public IActionResult GetById(int id)
      {
@@ -42,6 +40,15 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
+     [HttpPut("{id}")]
+     public IActionResult Update(int id, [FromBody] ClubUpdateDto dto)
+     {
+          var result = _clubLogic.UpdateClub(id, dto);
+          if (!result.isSuccess)
+               return NotFound(result);
+          return Ok(result);
+     }
+
      [HttpPost("{id}/join/{userId}")]
      public IActionResult Join(int id, int userId)
      {
@@ -51,7 +58,6 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-  
      [HttpDelete("{id}")]
      public IActionResult Delete(int id)
      {

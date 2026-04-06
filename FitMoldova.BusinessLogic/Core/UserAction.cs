@@ -12,13 +12,22 @@ namespace FitMoldova.BusinessLogic.Core
           public ServiceResponse RegisterExecution(UserCreateDto dto)
           {
                using var ctx = _dbSession.FitMoldovaContext();
-               var exists = ctx.Users.Any(u => u.Username == dto.Username || u.Email == dto.Email);
-               if (exists)
-                    return new ServiceResponse { isSuccess = false, Message = "Username sau email deja folosit." };
+
+               if (ctx.Users.Any(u => u.Email == dto.Email))
+                    return new ServiceResponse { isSuccess = false, Message = "Email deja folosit." };
+
+               // Generate unique username from firstName.lastName
+               var baseUsername = $"{dto.FirstName.ToLower()}.{dto.LastName.ToLower()}";
+               var username = baseUsername;
+               var suffix = 1;
+               while (ctx.Users.Any(u => u.Username == username))
+                    username = $"{baseUsername}{suffix++}";
 
                var user = new UDTable
                {
-                    Username = dto.Username,
+                    Username = username,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
                     Email = dto.Email,
                     Password = dto.Password,
                     CreatedAt = DateTime.UtcNow,
@@ -26,14 +35,28 @@ namespace FitMoldova.BusinessLogic.Core
                };
                ctx.Users.Add(user);
                ctx.SaveChanges();
-               return new ServiceResponse { isSuccess = true, Message = "Cont creat.", Data = user.Id };
+               return new ServiceResponse
+               {
+                    isSuccess = true,
+                    Message = "Cont creat.",
+                    Data = new
+                    {
+                         user.Id,
+                         user.Username,
+                         user.FirstName,
+                         user.LastName,
+                         user.Email,
+                         user.Role,
+                         RegisteredAt = user.CreatedAt.ToString("o")
+                    }
+               };
           }
 
           public ServiceResponse LoginExecution(UserLoginDto dto)
           {
                using var ctx = _dbSession.FitMoldovaContext();
                var user = ctx.Users.FirstOrDefault(u =>
-                   (u.Username == dto.Credential || u.Email == dto.Credential)
+                   (u.Username == dto.Username || u.Email == dto.Username)
                    && u.Password == dto.Password);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Credențiale incorecte." };
@@ -41,7 +64,16 @@ namespace FitMoldova.BusinessLogic.Core
                {
                     isSuccess = true,
                     Message = "Login reușit.",
-                    Data = new { user.Id, user.Username, user.Email, user.Role }
+                    Data = new
+                    {
+                         user.Id,
+                         user.Username,
+                         user.FirstName,
+                         user.LastName,
+                         user.Email,
+                         user.Role,
+                         RegisteredAt = user.CreatedAt.ToString("o")
+                    }
                };
           }
 
@@ -54,7 +86,7 @@ namespace FitMoldova.BusinessLogic.Core
                return new ServiceResponse
                {
                     isSuccess = true,
-                    Data = new { user.Id, user.Username, user.Email, user.Role, user.CreatedAt }
+                    Data = new { user.Id, user.Username, user.FirstName, user.LastName, user.Email, user.Role, user.CreatedAt }
                };
           }
 
@@ -64,7 +96,8 @@ namespace FitMoldova.BusinessLogic.Core
                var user = ctx.Users.FirstOrDefault(u => u.Id == id);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
-               user.Username = dto.Username;
+               user.FirstName = dto.FirstName;
+               user.LastName = dto.LastName;
                user.Email = dto.Email;
                ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Profil actualizat." };

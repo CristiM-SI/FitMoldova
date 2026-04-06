@@ -15,6 +15,12 @@ namespace FitMoldova.Domain.Entities.User
           [StringLength(40)]
           public string Username { get; set; } = string.Empty;
 
+          [StringLength(50)]
+          public string FirstName { get; set; } = string.Empty;
+
+          [StringLength(50)]
+          public string LastName { get; set; } = string.Empty;
+
           [Required]
           [StringLength(100)]
           public string Password { get; set; } = string.Empty;

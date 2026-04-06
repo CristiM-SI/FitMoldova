@@ -66,4 +66,7 @@ export const eventApi = {
 
     delete: (id: number) =>
         request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
+
+    join: (eventId: number, userId: number) =>
+        request<void>(`${BASE}/${eventId}/join/${userId}`, { method: 'POST' }),
 };

@@ -14,7 +14,7 @@ import {
     type ActivityDto,
     type ActivityCreatePayload,
     type ActivityUpdatePayload,
-} from '../../services/API/activityApi';
+} from '../../services/api/activityApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

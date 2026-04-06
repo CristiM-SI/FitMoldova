@@ -10,7 +10,7 @@ import DashboardLayout from './DashboardLayout';
 import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
-import { activityApi, type ActivityDto, type ActivityCreatePayload } from '../../services/API/activityApi';
+import { activityApi, type ActivityDto, type ActivityCreatePayload } from '../../services/api/activityApi';
 
 
 const TYPE_COLORS: Record<string, string> = {
@@ -71,22 +71,7 @@ const Activitati: React.FC = () => {
     setFormError(null);
     try {
       const payload: ActivityCreatePayload = { ...formData, userId: user.id };
-        const createdId = await activityApi.create(payload);
-
-        const created: ActivityDto = {
-            id: createdId,
-            name: payload.name,
-            type: payload.type,
-            distance: payload.distance,
-            duration: payload.duration,
-            calories: payload.calories,
-            date: payload.date,
-            description: payload.description,
-            imageUrl: payload.imageUrl,
-            createdBy: user?.id?.toString() || '',
-            participantsCount: 0,
-        };
-
+        const created = await activityApi.create(payload);
         setApiActivities(prev => [created, ...prev]);
       setModalOpen(false);
     } catch (err) {

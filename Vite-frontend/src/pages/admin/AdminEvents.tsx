@@ -12,7 +12,7 @@ import {
   DeleteOutlined, CalendarOutlined, ReloadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { eventApi, type EventDto, type EventCreatePayload } from '../../services/API/eventApi';
+import { eventApi, type EventDto, type EventCreatePayload } from '../../services/api/eventApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

@@ -1,69 +1,61 @@
-// src/services/api/eventApi.ts
-// Toate apelurile HTTP catre backend pentru entitatea Event
-
-const BASE = 'http://localhost:5296/api/event';  // schimba portul daca e diferit
+import axiosInstance from './axiosInstance';
 
 export interface EventDto {
-  id: number;
-  name: string;
-  description: string;
-  date: string;          // ISO string: "2026-06-15T08:00:00"
-  location: string;
-  city: string;
-  category: string;
-  participants: number;
-  maxParticipants: number;
-  price: string;
-  organizer: string;
-  difficulty: string;
+    id: number;
+    name: string;
+    description: string;
+    date: string;
+    location: string;
+    city: string;
+    category: string;
+    participants: number;
+    maxParticipants: number;
+    price: string;
+    organizer: string;
+    difficulty: string;
 }
 
 export interface EventCreatePayload {
-  name: string;
-  description: string;
-  date: string;
-  location: string;
-  city: string;
-  category: string;
-  maxParticipants: number;
-  price: string;
-  organizer: string;
-  difficulty: string;
+    name: string;
+    description: string;
+    date: string;
+    location: string;
+    city: string;
+    category: string;
+    maxParticipants: number;
+    price: string;
+    organizer: string;
+    difficulty: string;
 }
 
 export interface EventUpdatePayload extends EventCreatePayload {}
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options,
-    });
-    if (res.status === 204) return null as T;
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message ?? 'Eroare server');
-    // Dacă răspunsul are structura { isSuccess, data }, returnează direct data
-    if (json && typeof json === 'object' && 'data' in json) return json.data as T;
-    return json as T;
+
+// Unwrap { isSuccess, data } envelope returned by the backend
+function unwrap<T>(data: unknown): T {
+    if (data && typeof data === 'object' && 'isSuccess' in data) {
+        const env = data as { isSuccess: boolean; data: T; message?: string };
+        if (!env.isSuccess) throw new Error(env.message ?? 'Eroare server');
+        return env.data;
+    }
+    return data as T;
 }
 
 export const eventApi = {
     getAll: () =>
-        request<EventDto[]>(BASE),
+        axiosInstance.get('/event').then((r) => unwrap<EventDto[]>(r.data)),
 
     getById: (id: number) =>
-        request<EventDto>(`${BASE}/${id}`),
+        axiosInstance.get(`/event/${id}`).then((r) => unwrap<EventDto>(r.data)),
 
     create: (payload: EventCreatePayload) =>
-        request<EventDto>(BASE, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        }),
+        axiosInstance.post('/event', payload).then((r) => unwrap<EventDto>(r.data)),
 
     update: (id: number, payload: EventUpdatePayload) =>
-        request<EventDto>(`${BASE}/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(payload),
-        }),
+        axiosInstance.put(`/event/${id}`, payload).then((r) => unwrap<EventDto>(r.data)),
+
+    join: (id: number, userId: number) =>
+        axiosInstance.post(`/event/${id}/join/${userId}`).then(() => {}),
 
     delete: (id: number) =>
-        request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
+        axiosInstance.delete(`/event/${id}`).then(() => {}),
 };

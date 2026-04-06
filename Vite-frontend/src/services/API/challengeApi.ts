@@ -1,4 +1,4 @@
-﻿const BASE = 'http://localhost:5296/api/challenge';
+import axiosInstance from './axiosInstance';
 
 export interface ChallengeDto {
     id: number;
@@ -18,32 +18,31 @@ export interface ChallengeCreatePayload {
 
 export interface ChallengeUpdatePayload extends ChallengeCreatePayload {}
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options,
-    });
-    if (res.status === 204) return null as T;
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message ?? 'Eroare server');
-    if (json && typeof json === 'object' && 'data' in json) return json.data as T;
-    return json as T;
+function unwrap<T>(data: unknown): T {
+    if (data && typeof data === 'object' && 'isSuccess' in data) {
+        const env = data as { isSuccess: boolean; data: T; message?: string };
+        if (!env.isSuccess) throw new Error(env.message ?? 'Eroare server');
+        return env.data;
+    }
+    return data as T;
 }
 
 export const challengeApi = {
-    getAll: () => request<ChallengeDto[]>(BASE),
+    getAll: () =>
+        axiosInstance.get('/challenge').then((r) => unwrap<ChallengeDto[]>(r.data)),
 
-    getById: (id: number) => request<ChallengeDto>(`${BASE}/${id}`),
+    getById: (id: number) =>
+        axiosInstance.get(`/challenge/${id}`).then((r) => unwrap<ChallengeDto>(r.data)),
 
     create: (payload: ChallengeCreatePayload) =>
-        request<ChallengeDto>(BASE, { method: 'POST', body: JSON.stringify(payload) }),
+        axiosInstance.post('/challenge', payload).then((r) => unwrap<ChallengeDto>(r.data)),
 
     update: (id: number, payload: ChallengeUpdatePayload) =>
-        request<ChallengeDto>(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+        axiosInstance.put(`/challenge/${id}`, payload).then((r) => unwrap<ChallengeDto>(r.data)),
 
     joinChallenge: (challengeId: number, userId: number) =>
-        request<void>(`${BASE}/${challengeId}/join/${userId}`, { method: 'POST' }),
+        axiosInstance.post(`/challenge/${challengeId}/join/${userId}`).then(() => {}),
 
     delete: (id: number) =>
-        request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
+        axiosInstance.delete(`/challenge/${id}`).then(() => {}),
 };

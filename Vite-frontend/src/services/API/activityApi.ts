@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:5296/api/activity';
+import axiosInstance from './axiosInstance';
 
 export interface ActivityDto {
     id: number;
@@ -37,32 +37,34 @@ export interface ActivityUpdatePayload {
     imageUrl: string;
 }
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options,
-    });
-    if (res.status === 204) return null as T;
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message ?? 'Eroare server');
-    if (json && typeof json === 'object' && 'data' in json) return json.data as T;
-    return json as T;
+function unwrap<T>(data: unknown): T {
+    if (data && typeof data === 'object' && 'isSuccess' in data) {
+        const env = data as { isSuccess: boolean; data: T; message?: string };
+        if (!env.isSuccess) throw new Error(env.message ?? 'Eroare server');
+        return env.data;
+    }
+    return data as T;
 }
 
 export const activityApi = {
-    getAll: () => request<ActivityDto[]>(BASE),
+    getAll: () =>
+        axiosInstance.get('/activity').then((r) => unwrap<ActivityDto[]>(r.data)),
 
-    getById: (id: number) => request<ActivityDto>(`${BASE}/${id}`),
+    getById: (id: number) =>
+        axiosInstance.get(`/activity/${id}`).then((r) => unwrap<ActivityDto>(r.data)),
 
     create: (payload: ActivityCreatePayload) =>
-        request<number>(BASE, { method: 'POST', body: JSON.stringify(payload) }),
+        axiosInstance.post('/activity', payload).then((r) => unwrap<ActivityDto>(r.data)),
 
     update: (id: number, payload: ActivityUpdatePayload) =>
-        request<number>(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+        axiosInstance.put(`/activity/${id}`, payload).then((r) => unwrap<ActivityDto>(r.data)),
 
     delete: (id: number) =>
-        request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
+        axiosInstance.delete(`/activity/${id}`).then(() => {}),
 
     join: (activityId: number, userId: number) =>
-        request<void>(`${BASE}/${activityId}/join/${userId}`, { method: 'POST' }),
+        axiosInstance.post(`/activity/${activityId}/join/${userId}`).then(() => {}),
+
+    getParticipants: (activityId: number) =>
+        axiosInstance.get(`/activity/${activityId}/participants`).then((r) => unwrap<unknown[]>(r.data)),
 };

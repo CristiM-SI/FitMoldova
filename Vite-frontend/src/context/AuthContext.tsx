@@ -71,19 +71,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading] = useState(false);
 
     const register = async (data: { firstName: string; lastName: string; email: string; password: string }): Promise<AuthResult> => {
-        const username = `${data.firstName.toLowerCase()}.${data.lastName.toLowerCase()}`;
-
         try {
-            const res = await userApi.register(username, data.email, data.password);
+            const res = await userApi.register(data.firstName, data.lastName, data.email, data.password);
             if (res.isSuccess && res.data != null) {
+                const d = res.data;
                 const newUser: User = {
-                    id: res.data as unknown as number,
-                    username,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    email: data.email,
-                    avatar: `${data.firstName[0]}${data.lastName[0]}`.toUpperCase(),
-                    registeredAt: new Date().toISOString(),
+                    id: d.id,
+                    username: d.username,
+                    firstName: d.firstName,
+                    lastName: d.lastName,
+                    email: d.email,
+                    avatar: `${d.firstName[0]}${d.lastName[0]}`.toUpperCase(),
+                    registeredAt: d.registeredAt,
                     isAdmin: false,
                 };
                 applyAuth(newUser, setUser, setIsAuthenticated, setIsAdmin);
@@ -122,11 +121,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const loggedUser: User = {
                     id: d.id,
                     username: d.username,
-                    firstName: d.username.split('.')[0] ?? d.username,
-                    lastName: d.username.split('.')[1] ?? '',
+                    firstName: d.firstName,
+                    lastName: d.lastName,
                     email: d.email,
-                    avatar: d.username.slice(0, 2).toUpperCase(),
-                    registeredAt: new Date().toISOString(),
+                    avatar: `${d.firstName[0]}${d.lastName[0]}`.toUpperCase(),
+                    registeredAt: d.registeredAt,
                     isAdmin: d.role === 'Admin',
                 };
                 applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);

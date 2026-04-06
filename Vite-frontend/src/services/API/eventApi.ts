@@ -53,6 +53,9 @@ export const eventApi = {
     update: (id: number, payload: EventUpdatePayload) =>
         axiosInstance.put(`/event/${id}`, payload).then((r) => unwrap<EventDto>(r.data)),
 
+    join: (id: number, userId: number) =>
+        axiosInstance.post(`/event/${id}/join/${userId}`).then(() => {}),
+
     delete: (id: number) =>
         axiosInstance.delete(`/event/${id}`).then(() => {}),
 };

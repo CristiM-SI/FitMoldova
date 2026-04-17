@@ -87,8 +87,7 @@ const AdminOverview: React.FC = () => {
 
     // ── Statistici agregate ──────────────────────────────────────────────────
     const totalParticipants = events.reduce((sum, ev) => sum + (ev.participants ?? 0), 0);
-    const totalMembers = clubs.reduce((sum, club) => sum + (club.members ?? 0), 0);
-
+    const totalMembers = clubs.reduce((sum, club) => sum + (club.membersCount ?? 0), 0);
     const statCards = [
         {
             title: 'Evenimente',

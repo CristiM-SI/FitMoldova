@@ -1,14 +1,16 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Table, Card, Input, Space, Tag, Button, Modal, Form,
     Select, InputNumber, Typography, Popconfirm, message,
-    Row, Col, Spin, Alert,
+    Row, Col, Spin, Alert, Upload, Image as AntImage,
 } from 'antd';
 import {
     SearchOutlined, PlusOutlined, EditOutlined,
     DeleteOutlined, ThunderboltOutlined, ReloadOutlined,
+    UploadOutlined, LinkOutlined, DeleteFilled,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { RcFile } from 'antd/es/upload';
 import {
     activityApi,
     type ActivityDto,
@@ -29,6 +31,20 @@ const TYPE_COLORS: Record<string, string> = {
     Yoga: 'purple', Trail: 'lime', Drumeție: 'gold',
 };
 
+// Limită pentru upload (2MB) — imaginile mari se stochează ca base64 în DB,
+// deci nu vrem să umflăm coloana ImageUrl peste măsură.
+const MAX_IMAGE_MB = 2;
+
+/** Convertește un File în string base64 DataURL (ex: "data:image/png;base64,iVBORw..."). */
+function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('Nu s-a putut citi fișierul.'));
+        reader.readAsDataURL(file);
+    });
+}
+
 const AdminActivities: React.FC = () => {
     const [activities, setActivities] = useState<ActivityDto[]>([]);
     const [loading, setLoading]       = useState(false);
@@ -40,6 +56,10 @@ const AdminActivities: React.FC = () => {
     const [editTarget, setEditTarget] = useState<ActivityDto | null>(null);
     const [form]                      = Form.useForm();
     const [messageApi, ctxHolder]     = message.useMessage();
+
+    // Starea pentru imagine — păstrată separat de form ca să avem preview live
+    const [imageSrc, setImageSrc] = useState<string>('');
+    const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
 
     const fetchActivities = useCallback(async () => {
         setLoading(true);
@@ -70,6 +90,8 @@ const AdminActivities: React.FC = () => {
     const openAdd = () => {
         setEditTarget(null);
         form.resetFields();
+        setImageSrc('');
+        setImageMode('url');
         setModalOpen(true);
     };
 
@@ -83,14 +105,42 @@ const AdminActivities: React.FC = () => {
             calories:    record.calories,
             date:        record.date.substring(0, 16),
             description: record.description,
-            imageUrl:    record.imageUrl,
         });
+        setImageSrc(record.imageUrl || '');
+        // Detectăm dacă imaginea salvată e base64 (upload) sau URL extern
+        setImageMode(record.imageUrl?.startsWith('data:') ? 'upload' : 'url');
         setModalOpen(true);
     };
 
+    const handleBeforeUpload = async (file: RcFile): Promise<boolean> => {
+        if (!file.type.startsWith('image/')) {
+            messageApi.error('Fișierul trebuie să fie o imagine.');
+            return false;
+        }
+        const sizeMb = file.size / 1024 / 1024;
+        if (sizeMb > MAX_IMAGE_MB) {
+            messageApi.error(`Imaginea depășește ${MAX_IMAGE_MB}MB (actual: ${sizeMb.toFixed(1)}MB).`);
+            return false;
+        }
+        try {
+            const dataUrl = await fileToDataUrl(file);
+            setImageSrc(dataUrl);
+            messageApi.success('Imagine încărcată.');
+        } catch (err) {
+            messageApi.error(err instanceof Error ? err.message : 'Eroare la citire.');
+        }
+        // Returnăm false ca să împiedicăm Upload-ul Ant Design să facă request HTTP.
+        // Noi păstrăm imaginea local ca DataURL.
+        return false;
+    };
+
     const handleSave = async () => {
-        let values: ActivityCreatePayload & ActivityUpdatePayload;
-        try { values = await form.validateFields(); } catch { return; }
+        let values: Omit<ActivityCreatePayload, 'userId' | 'imageUrl'>;
+        try {
+            values = await form.validateFields();
+        } catch {
+            return;
+        }
 
         setSaving(true);
         try {
@@ -98,17 +148,25 @@ const AdminActivities: React.FC = () => {
                 const updatePayload: ActivityUpdatePayload = {
                     name:        values.name,
                     type:        values.type,
-                    distance:    values.distance,
-                    duration:    values.duration,
-                    calories:    values.calories,
+                    distance:    values.distance ?? '',
+                    duration:    values.duration ?? '',
+                    calories:    values.calories ?? 0,
                     date:        values.date,
-                    description: values.description,
-                    imageUrl:    values.imageUrl,
+                    description: values.description ?? '',
+                    imageUrl:    imageSrc,
                 };
                 await activityApi.update(editTarget.id, updatePayload);
                 messageApi.success('Activitatea a fost actualizată.');
             } else {
-                const createPayload: ActivityCreatePayload = { ...values, userId: ADMIN_USER_ID };
+                const createPayload: ActivityCreatePayload = {
+                    ...values,
+                    distance:    values.distance ?? '',
+                    duration:    values.duration ?? '',
+                    calories:    values.calories ?? 0,
+                    description: values.description ?? '',
+                    imageUrl:    imageSrc,
+                    userId:      ADMIN_USER_ID,
+                };
                 await activityApi.create(createPayload);
                 messageApi.success('Activitatea a fost adăugată.');
             }
@@ -135,6 +193,16 @@ const AdminActivities: React.FC = () => {
 
     const columns: ColumnsType<ActivityDto> = [
         {
+            title: '',
+            key: 'image',
+            width: 60,
+            render: (_, r) => (
+                r.imageUrl
+                    ? <AntImage src={r.imageUrl} width={44} height={44} style={{ objectFit: 'cover', borderRadius: 6 }} preview={false} fallback="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0NCA0NCc+PHJlY3Qgd2lkdGg9JzQ0JyBoZWlnaHQ9JzQ0JyBmaWxsPScjZjBmMGYwJy8+PC9zdmc+" />
+                    : <div style={{ width: 44, height: 44, background: '#f0f0f0', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: 18 }}>🏃</div>
+            ),
+        },
+        {
             title: 'Activitate',
             key: 'name',
             render: (_, r) => (
@@ -150,16 +218,8 @@ const AdminActivities: React.FC = () => {
             key: 'type',
             render: (t: string) => <Tag color={TYPE_COLORS[t] ?? 'default'}>{t}</Tag>,
         },
-        {
-            title: 'Distanță',
-            dataIndex: 'distance',
-            key: 'distance',
-        },
-        {
-            title: 'Durată',
-            dataIndex: 'duration',
-            key: 'duration',
-        },
+        { title: 'Distanță', dataIndex: 'distance', key: 'distance' },
+        { title: 'Durată',   dataIndex: 'duration', key: 'duration' },
         {
             title: 'Calorii',
             dataIndex: 'calories',
@@ -185,9 +245,7 @@ const AdminActivities: React.FC = () => {
             key: 'actions',
             render: (_, r) => (
                 <Space>
-                    <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)}>
-                        Editează
-                    </Button>
+                    <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)}>Editează</Button>
                     <Popconfirm
                         title="Șterge activitatea"
                         description="Această acțiune este ireversibilă."
@@ -209,7 +267,7 @@ const AdminActivities: React.FC = () => {
 
             <div style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ margin: 0 }}>Gestionare Activități</Title>
-                <Text type="secondary">Date live din baza de date SQL Server</Text>
+                <Text type="secondary">Date live din baza de date PostgreSQL</Text>
             </div>
 
             {apiError && (
@@ -326,8 +384,80 @@ const AdminActivities: React.FC = () => {
                         </Col>
                     </Row>
 
-                    <Form.Item name="imageUrl" label="URL imagine">
-                        <Input placeholder="https://..." />
+                    {/* ── Imagine: URL sau upload din PC ─────────────────────────── */}
+                    <Form.Item label="Imagine activitate">
+                        <Space.Compact style={{ marginBottom: 8 }}>
+                            <Button
+                                type={imageMode === 'url' ? 'primary' : 'default'}
+                                icon={<LinkOutlined />}
+                                onClick={() => setImageMode('url')}
+                            >
+                                URL
+                            </Button>
+                            <Button
+                                type={imageMode === 'upload' ? 'primary' : 'default'}
+                                icon={<UploadOutlined />}
+                                onClick={() => setImageMode('upload')}
+                            >
+                                Din PC
+                            </Button>
+                        </Space.Compact>
+
+                        {imageMode === 'url' ? (
+                            <Input
+                                placeholder="https://..."
+                                value={imageSrc.startsWith('data:') ? '' : imageSrc}
+                                onChange={e => setImageSrc(e.target.value)}
+                                allowClear
+                            />
+                        ) : (
+                            <Upload.Dragger
+                                accept="image/*"
+                                multiple={false}
+                                showUploadList={false}
+                                beforeUpload={handleBeforeUpload}
+                                style={{ padding: '8px 0' }}
+                            >
+                                <p style={{ margin: 0, fontSize: 14 }}>
+                                    <UploadOutlined style={{ marginRight: 8 }} />
+                                    Trage un fișier aici sau click pentru selectare
+                                </p>
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                    Max {MAX_IMAGE_MB}MB. Format JPG/PNG/WebP.
+                                </Text>
+                            </Upload.Dragger>
+                        )}
+
+                        {imageSrc && (
+                            <div style={{
+                                marginTop: 12, padding: 8, border: '1px solid #f0f0f0',
+                                borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12,
+                            }}>
+                                <AntImage
+                                    src={imageSrc}
+                                    width={80}
+                                    height={80}
+                                    style={{ objectFit: 'cover', borderRadius: 6 }}
+                                    fallback="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MCA4MCc+PHJlY3Qgd2lkdGg9JzgwJyBoZWlnaHQ9JzgwJyBmaWxsPScjZjBmMGYwJy8+PHRleHQgeD0nNTAlJyB5PSc1MCUnIGZvbnQtc2l6ZT0nMTInIGZpbGw9JyM5OTknIHRleHQtYW5jaG9yPSdtaWRkbGUnIGR5PScuM2VtJz5OL0E8L3RleHQ+PC9zdmc+"
+                                />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <Text strong style={{ display: 'block' }}>Previzualizare</Text>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>
+                                        {imageSrc.startsWith('data:')
+                                            ? 'Imagine încărcată local (base64)'
+                                            : 'URL extern'}
+                                    </Text>
+                                </div>
+                                <Button
+                                    danger
+                                    size="small"
+                                    icon={<DeleteFilled />}
+                                    onClick={() => setImageSrc('')}
+                                >
+                                    Șterge
+                                </Button>
+                            </div>
+                        )}
                     </Form.Item>
                 </Form>
             </Modal>

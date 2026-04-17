@@ -1,6 +1,5 @@
-﻿import { useState, useEffect } from "react";
-import { MOCK_ACTIVITATI, TIPURI_ACTIVITATI } from "../services/mock/activitati";
-import { activityApi, type ActivityDto } from "../services/api/activityApi";
+import { useState } from "react";
+import { type Activitate, MOCK_ACTIVITATI, TIPURI_ACTIVITATI } from "../services/mock/activitati";
 import Navbar from "../components/layout/Navbar";
 
 const TYPE_EMOJI: Record<string, string> = {
@@ -14,7 +13,7 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-function ActivityModal({ activity, onClose }: { activity: ActivityDto; onClose: () => void }) {
+function ActivityModal({ activity, onClose }: { activity: Activitate; onClose: () => void }) {
     const emoji = TYPE_EMOJI[activity.type] ?? "🏋️";
     const color = TYPE_COLOR[activity.type] ?? "#0ea5e9";
 
@@ -82,7 +81,7 @@ function ActivityModal({ activity, onClose }: { activity: ActivityDto; onClose: 
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
-function ActivityCard({ activity, onClick }: { activity: ActivityDto; onClick: () => void }) {
+function ActivityCard({ activity, onClick }: { activity: Activitate; onClick: () => void }) {
     const [hovered, setHovered] = useState(false);
     const emoji = TYPE_EMOJI[activity.type] ?? "🏋️";
     const color = TYPE_COLOR[activity.type] ?? "#0ea5e9";
@@ -127,21 +126,14 @@ function ActivityCard({ activity, onClick }: { activity: ActivityDto; onClick: (
 
 // ─── Pagina principală ────────────────────────────────────────────────────────
 export default function ActivitiesPage() {
-    const [activities, setActivities] = useState<ActivityDto[]>(MOCK_ACTIVITATI as unknown as ActivityDto[]);
     const [activFilter, setActivFilter] = useState("Toate");
-    const [selected, setSelected] = useState<ActivityDto | null>(null);
-
-    useEffect(() => {
-        activityApi.getAll()
-            .then(setActivities)
-            .catch(() => setActivities(MOCK_ACTIVITATI as unknown as ActivityDto[]));
-    }, []);
+    const [selected, setSelected] = useState<Activitate | null>(null);
 
     const filtered = activFilter === "Toate"
-        ? activities
-        : activities.filter((a) => a.type === activFilter);
+        ? MOCK_ACTIVITATI
+        : MOCK_ACTIVITATI.filter((a: Activitate) => a.type === activFilter);
 
-    const totalCalorii = activities.reduce((s, a) => s + a.calories, 0);
+    const totalCalorii = MOCK_ACTIVITATI.reduce((s: number, a: Activitate) => s + a.calories, 0);
 
     return (
         <div style={{ minHeight: "100vh", background: "#0d1117", color: "#f1f5f9", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
@@ -171,7 +163,7 @@ export default function ActivitiesPage() {
                 {/* Stat boxes */}
                 <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
                     {[
-                        { label: "Total activități", value: activities.length },
+                        { label: "Total activități", value: MOCK_ACTIVITATI.length },
                         { label: "Tipuri", value: TIPURI_ACTIVITATI.length - 1 },
                         { label: "Calorii totale", value: `~${totalCalorii}` },
                     ].map(({ label, value }) => (
@@ -189,8 +181,8 @@ export default function ActivitiesPage() {
                 <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1.75rem", flexWrap: "wrap" }}>
                     {TIPURI_ACTIVITATI.map((tip: string) => {
                         const count = tip === "Toate"
-                            ? activities.length
-                            : activities.filter((a) => a.type === tip).length;
+                            ? MOCK_ACTIVITATI.length
+                            : MOCK_ACTIVITATI.filter((a: Activitate) => a.type === tip).length;
                         const active = activFilter === tip;
                         return (
                             <button key={tip} onClick={() => setActivFilter(tip)} style={{
@@ -207,7 +199,7 @@ export default function ActivitiesPage() {
 
                 {/* Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
-                    {filtered.map((a) => (
+                    {filtered.map((a: Activitate) => (
                         <ActivityCard key={a.id} activity={a} onClick={() => setSelected(a)} />
                     ))}
                 </div>

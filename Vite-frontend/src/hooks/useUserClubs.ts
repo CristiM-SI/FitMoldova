@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { clubApi, type ClubDto } from '../services/API/clubApi';
+import { clubApi, type ClubDto } from '../services/api/clubApi';
 import { useAuth } from '../context/AuthContext';
 
 /**

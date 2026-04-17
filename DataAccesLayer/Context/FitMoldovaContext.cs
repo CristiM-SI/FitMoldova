@@ -7,7 +7,7 @@ using FitMoldova.Domain.Entities.Club;
 using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Enums;
-namespace FitMoldova.DataAccesLayer; 
+namespace FitMoldova.DataAccesLayer;
 
 public class FitMoldovaContext : DbContext
 {
@@ -20,6 +20,7 @@ public class FitMoldovaContext : DbContext
     public DbSet<RouteEntity> Routes { get; set; }
     public DbSet<EventEntity> Events { get; set; }
     public DbSet<ClubEntity> Clubs { get; set; }
+    public DbSet<ClubMemberEntity> ClubMembers { get; set; }
     public DbSet<ChallengeEntity> Challenges { get; set; }
     public DbSet<PostEntity> Posts { get; set; }
     public DbSet<PostReplyEntity> PostReplies { get; set; }
@@ -39,7 +40,7 @@ public class FitMoldovaContext : DbContext
             .HasMaxLength(20)
             .HasDefaultValue(UserRole.User);
 
-        // ── Activity → User (UserId, ca în migrația originală) ────────────────
+        // ── Activity → User ───────────────────────────────────────────────────
         modelBuilder.Entity<ActivityEntity>()
             .HasOne(a => a.User)
             .WithMany(u => u.Activities)
@@ -60,7 +61,24 @@ public class FitMoldovaContext : DbContext
             .HasOne(ap => ap.User)
             .WithMany()
             .HasForeignKey(ap => ap.UserId)
-            .OnDelete(DeleteBehavior.NoAction); // NoAction pentru a evita multiple cascade paths
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // ── ClubMember → Club și User (N-N) ───────────────────────────────────
+        // Unique constraint împiedică un user să se înscrie de 2× la același club.
+        modelBuilder.Entity<ClubMemberEntity>()
+            .HasIndex(cm => new { cm.ClubId, cm.UserId }).IsUnique();
+
+        modelBuilder.Entity<ClubMemberEntity>()
+            .HasOne(cm => cm.Club)
+            .WithMany(c => c.Members)
+            .HasForeignKey(cm => cm.ClubId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ClubMemberEntity>()
+            .HasOne(cm => cm.User)
+            .WithMany()
+            .HasForeignKey(cm => cm.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         // ── Post → User ───────────────────────────────────────────────────────
         modelBuilder.Entity<PostEntity>()

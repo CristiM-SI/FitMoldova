@@ -9,6 +9,18 @@ namespace FitMoldova.BusinessLogic.Core
      {
           private readonly DbSession _dbSession = new DbSession();
 
+          /// <summary>
+          /// Forțează DateTime.Kind = Utc pentru PostgreSQL (coloană timestamptz).
+          /// Evită eroarea "Cannot write DateTime with Kind=Unspecified".
+          /// </summary>
+          private static DateTime EnsureUtc(DateTime dt) => dt.Kind switch
+          {
+               DateTimeKind.Utc         => dt,
+               DateTimeKind.Local       => dt.ToUniversalTime(),
+               DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+               _                        => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+          };
+
           public ServiceResponse GetAllExecution()
           {
                using var ctx = _dbSession.FitMoldovaContext();
@@ -32,7 +44,7 @@ namespace FitMoldova.BusinessLogic.Core
                {
                     Name = dto.Name,
                     Description = dto.Description,
-                    Date = dto.Date,
+                    Date = EnsureUtc(dto.Date),
                     Location = dto.Location,
                     City = dto.City,
                     Category = dto.Category,
@@ -47,27 +59,6 @@ namespace FitMoldova.BusinessLogic.Core
                return new ServiceResponse { isSuccess = true, Message = "Eveniment creat.", Data = ev };
           }
 
-          public ServiceResponse UpdateEventExecution(int id, EventUpdateDto dto)
-          {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var ev = ctx.Events.FirstOrDefault(e => e.Id == id);
-               if (ev == null)
-                    return new ServiceResponse { isSuccess = false, Message = "Evenimentul nu a fost găsit." };
-
-               ev.Name = dto.Name;
-               ev.Description = dto.Description;
-               ev.Date = dto.Date;
-               ev.Location = dto.Location;
-               ev.City = dto.City;
-               ev.Category = dto.Category;
-               ev.MaxParticipants = dto.MaxParticipants;
-               ev.Price = dto.Price;
-               ev.Organizer = dto.Organizer;
-               ev.Difficulty = dto.Difficulty;
-
-               ctx.SaveChanges();
-               return new ServiceResponse { isSuccess = true, Message = "Eveniment actualizat.", Data = ev };
-          }
 
           public ServiceResponse JoinEventExecution(int eventId, int userId)
           {

@@ -13,6 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
 import { ROUTES } from '../../routes/paths';
+import { useUserClubs } from '../../hooks/useUserClubs';
 
 const STAT_CARDS = [
   { label: 'Activități', hint: 'Adaugă prima activitate', color: '#e8f3ff', iconBg: '#1a6fff', Icon: DirectionsRun, link: ROUTES.ACTIVITIES },
@@ -37,7 +38,8 @@ const PROGRESS_STEPS: {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { progress } = useProgress();
-  const { activitatiCurente, provocariInscrise, cluburiJoined, evenimenteInscrise } = useDashboardData();
+  const { activitatiCurente, provocariInscrise, evenimenteInscrise } = useDashboardData();
+  const { count: cluburiJoinedCount } = useUserClubs();
 
   const registeredDate = useMemo(() =>
     user?.registeredAt
@@ -290,7 +292,7 @@ const Dashboard: React.FC = () => {
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 2.5 }}>📊 Sumarul meu</Typography>
                 {[
-                  { label: 'Cluburi inscrise', value: cluburiJoined.length, icon: '👥', link: ROUTES.CLUBS },
+                  { label: 'Cluburi inscrise', value: cluburiJoinedCount, icon: '👥', link: ROUTES.CLUBS },
                   { label: 'Provocari active', value: provocariInscrise.length, icon: '🏆', link: ROUTES.CHALLENGES },
                   { label: 'Evenimente inscrise', value: evenimenteInscrise.length, icon: '📅', link: ROUTES.EVENTS_DASHBOARD },
                   { label: 'Total activitati', value: activitatiCurente.length, icon: '🏃', link: ROUTES.ACTIVITIES },

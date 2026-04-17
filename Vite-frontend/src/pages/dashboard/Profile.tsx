@@ -11,6 +11,7 @@ import { useUser } from '../../context/UserContext';
 import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
 import { ROUTES } from '../../routes/paths';
+import { useUserClubs } from '../../hooks/useUserClubs';
 
 const AVATAR_COLORS = ['#1a6fff', '#00c8a0', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -27,7 +28,8 @@ const Profile: React.FC = () => {
     const { user: authUser } = useAuth();
     const { user, updateUser } = useUser();
     const { completeProfile } = useProgress();
-    const { activitatiCurente, provocariInscrise, cluburiJoined } = useDashboardData();
+    const { activitatiCurente, provocariInscrise } = useDashboardData();
+    const { count: cluburiJoinedCount } = useUserClubs();
     const navigate = useNavigate();
 
     const [isEditing, setIsEditing] = useState(false);
@@ -222,7 +224,7 @@ const Profile: React.FC = () => {
                             {[
                                 { label: 'Activitati inregistrate', value: activitatiCurente.length, emoji: '🏃', color: '#1a6fff', bg: '#f0f7ff' },
                                 { label: 'Provocari active', value: provocariInscrise.length, emoji: '🏆', color: '#f59e0b', bg: '#fffbeb' },
-                                { label: 'Cluburi inscrise', value: cluburiJoined.length, emoji: '👥', color: '#10b981', bg: '#ecfdf5' },
+                                { label: 'Cluburi inscrise', value: cluburiJoinedCount, emoji: '👥', color: '#10b981', bg: '#ecfdf5' },
                                 { label: 'Completare profil', value: `${profileCompletion}%`, emoji: '⭐', color: '#a855f7', bg: '#fdf4ff' },
                             ].map((s) => (
                                 <Box key={s.label} sx={{ flex: '1 1 160px', minWidth: 0 }}>

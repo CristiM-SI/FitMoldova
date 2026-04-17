@@ -45,16 +45,6 @@ public class EventController : ControllerBase
      }
 
 
-     [HttpPut("{id}")]
-     public IActionResult Update(int id, [FromBody] EventUpdateDto dto)
-     {
-          var result = _eventLogic.UpdateEvent(id, dto);
-          if (!result.isSuccess)
-               return NotFound(result);
-          return Ok(result);
-     }
-
-
      [HttpPost("{id}/join/{userId}")]
      public IActionResult Join(int id, int userId)
      {

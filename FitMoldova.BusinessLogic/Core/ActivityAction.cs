@@ -11,6 +11,19 @@ namespace FitMoldova.BusinessLogic.Core
     {
         private readonly DbSession _dbSession = new DbSession();
 
+        /// <summary>
+        /// Forțează DateTime.Kind = Utc pentru PostgreSQL (coloană timestamptz).
+        /// System.Text.Json deserializează "2026-04-17T10:00:00" cu Kind=Unspecified,
+        /// iar Npgsql ≥ 6.0 refuză să-l scrie într-o coloană timestamp with time zone.
+        /// </summary>
+        private static DateTime EnsureUtc(DateTime dt) => dt.Kind switch
+        {
+            DateTimeKind.Utc         => dt,
+            DateTimeKind.Local       => dt.ToUniversalTime(),
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+            _                        => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+        };
+
         public ServiceResponse GetAllExecution()
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -85,7 +98,7 @@ namespace FitMoldova.BusinessLogic.Core
                 Distance = dto.Distance,
                 Duration = dto.Duration,
                 Calories = dto.Calories,
-                Date = dto.Date,
+                Date = EnsureUtc(dto.Date),
                 Description = dto.Description,
                 ImageUrl = dto.ImageUrl,
                 CreatedAt = DateTime.UtcNow
@@ -102,14 +115,14 @@ namespace FitMoldova.BusinessLogic.Core
             if (activity == null)
                 return new ServiceResponse { isSuccess = false, Message = "Activitatea nu a fost găsită." };
 
-            activity.Name      = dto.Name;
-            activity.Type      = dto.Type;
-            activity.Distance  = dto.Distance;
-            activity.Duration  = dto.Duration;
-            activity.Calories  = dto.Calories;
-            activity.Date      = dto.Date;
+            activity.Name        = dto.Name;
+            activity.Type        = dto.Type;
+            activity.Distance    = dto.Distance;
+            activity.Duration    = dto.Duration;
+            activity.Calories    = dto.Calories;
+            activity.Date        = EnsureUtc(dto.Date);
             activity.Description = dto.Description;
-            activity.ImageUrl  = dto.ImageUrl;
+            activity.ImageUrl    = dto.ImageUrl;
 
             ctx.SaveChanges();
             return new ServiceResponse { isSuccess = true, Message = "Activitate actualizată.", Data = activity.Id };

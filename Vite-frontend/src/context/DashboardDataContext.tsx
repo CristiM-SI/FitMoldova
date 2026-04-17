@@ -3,19 +3,20 @@ import { MOCK_ACTIVITATI } from '../services/mock/activitati';
 import type { Activitate } from '../services/mock/activitati';
 import { MOCK_PROVOCARI } from '../services/mock/provocari';
 import type { Provocare } from '../services/mock/provocari';
-import { MOCK_CLUBURI } from '../services/mock/cluburi';
-import type { Club } from '../services/mock/cluburi';
 import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
 import type { Traseu } from '../types/Route';
 
+/**
+ * NOTĂ: cluburile NU mai sunt în acest context. Sunt gestionate exclusiv
+ * prin API (clubApi) cu relația N-N User↔Club în backend. Pentru a afla
+ * cluburile unui user folosește hook-ul useUserClubs() sau clubApi.getUserClubs(userId).
+ */
 interface DashboardData {
     activitatiCurente: Activitate[];
     activitatiDisponibile: Activitate[];
     provocariInscrise: Provocare[];
     provocariDisponibile: Provocare[];
-    cluburiJoined: Club[];
-    cluburiDisponibile: Club[];
     evenimenteInscrise: Eveniment[];
     evenimenteDisponibile: Eveniment[];
     traseeSalvate: Traseu[];
@@ -27,8 +28,6 @@ export interface DashboardDataContextType extends DashboardData {
     addRecomandare: (item: Activitate) => void;
     addProvocare: (item: Provocare) => void;
     removeProvocare: (id: number) => void;
-    addClub: (item: Club) => void;
-    removeClub: (id: number) => void;
     addEveniment: (item: Eveniment) => void;
     removeEveniment: (id: number) => void;
     addTraseu: (item: Traseu) => void;
@@ -43,8 +42,6 @@ const DEFAULT_DATA: DashboardData = {
     activitatiDisponibile: MOCK_ACTIVITATI,
     provocariInscrise: [],
     provocariDisponibile: MOCK_PROVOCARI,
-    cluburiJoined: [],
-    cluburiDisponibile: MOCK_CLUBURI,
     evenimenteInscrise: [],
     evenimenteDisponibile: MOCK_EVENIMENTE,
     traseeSalvate: [],
@@ -52,13 +49,11 @@ const DEFAULT_DATA: DashboardData = {
 
 export const DashboardDataContext = createContext<DashboardDataContextType | undefined>(undefined);
 
-/* ── Helpers ── */
 const ensureArray = <T,>(val: unknown, fallback: T[]): T[] => (Array.isArray(val) ? val as T[] : fallback);
 
 const sanitizeData = (raw: any): DashboardData => {
     if (!raw || typeof raw !== 'object') return DEFAULT_DATA;
 
-    // Deduplicate provocări înscrise
     const seen = new Set<number>();
     const provocariInscrise = ensureArray(raw.provocariInscrise, []).filter((p: Provocare) => {
         if (!p || typeof p.id !== 'number') return false;
@@ -72,8 +67,6 @@ const sanitizeData = (raw: any): DashboardData => {
         activitatiDisponibile:  ensureArray(raw.activitatiDisponibile,  MOCK_ACTIVITATI),
         provocariInscrise,
         provocariDisponibile:   ensureArray(raw.provocariDisponibile,   MOCK_PROVOCARI),
-        cluburiJoined:          ensureArray(raw.cluburiJoined,          []),
-        cluburiDisponibile:     ensureArray(raw.cluburiDisponibile,     MOCK_CLUBURI),
         evenimenteInscrise:     ensureArray(raw.evenimenteInscrise,     []),
         evenimenteDisponibile:  ensureArray(raw.evenimenteDisponibile,  MOCK_EVENIMENTE),
         traseeSalvate:          ensureArray(raw.traseeSalvate,          []),
@@ -93,8 +86,6 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     });
 
     useEffect(() => {
-        // Defer the serialization so it never runs synchronously on the
-        // render-commit phase — avoids blocking the main thread on state updates.
         const id = setTimeout(() => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }, 0);
@@ -136,7 +127,6 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     /* ---- Provocari ---- */
     const addProvocare = useCallback((item: Provocare) => {
         setData((p) => {
-            // Previne duplicatele — dacă deja există cu același id, nu adăuga din nou
             if (p.provocariInscrise.some((x) => x.id === item.id)) return p;
             return {
                 ...p,
@@ -150,33 +140,11 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         setData((p) => {
             const rm = p.provocariInscrise.find((x) => x.id === id);
             if (!rm) return p;
-            // Doar provocările din mock se restaurează în lista disponibilă
             const orig = MOCK_PROVOCARI.find((m) => m.id === id);
             return {
                 ...p,
                 provocariInscrise: p.provocariInscrise.filter((x) => x.id !== id),
                 provocariDisponibile: orig ? [...p.provocariDisponibile, orig] : p.provocariDisponibile,
-            };
-        });
-    }, []);
-
-    /* ---- Cluburi ---- */
-    const addClub = useCallback((item: Club) => {
-        setData((p) => ({
-            ...p,
-            cluburiJoined: [...p.cluburiJoined, item],
-            cluburiDisponibile: p.cluburiDisponibile.filter((c) => c.id !== item.id),
-        }));
-    }, []);
-
-    const removeClub = useCallback((id: number) => {
-        setData((p) => {
-            const rm = p.cluburiJoined.find((c) => c.id === id);
-            const orig = rm ? MOCK_CLUBURI.find((m) => m.name === rm.name) : null;
-            return {
-                ...p,
-                cluburiJoined: p.cluburiJoined.filter((c) => c.id !== id),
-                cluburiDisponibile: orig ? [...p.cluburiDisponibile, orig] : p.cluburiDisponibile,
             };
         });
     }, []);
@@ -226,11 +194,10 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         ...data,
         addActivitate, removeActivitate, addRecomandare,
         addProvocare, removeProvocare,
-        addClub, removeClub,
         addEveniment, removeEveniment,
         addTraseu, removeTraseu,
         resetAll,
-    }), [data, addActivitate, removeActivitate, addRecomandare, addProvocare, removeProvocare, addClub, removeClub, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
+    }), [data, addActivitate, removeActivitate, addRecomandare, addProvocare, removeProvocare, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
 
     return (
         <DashboardDataContext.Provider value={ctxValue}>

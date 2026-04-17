@@ -8,6 +8,7 @@ namespace FitMoldova.Domain.Models.Club
           public string Description { get; set; } = string.Empty;
           public string Schedule { get; set; } = string.Empty;
           public string Level { get; set; } = string.Empty;
+          public string ImageUrl { get; set; } = string.Empty;
           public double Rating { get; set; }
      }
 }

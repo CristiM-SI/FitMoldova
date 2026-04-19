@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { MOCK_USERS } from '../services/mock/Mockdata';
 import { userApi } from '../services/api/userApi';
 
 export interface User {
@@ -71,78 +70,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading] = useState(false);
 
     const register = async (data: { firstName: string; lastName: string; email: string; password: string }): Promise<AuthResult> => {
-        try {
-            const res = await userApi.register(data.firstName, data.lastName, data.email, data.password);
-            if (res.isSuccess && res.data != null) {
-                const d = res.data;
-                const newUser: User = {
-                    id: d.id,
-                    username: d.username,
-                    firstName: d.firstName,
-                    lastName: d.lastName,
-                    email: d.email,
-                    avatar: `${d.firstName[0]}${d.lastName[0]}`.toUpperCase(),
-                    registeredAt: d.registeredAt,
-                    isAdmin: false,
-                };
-                applyAuth(newUser, setUser, setIsAuthenticated, setIsAdmin);
-                return { success: true };
-            }
-            return { success: false, error: res.message ?? 'Eroare la inregistrare.' };
-        } catch {
-            return { success: false, error: 'Eroare de conexiune la server. Asigura-te ca backend-ul ruleaza.' };
+    try {
+        const res = await userApi.register(data.firstName, data.lastName, data.email, data.password);
+        if (res.isSuccess) {
+            // după register, facem login automat ca să obținem JWT
+            return await login(data.email, data.password);
         }
-    };
+        return { success: false, error: res.message ?? 'Eroare la inregistrare.' };
+    } catch (err: any) {
+        return { success: false, error: err.message ?? 'Eroare de conexiune.' };
+    }
+};
 
     const login = async (username: string, password: string): Promise<AuthResult> => {
-        // ── Verificare mock users ──────────────────────────────────────
-        const mockUser = MOCK_USERS.find(
-            (u) => u.username === username && u.password === password
-        );
-        if (mockUser) {
-            const loggedUser: User = {
-                id: mockUser.id,
-                username: mockUser.username,
-                firstName: mockUser.firstName,
-                lastName: mockUser.lastName,
-                email: mockUser.email,
-                avatar: mockUser.avatar,
-                registeredAt: mockUser.registeredAt,
-                isAdmin: mockUser.isAdmin === true,
-            };
-            applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
-            return { success: true };
-        }
-        // ── Apel API real (backend) ────────────────────────────────────
-        try {
-            const res = await userApi.login(username, password);
-            if (res.isSuccess && res.data) {
-                const d = res.data;
-                const loggedUser: User = {
-                    id: d.id,
-                    username: d.username,
-                    firstName: d.firstName,
-                    lastName: d.lastName,
-                    email: d.email,
-                    avatar: `${d.firstName[0]}${d.lastName[0]}`.toUpperCase(),
-                    registeredAt: d.registeredAt,
-                    isAdmin: d.role === 'Admin',
-                };
-                applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
-                return { success: true };
-            }
-            return { success: false, error: res.message ?? 'Utilizator sau parola incorecta' };
-        } catch {
-            return { success: false, error: 'Eroare de conexiune la server. Asigura-te ca backend-ul ruleaza pe localhost:5296.' };
-        }
-    };
+    try {
+        const res = await userApi.login(username, password);
+        // res este direct { token, expiresAt, userId, username, ... }
+        localStorage.setItem('fitmoldova_token', res.token);
+        const loggedUser: User = {
+            id: res.userId,
+            username: res.username,
+            firstName: res.firstName,
+            lastName: res.lastName,
+            email: res.email,
+            avatar: `${res.firstName[0]}${res.lastName[0]}`.toUpperCase(),
+            registeredAt: res.expiresAt,
+            isAdmin: res.role === 'Admin',
+        };
+        applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
+        return { success: true };
+    } catch (err: any) {
+        return { success: false, error: err.message ?? 'Eroare de conexiune.' };
+    }
+};
 
-    const logout = () => {
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsAdmin(false);
-        localStorage.removeItem('fitmoldova_user');
-    };
+const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    setIsAdmin(false);
+    localStorage.removeItem('fitmoldova_user');
+    localStorage.removeItem('fitmoldova_token');
+};
 
     return (
         <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, loading, register, login, logout }}>

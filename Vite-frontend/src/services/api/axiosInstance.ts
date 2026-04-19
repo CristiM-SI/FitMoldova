@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const BASE_URL = 'http://localhost:5296/api';
+export const BASE_URL = 'http://localhost:20111/api';
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -20,6 +20,14 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        // ← NOU: dacă tokenul expiră, delogăm automat
+        if (error.response?.status === 401) {
+            localStorage.removeItem('fitmoldova_token');
+            localStorage.removeItem('fitmoldova_user');
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+        }
         const message: string =
             error.response?.data?.message ??
             error.message ??

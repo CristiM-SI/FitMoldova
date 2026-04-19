@@ -60,6 +60,26 @@ namespace FitMoldova.BusinessLogic.Core
           }
 
 
+          public ServiceResponse UpdateEventExecution(int id, EventCreateDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var ev = ctx.Events.FirstOrDefault(e => e.Id == id);
+               if (ev == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Evenimentul nu a fost găsit." };
+               ev.Name = dto.Name;
+               ev.Description = dto.Description;
+               ev.Date = EnsureUtc(dto.Date);
+               ev.Location = dto.Location;
+               ev.City = dto.City;
+               ev.Category = dto.Category;
+               ev.MaxParticipants = dto.MaxParticipants;
+               ev.Price = dto.Price;
+               ev.Organizer = dto.Organizer;
+               ev.Difficulty = dto.Difficulty;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Eveniment actualizat.", Data = ev };
+          }
+
           public ServiceResponse JoinEventExecution(int eventId, int userId)
           {
                using var ctx = _dbSession.FitMoldovaContext();

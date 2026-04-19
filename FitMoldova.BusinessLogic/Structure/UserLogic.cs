@@ -12,5 +12,7 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse GetById(int id) => GetByIdExecution(id);
           public ServiceResponse Update(int id, UserUpdateDto dto) => UpdateExecution(id, dto);
           public ServiceResponse Delete(int id) => DeleteExecution(id);
+          public ServiceResponse GetProfile(int userId) => GetProfileExecution(userId);
+          public ServiceResponse UpdateProfile(int userId, UserUpdateProfileDto dto) => UpdateProfileExecution(userId, dto);
      }
 }

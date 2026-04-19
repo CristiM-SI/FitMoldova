@@ -10,5 +10,7 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse GetById(int id);
           ServiceResponse Update(int id, UserUpdateDto dto);
           ServiceResponse Delete(int id);
+          ServiceResponse GetProfile(int userId);
+          ServiceResponse UpdateProfile(int userId, UserUpdateProfileDto dto);
      }
 }

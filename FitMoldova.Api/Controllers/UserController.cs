@@ -83,39 +83,21 @@ public class UserController : ControllerBase
      
      [HttpGet("profile")]
      [Authorize]
-     public async Task<IActionResult> GetProfile()
+     public IActionResult GetProfile()
      {
           var userId = int.Parse(User.FindFirst("userId")!.Value);
-          var user = await _context.Users.FindAsync(userId);
-          if (user == null) return NotFound();
-
-          return Ok(new {
-               user.Id,
-               user.Name,
-               user.Email,
-               user.Phone,
-               user.Location,
-               user.Bio,
-               user.ProfileImageUrl,
-               user.Role,
-               user.CreatedAt
-          });
+          var result = _userLogic.GetProfile(userId);
+          if (!result.isSuccess) return NotFound(result);
+          return Ok(result);
      }
 
      [HttpPut("profile")]
      [Authorize]
-     public async Task<IActionResult> UpdateProfile([FromBody] UserUpdateProfileDto dto)
+     public IActionResult UpdateProfile([FromBody] UserUpdateProfileDto dto)
      {
           var userId = int.Parse(User.FindFirst("userId")!.Value);
-          var user = await _context.Users.FindAsync(userId);
-          if (user == null) return NotFound();
-
-          user.Name = dto.Name ?? user.Name;
-          user.Phone = dto.Phone ?? user.Phone;
-          user.Location = dto.Location ?? user.Location;
-          user.Bio = dto.Bio ?? user.Bio;
-
-          await _context.SaveChangesAsync();
-          return Ok(new { message = "Profil actualizat." });
+          var result = _userLogic.UpdateProfile(userId, dto);
+          if (!result.isSuccess) return NotFound(result);
+          return Ok(result);
      }
 }

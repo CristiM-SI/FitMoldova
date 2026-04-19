@@ -2,6 +2,7 @@
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -78,5 +79,43 @@ public class UserController : ControllerBase
           var result = _userLogic.Delete(id);
           if (!result.isSuccess) return NotFound(result);
           return NoContent();
+     }
+     
+     [HttpGet("profile")]
+     [Authorize]
+     public async Task<IActionResult> GetProfile()
+     {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
+          var user = await _context.Users.FindAsync(userId);
+          if (user == null) return NotFound();
+
+          return Ok(new {
+               user.Id,
+               user.Name,
+               user.Email,
+               user.Phone,
+               user.Location,
+               user.Bio,
+               user.ProfileImageUrl,
+               user.Role,
+               user.CreatedAt
+          });
+     }
+
+     [HttpPut("profile")]
+     [Authorize]
+     public async Task<IActionResult> UpdateProfile([FromBody] UserUpdateProfileDto dto)
+     {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
+          var user = await _context.Users.FindAsync(userId);
+          if (user == null) return NotFound();
+
+          user.Name = dto.Name ?? user.Name;
+          user.Phone = dto.Phone ?? user.Phone;
+          user.Location = dto.Location ?? user.Location;
+          user.Bio = dto.Bio ?? user.Bio;
+
+          await _context.SaveChangesAsync();
+          return Ok(new { message = "Profil actualizat." });
      }
 }

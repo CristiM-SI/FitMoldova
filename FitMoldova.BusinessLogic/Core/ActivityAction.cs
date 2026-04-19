@@ -1,4 +1,5 @@
-﻿using FitMoldova.DataAccesLayer;
+﻿using AutoMapper;
+using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Activity;
 using FitMoldova.Domain.Enums;
 using FitMoldova.Domain.Models.Activity;
@@ -10,11 +11,19 @@ namespace FitMoldova.BusinessLogic.Core
     public class ActivityAction
     {
         private readonly DbSession _dbSession = new DbSession();
+        private readonly IMapper _mapper;
+
+        /// <summary>
+        /// Primește IMapper prin DI. Mapper-ul e thread-safe și reutilizabil,
+        /// o singură instanță pe toată aplicația.
+        /// </summary>
+        public ActivityAction(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
 
         /// <summary>
         /// Forțează DateTime.Kind = Utc pentru PostgreSQL (coloană timestamptz).
-        /// System.Text.Json deserializează "2026-04-17T10:00:00" cu Kind=Unspecified,
-        /// iar Npgsql ≥ 6.0 refuză să-l scrie într-o coloană timestamp with time zone.
         /// </summary>
         private static DateTime EnsureUtc(DateTime dt) => dt.Kind switch
         {
@@ -27,6 +36,8 @@ namespace FitMoldova.BusinessLogic.Core
         public ServiceResponse GetAllExecution()
         {
             using var ctx = _dbSession.FitMoldovaContext();
+            // NU folosim AutoMapper aici — proiecția .Select() e tradusă de EF Core
+            // direct în SQL cu doar coloanele necesare + JOIN pe User + COUNT pe Participants.
             var list = ctx.Activities
                 .Include(a => a.User)
                 .Include(a => a.Participants)
@@ -90,19 +101,13 @@ namespace FitMoldova.BusinessLogic.Core
                     return new ServiceResponse { isSuccess = false, Message = "Nu există niciun admin în baza de date." };
             }
 
-            var activity = new ActivityEntity
-            {
-                UserId = creator.Id,
-                Name = dto.Name,
-                Type = dto.Type,
-                Distance = dto.Distance,
-                Duration = dto.Duration,
-                Calories = dto.Calories,
-                Date = EnsureUtc(dto.Date),
-                Description = dto.Description,
-                ImageUrl = dto.ImageUrl,
-                CreatedAt = DateTime.UtcNow
-            };
+            // AutoMapper convertește toate câmpurile comune DTO → Entity.
+            // Câmpurile server-side (UserId rezolvat, Date cu UTC forțat) le setăm manual.
+            var activity = _mapper.Map<ActivityEntity>(dto);
+            activity.UserId = creator.Id;
+            activity.Date   = EnsureUtc(dto.Date);
+            // CreatedAt e setat de MappingProfile (DateTime.UtcNow)
+
             ctx.Activities.Add(activity);
             ctx.SaveChanges();
             return new ServiceResponse { isSuccess = true, Message = "Activitate creată.", Data = activity.Id };
@@ -115,14 +120,10 @@ namespace FitMoldova.BusinessLogic.Core
             if (activity == null)
                 return new ServiceResponse { isSuccess = false, Message = "Activitatea nu a fost găsită." };
 
-            activity.Name        = dto.Name;
-            activity.Type        = dto.Type;
-            activity.Distance    = dto.Distance;
-            activity.Duration    = dto.Duration;
-            activity.Calories    = dto.Calories;
-            activity.Date        = EnsureUtc(dto.Date);
-            activity.Description = dto.Description;
-            activity.ImageUrl    = dto.ImageUrl;
+            // Map peste entitatea existentă — AutoMapper copiază câmpurile comune.
+            _mapper.Map(dto, activity);
+            // Corectăm DateTime.Kind post-mapping.
+            activity.Date = EnsureUtc(dto.Date);
 
             ctx.SaveChanges();
             return new ServiceResponse { isSuccess = true, Message = "Activitate actualizată.", Data = activity.Id };

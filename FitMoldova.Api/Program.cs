@@ -2,11 +2,12 @@ using System.Text;
 using FitMoldova.BusinessLogic.Core;
 using Microsoft.EntityFrameworkCore;
 using FitMoldova.DataAccesLayer;
+using FitMoldova.BusinessLogic.Mappings;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -14,6 +15,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<FitMoldovaContext>(options =>
      options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ── AutoMapper ───────────────────────────────────────────────────────────
+// Scanează asamblarea care conține MappingProfile și înregistrează toate
+// profilurile găsite (Profile-derived classes). IMapper devine disponibil
+// prin DI în orice clasă care-l cere în constructor.
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
 builder.Services.AddCors(options =>
 {

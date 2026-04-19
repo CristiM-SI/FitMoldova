@@ -1,4 +1,5 @@
-﻿using FitMoldova.BusinessLogic;
+﻿using AutoMapper;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Activity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,13 @@ public class ActivityController : ControllerBase
 {
      private readonly IActivityLogic _activityLogic;
 
-     public ActivityController()
+     /// <summary>
+     /// IMapper e injectat de ASP.NET DI (înregistrat în Program.cs prin
+     /// AddAutoMapper). Îl pasăm către aggregator-ul BusinessLogic.
+     /// </summary>
+     public ActivityController(IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new BusinessLogic(mapper);
           _activityLogic = bl.ActivityLogic();
      }
 

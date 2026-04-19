@@ -1,3 +1,4 @@
+using AutoMapper;
 using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Club;
 using FitMoldova.Domain.Models.Club;
@@ -9,12 +10,17 @@ namespace FitMoldova.BusinessLogic.Core
     public class ClubAction
     {
         private readonly DbSession _dbSession = new DbSession();
+        private readonly IMapper _mapper;
+
+        public ClubAction(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
 
         public ServiceResponse GetAllExecution()
         {
             using var ctx = _dbSession.FitMoldovaContext();
-            // Proiectăm direct în ClubInfoDto — MembersCount calculat prin COUNT(*)
-            // pe relația Members. Eficient: devine un SQL JOIN + GROUP BY.
+            // Proiecție LINQ — EF Core traduce în SQL cu COUNT(*) pe ClubMembers.
             var list = ctx.Clubs
                 .OrderByDescending(c => c.Rating)
                 .Select(c => new ClubInfoDto
@@ -61,20 +67,15 @@ namespace FitMoldova.BusinessLogic.Core
         public ServiceResponse CreateClubExecution(ClubCreateDto dto)
         {
             using var ctx = _dbSession.FitMoldovaContext();
-            var club = new ClubEntity
-            {
-                Name = dto.Name,
-                Category = dto.Category,
-                Location = dto.Location,
-                Description = dto.Description,
-                Schedule = dto.Schedule,
-                Level = dto.Level,
-                ImageUrl = dto.ImageUrl,
-                Rating = 0
-            };
+
+            // AutoMapper convertește toate câmpurile DTO → Entity. Rating-ul
+            // e setat la 0 prin configurația din MappingProfile.
+            var club = _mapper.Map<ClubEntity>(dto);
+
             ctx.Clubs.Add(club);
             ctx.SaveChanges();
 
+            // Răspuns: întoarcem DTO-ul cu id-ul generat și MembersCount = 0.
             var result = new ClubInfoDto
             {
                 Id = club.Id,
@@ -98,14 +99,8 @@ namespace FitMoldova.BusinessLogic.Core
             if (club == null)
                 return new ServiceResponse { isSuccess = false, Message = "Clubul nu a fost găsit." };
 
-            club.Name = dto.Name;
-            club.Category = dto.Category;
-            club.Location = dto.Location;
-            club.Description = dto.Description;
-            club.Schedule = dto.Schedule;
-            club.Level = dto.Level;
-            club.ImageUrl = dto.ImageUrl;
-            club.Rating = dto.Rating;
+            // Map peste entitatea existentă, păstrând Id-ul și relațiile.
+            _mapper.Map(dto, club);
 
             ctx.SaveChanges();
 
@@ -126,10 +121,6 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Club actualizat.", Data = result };
         }
 
-        /// <summary>
-        /// Înscrie un user într-un club. N-N: inserează rând în ClubMembers.
-        /// Unique constraint pe (ClubId, UserId) + verificare explicită împiedică duplicatele.
-        /// </summary>
         public ServiceResponse JoinClubExecution(int clubId, int userId)
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -156,9 +147,6 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Te-ai alăturat clubului." };
         }
 
-        /// <summary>
-        /// Părăsește clubul — șterge rândul din ClubMembers.
-        /// </summary>
         public ServiceResponse LeaveClubExecution(int clubId, int userId)
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -172,9 +160,6 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Ai părăsit clubul." };
         }
 
-        /// <summary>
-        /// Returnează lista membrilor unui club (id, username, data înscrierii).
-        /// </summary>
         public ServiceResponse GetMembersExecution(int clubId)
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -191,10 +176,6 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Data = members };
         }
 
-        /// <summary>
-        /// Returnează cluburile în care un user este membru — folosit de frontend
-        /// pentru a ști ce cluburi să marcheze ca „Înscris".
-        /// </summary>
         public ServiceResponse GetUserClubsExecution(int userId)
         {
             using var ctx = _dbSession.FitMoldovaContext();
@@ -227,7 +208,6 @@ namespace FitMoldova.BusinessLogic.Core
             var club = ctx.Clubs.FirstOrDefault(c => c.Id == id);
             if (club == null)
                 return new ServiceResponse { isSuccess = false, Message = "Clubul nu a fost găsit." };
-            // Cascade delete configurat în OnModelCreating șterge automat rândurile din ClubMembers
             ctx.Clubs.Remove(club);
             ctx.SaveChanges();
             return new ServiceResponse { isSuccess = true, Message = "Club șters." };

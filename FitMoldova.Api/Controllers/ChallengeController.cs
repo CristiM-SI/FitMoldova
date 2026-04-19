@@ -1,4 +1,5 @@
-﻿using FitMoldova.BusinessLogic;
+﻿using AutoMapper;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Challenge;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,9 @@ public class ChallengeController : ControllerBase
 {
      private readonly IChallengeLogic _challengeLogic;
 
-     public ChallengeController()
+     public ChallengeController(IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new FitMoldova.BusinessLogic.BusinessLogic(mapper);
           _challengeLogic = bl.ChallengeLogic();
      }
 

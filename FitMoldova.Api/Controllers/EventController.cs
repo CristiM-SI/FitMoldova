@@ -1,4 +1,5 @@
-﻿using FitMoldova.BusinessLogic;
+﻿using AutoMapper;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Event;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,9 @@ public class EventController : ControllerBase
 {
      private readonly IEventLogic _eventLogic;
 
-     public EventController()
+     public EventController(IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new BusinessLogic(mapper);
           _eventLogic = bl.EventLogic();
      }
 

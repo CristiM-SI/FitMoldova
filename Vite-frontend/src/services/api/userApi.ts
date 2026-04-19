@@ -35,6 +35,17 @@ export interface UserProfile {
     createdAt: string;
 }
 
+export interface AdminUserDto {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    createdAt: string;
+}
+
 export interface ServiceResponse<T = unknown> {
     isSuccess: boolean;
     message?: string;
@@ -71,4 +82,19 @@ export const userApi = {
 
     delete: (id: number) =>
         axiosInstance.delete(`/user/${id}`).then(() => {}),
+
+    getAll: () =>
+        axiosInstance
+            .get<ServiceResponse<AdminUserDto[]>>('/user')
+            .then((r) => r.data.data ?? []),
+
+    changeRole: (id: number, role: string) =>
+        axiosInstance
+            .patch<ServiceResponse<void>>(`/user/${id}/role`, { role })
+            .then((r) => r.data),
+
+    changeStatus: (id: number, isActive: boolean) =>
+        axiosInstance
+            .patch<ServiceResponse<void>>(`/user/${id}/status`, { isActive })
+            .then((r) => r.data),
 };

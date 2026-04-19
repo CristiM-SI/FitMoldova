@@ -114,5 +114,43 @@ namespace FitMoldova.BusinessLogic.Core
                ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Cont șters." };
           }
+
+          public ServiceResponse GetProfileExecution(int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == userId);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               return new ServiceResponse
+               {
+                    isSuccess = true,
+                    Data = new
+                    {
+                         user.Id,
+                         user.FirstName,
+                         user.LastName,
+                         user.Email,
+                         user.Phone,
+                         user.Location,
+                         user.Bio,
+                         user.ProfileImageUrl,
+                         Role = user.Role.ToString(),
+                         user.CreatedAt
+                    }
+               };
+          }
+
+          public ServiceResponse UpdateProfileExecution(int userId, UserUpdateProfileDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == userId);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               if (dto.Phone != null) user.Phone = dto.Phone;
+               if (dto.Location != null) user.Location = dto.Location;
+               if (dto.Bio != null) user.Bio = dto.Bio;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Profil actualizat." };
+          }
      }
 }

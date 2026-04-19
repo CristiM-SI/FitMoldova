@@ -3,6 +3,7 @@ using FitMoldova.Domain.Entities.User;
 using FitMoldova.Domain.Enums;
 using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
+using BC = BCrypt.Net.BCrypt;
 
 namespace FitMoldova.BusinessLogic.Core
 {
@@ -30,7 +31,7 @@ namespace FitMoldova.BusinessLogic.Core
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
                     Email = dto.Email,
-                    Password = dto.Password,
+                    Password = BC.HashPassword(dto.Password),
                     CreatedAt = DateTime.UtcNow,
                     Role = UserRole.User
                };
@@ -57,9 +58,8 @@ namespace FitMoldova.BusinessLogic.Core
           {
                using var ctx = _dbSession.FitMoldovaContext();
                var user = ctx.Users.FirstOrDefault(u =>
-                   (u.Username == dto.Username || u.Email == dto.Username)
-                   && u.Password == dto.Password);
-               if (user == null)
+                    u.Username == dto.Username || u.Email == dto.Username);
+               if (user == null || !BC.Verify(dto.Password, user.Password))
                     return new ServiceResponse { isSuccess = false, Message = "Credențiale incorecte." };
                return new ServiceResponse
                {
@@ -72,7 +72,7 @@ namespace FitMoldova.BusinessLogic.Core
                          user.FirstName,
                          user.LastName,
                          user.Email,
-                         user.Role,
+                         Role = user.Role.ToString(),
                          RegisteredAt = user.CreatedAt.ToString("o")
                     }
                };

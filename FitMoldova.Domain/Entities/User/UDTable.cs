@@ -33,6 +33,22 @@ namespace FitMoldova.Domain.Entities.User
           public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
           public UserRole Role { get; set; } = UserRole.User;
+          
+          [StringLength(20)]
+          public string? Phone { get; set; }
+
+          [StringLength(100)]
+          public string? Location { get; set; }
+
+          [StringLength(500)]
+          public string? Bio { get; set; }
+
+          [StringLength(300)]
+          public string? ProfileImageUrl { get; set; }
+
+          public bool IsActive { get; set; } = true;
+
+          public DateTime? LastLoginAt { get; set; }
 
           public ICollection<ActivityEntity> Activities { get; set; } = new List<ActivityEntity>();
           public ICollection<PostEntity> Posts { get; set; } = new List<PostEntity>();

@@ -21,6 +21,20 @@ export interface RegisterResponse {
     registeredAt: string;
 }
 
+export interface UserProfile {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    phone: string | null;
+    location: string | null;
+    bio: string | null;
+    profileImageUrl: string | null;
+    createdAt: string;
+}
+
 export interface ServiceResponse<T = unknown> {
     isSuccess: boolean;
     message?: string;
@@ -40,12 +54,19 @@ export const userApi = {
 
     getById: (id: number) =>
         axiosInstance
-            .get<ServiceResponse<LoginResponse>>(`/user/${id}`)
+            .get<ServiceResponse<UserProfile>>(`/user/${id}`)
             .then((r) => r.data),
 
-    update: (id: number, firstName: string, lastName: string, email: string) =>
+    update: (id: number, data: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone?: string;
+        location?: string;
+        bio?: string;
+    }) =>
         axiosInstance
-            .put<ServiceResponse<void>>(`/user/${id}`, { firstName, lastName, email })
+            .put<ServiceResponse<void>>(`/user/${id}`, data)
             .then((r) => r.data),
 
     delete: (id: number) =>

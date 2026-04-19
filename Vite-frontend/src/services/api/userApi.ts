@@ -1,13 +1,14 @@
 import axiosInstance from './axiosInstance';
 
 export interface LoginResponse {
-    id: number;
+    token: string;
+    expiresAt: string;
+    userId: number;
     username: string;
     firstName: string;
     lastName: string;
     email: string;
     role: string; // "User" | "Moderator" | "Admin"
-    registeredAt: string;
 }
 
 export interface RegisterResponse {
@@ -29,7 +30,7 @@ export interface ServiceResponse<T = unknown> {
 export const userApi = {
     login: (username: string, password: string) =>
         axiosInstance
-            .post<ServiceResponse<LoginResponse>>('/user/login', { username, password })
+            .post<LoginResponse>('/user/login', { username, password })
             .then((r) => r.data),
 
     register: (firstName: string, lastName: string, email: string, password: string) =>

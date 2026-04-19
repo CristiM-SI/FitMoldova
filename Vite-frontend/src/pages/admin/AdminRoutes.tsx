@@ -1,44 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Table, Card, Input, Space, Tag, Button, Modal, Form,
     Select, InputNumber, Typography, Popconfirm, message,
-    Switch, Row, Col, Statistic,
+    Switch, Row, Col, Statistic, Spin, Alert,
 } from 'antd';
 import {
     SearchOutlined, PlusOutlined, EditOutlined,
-    DeleteOutlined, CompassOutlined,
+    DeleteOutlined, CompassOutlined, ReloadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { MOCK_TRASEE } from '../../services/mock/trasee';
-import type { Traseu, RouteType, RouteDifficulty, RouteSurface } from '../../types/Route';
+import { routeApi, type RouteDto, type RouteCreatePayload } from '../../services/api/routeApi';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
+type RouteType = 'alergare' | 'ciclism' | 'drumeție' | 'trail';
+type RouteDifficulty = 'Ușor' | 'Mediu' | 'Avansat';
+type RouteSurface = 'asfalt' | 'macadam' | 'potecă' | 'mix';
+
 const ROUTE_TYPES: RouteType[] = ['alergare', 'ciclism', 'drumeție', 'trail'];
 const DIFFICULTIES: RouteDifficulty[] = ['Ușor', 'Mediu', 'Avansat'];
 const SURFACES: RouteSurface[] = ['asfalt', 'macadam', 'potecă', 'mix'];
 
-const TYPE_COLORS: Record<RouteType, string> = {
+const TYPE_COLORS: Record<string, string> = {
     alergare: 'blue', ciclism: 'green', drumeție: 'orange', trail: 'brown',
 };
-const DIFF_COLORS: Record<RouteDifficulty, string> = {
+const DIFF_COLORS: Record<string, string> = {
     Ușor: 'green', Mediu: 'orange', Avansat: 'red',
 };
-const TYPE_ICONS: Record<RouteType, string> = {
+const TYPE_ICONS: Record<string, string> = {
     alergare: '🏃', ciclism: '🚴', drumeție: '🥾', trail: '⛰️',
 };
 
 const AdminRoutes: React.FC = () => {
-    const [routes, setRoutes] = useState<Traseu[]>(MOCK_TRASEE);
+    const [routes, setRoutes] = useState<RouteDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState<RouteType | 'all'>('all');
     const [filterDiff, setFilterDiff] = useState<RouteDifficulty | 'all'>('all');
     const [modalOpen, setModalOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<Traseu | null>(null);
+    const [editTarget, setEditTarget] = useState<RouteDto | null>(null);
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+
+    const fetchRoutes = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await routeApi.getAll();
+            setRoutes(data);
+        } catch {
+            setError('Nu s-au putut încărca traseele. Verifică că serverul rulează.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchRoutes(); }, [fetchRoutes]);
 
     const filtered = routes.filter(r => {
         const term = search.toLowerCase();
@@ -51,8 +72,10 @@ const AdminRoutes: React.FC = () => {
         return matchSearch && matchType && matchDiff;
     });
 
-    const totalDistance = routes.reduce((s, r) => s + r.distance, 0);
-    const avgDuration = Math.round(routes.reduce((s, r) => s + r.estimatedDuration, 0) / routes.length);
+    const totalDistance = routes.reduce((s, r) => s + (r.distance ?? 0), 0);
+    const avgDuration = routes.length > 0
+        ? Math.round(routes.reduce((s, r) => s + (r.estimatedDuration ?? 0), 0) / routes.length)
+        : 0;
 
     const openAdd = () => {
         setEditTarget(null);
@@ -60,11 +83,10 @@ const AdminRoutes: React.FC = () => {
         setModalOpen(true);
     };
 
-    const openEdit = (record: Traseu) => {
+    const openEdit = (record: RouteDto) => {
         setEditTarget(record);
         form.setFieldsValue({
             name: record.name,
-            icon: record.icon,
             type: record.type,
             difficulty: record.difficulty,
             distance: record.distance,
@@ -73,47 +95,66 @@ const AdminRoutes: React.FC = () => {
             region: record.region,
             surface: record.surface,
             isLoop: record.isLoop,
-            bestSeason: record.bestSeason,
             description: record.description,
         });
         setModalOpen(true);
     };
 
     const handleSave = () => {
-        form.validateFields().then(values => {
-            if (editTarget) {
-                setRoutes(prev =>
-                    prev.map(r => r.id === editTarget.id ? { ...editTarget, ...values } : r)
-                );
-                messageApi.success('Traseul a fost actualizat.');
-            } else {
-                const newRoute: Traseu = {
-                    ...values,
-                    id: Date.now(),
-                    highlights: [],
-                    path: [],
-                    startPoint: { lat: 47.02, lng: 28.83 },
-                    endPoint: { lat: 47.02, lng: 28.83 },
-                };
-                setRoutes(prev => [newRoute, ...prev]);
-                messageApi.success('Traseul a fost adăugat.');
+        form.validateFields().then(async (values) => {
+            const payload: RouteCreatePayload = {
+                name: values.name,
+                type: values.type,
+                difficulty: values.difficulty,
+                distance: values.distance ?? 0,
+                estimatedDuration: values.estimatedDuration ?? 0,
+                elevationGain: values.elevationGain ?? 0,
+                region: values.region ?? '',
+                surface: values.surface ?? '',
+                isLoop: values.isLoop ?? false,
+                description: values.description ?? '',
+            };
+
+            setActionLoading(true);
+            try {
+                if (editTarget) {
+                    const updated = await routeApi.update(editTarget.id, payload);
+                    setRoutes(prev => prev.map(r => r.id === editTarget.id ? updated : r));
+                    messageApi.success('Traseul a fost actualizat.');
+                } else {
+                    const created = await routeApi.create(payload);
+                    setRoutes(prev => [created, ...prev]);
+                    messageApi.success('Traseul a fost adăugat.');
+                }
+                setModalOpen(false);
+            } catch {
+                messageApi.error('Eroare la salvarea traseului.');
+            } finally {
+                setActionLoading(false);
             }
-            setModalOpen(false);
         });
     };
 
-    const handleDelete = (id: number) => {
-        setRoutes(prev => prev.filter(r => r.id !== id));
-        messageApi.success('Traseul a fost șters.');
+    const handleDelete = async (id: number) => {
+        setActionLoading(true);
+        try {
+            await routeApi.delete(id);
+            setRoutes(prev => prev.filter(r => r.id !== id));
+            messageApi.success('Traseul a fost șters.');
+        } catch {
+            messageApi.error('Eroare la ștergerea traseului.');
+        } finally {
+            setActionLoading(false);
+        }
     };
 
-    const columns: ColumnsType<Traseu> = [
+    const columns: ColumnsType<RouteDto> = [
         {
             title: 'Traseu',
             key: 'name',
             render: (_, record) => (
                 <Space>
-                    <span style={{ fontSize: 20 }}>{record.icon}</span>
+                    <span style={{ fontSize: 20 }}>{TYPE_ICONS[record.type] ?? '📍'}</span>
                     <div>
                         <Text strong style={{ display: 'block' }}>{record.name}</Text>
                         <Text type="secondary" style={{ fontSize: 12 }}>{record.region}</Text>
@@ -125,9 +166,9 @@ const AdminRoutes: React.FC = () => {
             title: 'Tip',
             dataIndex: 'type',
             key: 'type',
-            render: (type: RouteType) => (
-                <Tag color={TYPE_COLORS[type]}>
-                    {TYPE_ICONS[type]} {type}
+            render: (type: string) => (
+                <Tag color={TYPE_COLORS[type] ?? 'default'}>
+                    {TYPE_ICONS[type] ?? ''} {type}
                 </Tag>
             ),
         },
@@ -135,7 +176,7 @@ const AdminRoutes: React.FC = () => {
             title: 'Dificultate',
             dataIndex: 'difficulty',
             key: 'difficulty',
-            render: (diff: RouteDifficulty) => <Tag color={DIFF_COLORS[diff]}>{diff}</Tag>,
+            render: (diff: string) => <Tag color={DIFF_COLORS[diff] ?? 'default'}>{diff}</Tag>,
         },
         {
             title: 'Distanță',
@@ -161,7 +202,7 @@ const AdminRoutes: React.FC = () => {
             title: 'Suprafață',
             dataIndex: 'surface',
             key: 'surface',
-            render: (s: RouteSurface) => <Tag>{s}</Tag>,
+            render: (s: string) => <Tag>{s}</Tag>,
         },
         {
             title: 'Circuit',
@@ -197,10 +238,24 @@ const AdminRoutes: React.FC = () => {
     return (
         <div>
             {contextHolder}
-            <div style={{ marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0 }}>Gestionare Trasee</Title>
-                <Text type="secondary">Administrează traseele sportive din platformă</Text>
+            <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <Title level={4} style={{ margin: 0 }}>Gestionare Trasee</Title>
+                    <Text type="secondary">Administrează traseele sportive din platformă</Text>
+                </div>
+                <Button icon={<ReloadOutlined />} onClick={fetchRoutes} loading={loading}>
+                    Reîncarcă
+                </Button>
             </div>
+
+            {error && (
+                <Alert
+                    type="error"
+                    message={error}
+                    style={{ marginBottom: 16, borderRadius: 8 }}
+                    action={<Button size="small" onClick={fetchRoutes}>Reîncearcă</Button>}
+                />
+            )}
 
             {/* Summary */}
             <Row gutter={16} style={{ marginBottom: 16 }}>
@@ -259,14 +314,21 @@ const AdminRoutes: React.FC = () => {
             </Card>
 
             <Card style={{ borderRadius: 12 }}>
-                <Table
-                    columns={columns}
-                    dataSource={filtered}
-                    rowKey="id"
-                    pagination={{ pageSize: 8, showSizeChanger: true }}
-                    size="middle"
-                    scroll={{ x: 900 }}
-                />
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: 48 }}>
+                        <Spin size="large" />
+                        <div style={{ marginTop: 12 }}>Se încarcă traseele...</div>
+                    </div>
+                ) : (
+                    <Table
+                        columns={columns}
+                        dataSource={filtered}
+                        rowKey="id"
+                        pagination={{ pageSize: 8, showSizeChanger: true }}
+                        size="middle"
+                        scroll={{ x: 900 }}
+                    />
+                )}
             </Card>
 
             <Modal
@@ -281,23 +343,15 @@ const AdminRoutes: React.FC = () => {
                 onOk={handleSave}
                 okText={editTarget ? 'Salvează' : 'Adaugă'}
                 cancelText="Anulează"
+                confirmLoading={actionLoading}
                 width={680}
                 destroyOnClose
             >
                 <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-                    <Row gutter={16}>
-                        <Col span={18}>
-                            <Form.Item name="name" label="Denumire traseu"
-                                rules={[{ required: true, message: 'Câmp obligatoriu' }]}>
-                                <Input placeholder="Ex: Parcul Valea Morilor - Buiucani" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item name="icon" label="Icon (emoji)">
-                                <Input placeholder="🏃" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                    <Form.Item name="name" label="Denumire traseu"
+                        rules={[{ required: true, message: 'Câmp obligatoriu' }]}>
+                        <Input placeholder="Ex: Parcul Valea Morilor - Buiucani" />
+                    </Form.Item>
 
                     <Form.Item name="description" label="Descriere">
                         <TextArea rows={3} placeholder="Descrierea traseului..." />
@@ -308,7 +362,7 @@ const AdminRoutes: React.FC = () => {
                             <Form.Item name="type" label="Tip traseu"
                                 rules={[{ required: true, message: 'Selectează' }]}>
                                 <Select placeholder="Selectează...">
-                                    {ROUTE_TYPES.map(t => <Option key={t} value={t}>{t}</Option>)}
+                                    {ROUTE_TYPES.map(t => <Option key={t} value={t}>{TYPE_ICONS[t]} {t}</Option>)}
                                 </Select>
                             </Form.Item>
                         </Col>
@@ -354,15 +408,11 @@ const AdminRoutes: React.FC = () => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="bestSeason" label="Sezon recomandat">
-                                <Input placeholder="Ex: Primăvară – Toamnă" />
+                            <Form.Item name="isLoop" label="Traseu circular" valuePropName="checked">
+                                <Switch />
                             </Form.Item>
                         </Col>
                     </Row>
-
-                    <Form.Item name="isLoop" label="Traseu circular" valuePropName="checked">
-                        <Switch />
-                    </Form.Item>
                 </Form>
             </Modal>
         </div>

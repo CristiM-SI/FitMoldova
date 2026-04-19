@@ -8,7 +8,7 @@ namespace FitMoldova.DataAccesLayer
           public FitMoldovaContext CreateDbContext(string[] args)
           {
                var options = new DbContextOptionsBuilder<FitMoldovaContext>()
-                    .UseNpgsql("Host=localhost;Port=5433;Database=FitMoldova;Username=postgres;Password=test1234;")
+                    .UseNpgsql("Host=localhost;Port=5433;Database=FitMoldova;Username=postgres;Password=FitMD26;")
                     .Options;
 
                return new FitMoldovaContext(options);

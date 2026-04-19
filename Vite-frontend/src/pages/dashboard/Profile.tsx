@@ -12,6 +12,7 @@ import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
 import { ROUTES } from '../../routes/paths';
 import { useUserClubs } from '../../hooks/useUserClubs';
+import axiosInstance from '../../services/api/axiosInstance';
 
 const AVATAR_COLORS = ['#1a6fff', '#00c8a0', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -70,12 +71,21 @@ const Profile: React.FC = () => {
         setEditData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleSave = () => {
+const handleSave = async () => {
+    try {
+        await axiosInstance.put('/user/profile', {
+            phone: editData.phone,
+            location: editData.location,
+            bio: editData.bio,
+        });
         updateUser(editData);
         setIsEditing(false);
         setSaved(true);
         if (editData.phone || editData.location || editData.bio) completeProfile();
-    };
+    } catch (err) {
+        console.error('Eroare la salvare profil', err);
+    }
+};
 
     const handleCancel = () => {
         setEditData({

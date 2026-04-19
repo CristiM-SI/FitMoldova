@@ -1,4 +1,5 @@
-﻿const BASE = 'http://localhost:5296/api/activity';
+﻿import { BASE_URL } from './axiosInstance';
+const BASE = `${BASE_URL}/activity`;
 
 export interface ActivityDto {
     id: number;

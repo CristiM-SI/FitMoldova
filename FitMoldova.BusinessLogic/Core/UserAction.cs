@@ -3,6 +3,7 @@ using FitMoldova.Domain.Entities.User;
 using FitMoldova.Domain.Enums;
 using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
+using BC = BCrypt.Net.BCrypt;
 
 namespace FitMoldova.BusinessLogic.Core
 {
@@ -30,7 +31,7 @@ namespace FitMoldova.BusinessLogic.Core
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
                     Email = dto.Email,
-                    Password = dto.Password,
+                    Password = BC.HashPassword(dto.Password),
                     CreatedAt = DateTime.UtcNow,
                     Role = UserRole.User
                };
@@ -57,9 +58,8 @@ namespace FitMoldova.BusinessLogic.Core
           {
                using var ctx = _dbSession.FitMoldovaContext();
                var user = ctx.Users.FirstOrDefault(u =>
-                   (u.Username == dto.Username || u.Email == dto.Username)
-                   && u.Password == dto.Password);
-               if (user == null)
+                    u.Username == dto.Username || u.Email == dto.Username);
+               if (user == null || !BC.Verify(dto.Password, user.Password))
                     return new ServiceResponse { isSuccess = false, Message = "Credențiale incorecte." };
                return new ServiceResponse
                {
@@ -72,7 +72,7 @@ namespace FitMoldova.BusinessLogic.Core
                          user.FirstName,
                          user.LastName,
                          user.Email,
-                         user.Role,
+                         Role = user.Role.ToString(),
                          RegisteredAt = user.CreatedAt.ToString("o")
                     }
                };
@@ -113,6 +113,85 @@ namespace FitMoldova.BusinessLogic.Core
                ctx.Users.Remove(user);
                ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Cont șters." };
+          }
+
+          public ServiceResponse GetAllExecution()
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var users = ctx.Users.Select(u => new
+               {
+                    u.Id,
+                    u.Username,
+                    u.FirstName,
+                    u.LastName,
+                    u.Email,
+                    Role = u.Role.ToString(),
+                    u.IsActive,
+                    u.CreatedAt
+               }).ToList();
+               return new ServiceResponse { isSuccess = true, Data = users };
+          }
+
+          public ServiceResponse ChangeRoleExecution(int id, ChangeRoleDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               if (!Enum.TryParse<UserRole>(dto.Role, ignoreCase: true, out var newRole))
+                    return new ServiceResponse { isSuccess = false, Message = "Rol invalid." };
+               user.Role = newRole;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Rol actualizat." };
+          }
+
+          public ServiceResponse ChangeStatusExecution(int id, ChangeStatusDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               user.IsActive = dto.IsActive;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = dto.IsActive ? "Utilizator reactivat." : "Utilizator blocat." };
+          }
+
+          public ServiceResponse GetProfileExecution(int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == userId);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               return new ServiceResponse
+               {
+                    isSuccess = true,
+                    Data = new
+                    {
+                         user.Id,
+                         user.FirstName,
+                         user.LastName,
+                         user.Email,
+                         user.Phone,
+                         user.Location,
+                         user.Bio,
+                         user.ProfileImageUrl,
+                         Role = user.Role.ToString(),
+                         user.CreatedAt
+                    }
+               };
+          }
+
+          public ServiceResponse UpdateProfileExecution(int userId, UserUpdateProfileDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == userId);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               if (dto.Phone != null) user.Phone = dto.Phone;
+               if (dto.Location != null) user.Location = dto.Location;
+               if (dto.Bio != null) user.Bio = dto.Bio;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Profil actualizat." };
           }
      }
 }

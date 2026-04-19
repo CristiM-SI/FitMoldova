@@ -1,4 +1,5 @@
-﻿using FitMoldova.BusinessLogic;
+using AutoMapper;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.User;
@@ -11,10 +12,10 @@ public class UserController : ControllerBase
 {
      private readonly IUserLogic _userLogic;
      private readonly JwtService _jwtService;
-
-     public UserController(JwtService jwtService)
+     
+     public UserController(JwtService jwtService, IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new BusinessLogic(mapper);
           _userLogic = bl.UserLogic();
           _jwtService = jwtService;
      }

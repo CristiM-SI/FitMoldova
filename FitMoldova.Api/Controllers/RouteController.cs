@@ -1,4 +1,5 @@
-﻿using FitMoldova.BusinessLogic;
+﻿using AutoMapper;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Route;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,9 @@ public class RouteController : ControllerBase
 {
      private readonly IRouteLogic _routeLogic;
 
-     public RouteController()
+     public RouteController(IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new BusinessLogic(mapper);
           _routeLogic = bl.RouteLogic();
      }
 

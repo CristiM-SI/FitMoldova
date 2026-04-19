@@ -1,3 +1,4 @@
+using AutoMapper;
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Club;
@@ -9,9 +10,9 @@ public class ClubController : ControllerBase
 {
      private readonly IClubLogic _clubLogic;
 
-     public ClubController()
+     public ClubController(IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new FitMoldova.BusinessLogic.BusinessLogic(mapper);
           _clubLogic = bl.ClubLogic();
      }
 
@@ -49,7 +50,6 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     /// <summary>POST /api/club/{id}/join/{userId} — inserează rând în ClubMembers.</summary>
      [HttpPost("{id}/join/{userId}")]
      public IActionResult Join(int id, int userId)
      {
@@ -59,7 +59,6 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     /// <summary>DELETE /api/club/{id}/leave/{userId} — șterge rândul din ClubMembers.</summary>
      [HttpDelete("{id}/leave/{userId}")]
      public IActionResult Leave(int id, int userId)
      {
@@ -69,7 +68,6 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     /// <summary>GET /api/club/{id}/members — listă membri cu username și JoinedAt.</summary>
      [HttpGet("{id}/members")]
      public IActionResult GetMembers(int id)
      {
@@ -79,7 +77,6 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     /// <summary>GET /api/club/user/{userId} — cluburile unde userul e membru.</summary>
      [HttpGet("user/{userId}")]
      public IActionResult GetUserClubs(int userId)
      {

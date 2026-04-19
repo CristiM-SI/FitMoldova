@@ -1,4 +1,5 @@
-﻿using FitMoldova.BusinessLogic;
+﻿using AutoMapper;
+using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Post;
 using Microsoft.AspNetCore.Mvc;
@@ -9,12 +10,11 @@ public class PostController : ControllerBase
 {
      private readonly IPostLogic _postLogic;
 
-     public PostController()
+     public PostController(IMapper mapper)
      {
-          var bl = new BusinessLogic();
+          var bl = new BusinessLogic(mapper);
           _postLogic = bl.PostLogic();
      }
-
      // GET api/post
      // Returnează toate postările — folosit de feed-ul comunității
      [HttpGet]

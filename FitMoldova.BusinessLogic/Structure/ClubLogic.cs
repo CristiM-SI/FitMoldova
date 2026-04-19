@@ -1,3 +1,4 @@
+using AutoMapper;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Club;
@@ -7,6 +8,8 @@ namespace FitMoldova.BusinessLogic.Structure
 {
      public class ClubLogic : ClubAction, IClubLogic
      {
+          public ClubLogic(IMapper mapper) : base(mapper) { }
+
           public ServiceResponse GetAll()                              => GetAllExecution();
           public ServiceResponse GetById(int id)                       => GetByIdExecution(id);
           public ServiceResponse CreateClub(ClubCreateDto dto)         => CreateClubExecution(dto);

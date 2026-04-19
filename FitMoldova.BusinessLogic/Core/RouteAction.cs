@@ -1,4 +1,5 @@
-﻿using FitMoldova.DataAccesLayer;
+﻿using AutoMapper;
+using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Route;
 using FitMoldova.Domain.Models.Route;
 using FitMoldova.Domain.Models.Services;
@@ -8,7 +9,7 @@ namespace FitMoldova.BusinessLogic.Core
      public class RouteAction
      {
           private readonly DbSession _dbSession = new DbSession();
-
+          
           public ServiceResponse GetAllExecution()
           {
                using var ctx = _dbSession.FitMoldovaContext();

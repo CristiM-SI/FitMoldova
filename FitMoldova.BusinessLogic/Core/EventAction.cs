@@ -1,4 +1,5 @@
-﻿using FitMoldova.DataAccesLayer;
+﻿using AutoMapper;
+using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Event;
 using FitMoldova.Domain.Models.Event;
 using FitMoldova.Domain.Models.Services;

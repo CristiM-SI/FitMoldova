@@ -1,4 +1,5 @@
-﻿using FitMoldova.DataAccesLayer;
+﻿using AutoMapper;
+using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Models.Challenge;
 using FitMoldova.Domain.Models.Services;
@@ -7,7 +8,7 @@ namespace FitMoldova.BusinessLogic.Core
 {
     public class ChallengeAction
     {
-        private readonly DbSession _dbSession = new DbSession();
+         private readonly DbSession _dbSession = new DbSession();
 
         public ServiceResponse GetAllExecution()
         {

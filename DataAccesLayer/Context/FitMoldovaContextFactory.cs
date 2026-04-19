@@ -1,5 +1,7 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace FitMoldova.DataAccesLayer
 {
@@ -7,8 +9,25 @@ namespace FitMoldova.DataAccesLayer
      {
           public FitMoldovaContext CreateDbContext(string[] args)
           {
+               var apiPath = Path.GetFullPath(
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "FitMoldova.Api"));
+
+               var config = new ConfigurationBuilder()
+                    .SetBasePath(apiPath)
+                    .AddJsonFile("appsettings.json", optional: false)
+                    .AddJsonFile("appsettings.Development.json", optional: true)
+                    .AddUserSecrets<FitMoldovaContextFactory>()
+                    .AddEnvironmentVariables()
+                    .Build();
+
+               var cs = config.GetConnectionString("DefaultConnection");
+               if (string.IsNullOrWhiteSpace(cs))
+                    throw new System.InvalidOperationException(
+                         "ConnectionStrings:DefaultConnection nu e setat. " +
+                         "Rulează: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"...\" în FitMoldova.Api.");
+
                var options = new DbContextOptionsBuilder<FitMoldovaContext>()
-                    .UseNpgsql("Host=localhost;Port=5433;Database=FitMoldova;Username=postgres;Password=FitMD26;")
+                    .UseNpgsql(cs)
                     .Options;
 
                return new FitMoldovaContext(options);

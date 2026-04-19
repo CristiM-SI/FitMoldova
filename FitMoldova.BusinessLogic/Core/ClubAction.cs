@@ -8,14 +8,14 @@ using Microsoft.EntityFrameworkCore;
 namespace FitMoldova.BusinessLogic.Core
 {
     public class ClubAction
-    {
-        private readonly DbSession _dbSession = new DbSession();
-        private readonly IMapper _mapper;
+    { 
+         private readonly DbSession _dbSession = new DbSession();
+         private readonly IMapper _mapper;
 
-        public ClubAction(IMapper mapper)
-        {
-            _mapper = mapper;
-        }
+         public ClubAction(IMapper mapper)
+         {
+              _mapper = mapper;
+         }
 
         public ServiceResponse GetAllExecution()
         {

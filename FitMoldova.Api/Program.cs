@@ -9,6 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+FitMoldova.DataAccesLayer.DbSession.ConnectionString = 
+     builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -61,6 +64,16 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddSingleton<DbSession>();
+
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.UserAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ActivityAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ClubAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.EventAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.PostAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.RouteAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ChallengeAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Structure.UserLogic>();
      
 var app = builder.Build();
 

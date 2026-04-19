@@ -10,17 +10,13 @@ namespace FitMoldova.BusinessLogic.Core
 {
     public class ActivityAction
     {
-        private readonly DbSession _dbSession = new DbSession();
-        private readonly IMapper _mapper;
+         private readonly DbSession _dbSession = new DbSession();
+         private readonly IMapper _mapper;
 
-        /// <summary>
-        /// Primește IMapper prin DI. Mapper-ul e thread-safe și reutilizabil,
-        /// o singură instanță pe toată aplicația.
-        /// </summary>
-        public ActivityAction(IMapper mapper)
-        {
-            _mapper = mapper;
-        }
+         public ActivityAction(IMapper mapper)
+         {
+              _mapper = mapper;
+         }
 
         /// <summary>
         /// Forțează DateTime.Kind = Utc pentru PostgreSQL (coloană timestamptz).

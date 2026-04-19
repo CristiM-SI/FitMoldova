@@ -4,10 +4,17 @@ namespace FitMoldova.DataAccesLayer
 {
      public class DbSession
      {
+          public static string? ConnectionString { get; set; }
+
           public FitMoldovaContext FitMoldovaContext()
           {
+               var cs = ConnectionString;
+               if (string.IsNullOrWhiteSpace(cs))
+                    throw new System.InvalidOperationException(
+                         "DbSession.ConnectionString nu e setat. Verifică Program.cs și user-secrets.");
+
                var options = new DbContextOptionsBuilder<FitMoldovaContext>()
-                    .UseNpgsql("Host=localhost;Port=5433;Database=FitMoldova;Username=postgres;Password=FitMD26;")
+                    .UseNpgsql(cs)
                     .Options;
                return new FitMoldovaContext(options);
           }

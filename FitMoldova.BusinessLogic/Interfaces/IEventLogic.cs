@@ -8,6 +8,7 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse GetAll();
           ServiceResponse GetById(int id);
           ServiceResponse CreateEvent(EventCreateDto dto);
+          ServiceResponse UpdateEvent(int id, EventCreateDto dto);
           ServiceResponse JoinEvent(int eventId, int userId);
           ServiceResponse Delete(int id);
      }

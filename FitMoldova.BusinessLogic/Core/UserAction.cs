@@ -115,6 +115,47 @@ namespace FitMoldova.BusinessLogic.Core
                return new ServiceResponse { isSuccess = true, Message = "Cont șters." };
           }
 
+          public ServiceResponse GetAllExecution()
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var users = ctx.Users.Select(u => new
+               {
+                    u.Id,
+                    u.Username,
+                    u.FirstName,
+                    u.LastName,
+                    u.Email,
+                    Role = u.Role.ToString(),
+                    u.IsActive,
+                    u.CreatedAt
+               }).ToList();
+               return new ServiceResponse { isSuccess = true, Data = users };
+          }
+
+          public ServiceResponse ChangeRoleExecution(int id, ChangeRoleDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               if (!Enum.TryParse<UserRole>(dto.Role, ignoreCase: true, out var newRole))
+                    return new ServiceResponse { isSuccess = false, Message = "Rol invalid." };
+               user.Role = newRole;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Rol actualizat." };
+          }
+
+          public ServiceResponse ChangeStatusExecution(int id, ChangeStatusDto dto)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
+               user.IsActive = dto.IsActive;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = dto.IsActive ? "Utilizator reactivat." : "Utilizator blocat." };
+          }
+
           public ServiceResponse GetProfileExecution(int userId)
           {
                using var ctx = _dbSession.FitMoldovaContext();

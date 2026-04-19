@@ -57,6 +57,32 @@ public class UserController : ControllerBase
           });
      }
 
+     [HttpGet]
+     [Authorize]
+     public IActionResult GetAll()
+     {
+          var result = _userLogic.GetAll();
+          return Ok(result);
+     }
+
+     [HttpPatch("{id}/role")]
+     [Authorize]
+     public IActionResult ChangeRole(int id, [FromBody] ChangeRoleDto dto)
+     {
+          var result = _userLogic.ChangeRole(id, dto);
+          if (!result.isSuccess) return BadRequest(result);
+          return Ok(result);
+     }
+
+     [HttpPatch("{id}/status")]
+     [Authorize]
+     public IActionResult ChangeStatus(int id, [FromBody] ChangeStatusDto dto)
+     {
+          var result = _userLogic.ChangeStatus(id, dto);
+          if (!result.isSuccess) return BadRequest(result);
+          return Ok(result);
+     }
+
      [HttpGet("{id}")]
      public IActionResult GetById(int id)
      {

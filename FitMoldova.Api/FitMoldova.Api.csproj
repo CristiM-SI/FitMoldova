@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
+        <PackageReference Include="AutoMapper" Version="16.1.1" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.25">
@@ -20,6 +21,15 @@
         <ProjectReference Include="..\FitMoldova.BusinessLogic\FitMoldova.BusinessLogic.csproj" />
         <ProjectReference Include="..\FitMoldova.Domain\FitMoldova.Domain.csproj" />
         <ProjectReference Include="..\DataAccesLayer\FitMoldova.DataAccesLayer.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="appsettings.json">
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </Content>
+      <Content Update="appsettings.Development.json">
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

@@ -1,38 +1,54 @@
-﻿import axiosInstance from './axiosInstance';
+import axiosInstance from './axiosInstance';
 
 export interface PostCreateDto {
-    content: string;
-    category: string;
     userId: number;
+    content: string;
+    sport: string;
 }
 
 export interface PostReplyCreateDto {
     postId: number;
-    content: string;
     userId: number;
+    content: string;
+}
+
+export interface PostInfoDto {
+    id: number;
+    userId: number;
+    content: string;
+    sport: string;
+    likes: number;
+    commentsCount: number;
+    createdAt: string;
+}
+
+type ApiResponse<T> = { isSuccess: boolean; data: T; message?: string };
+
+function unwrap<T>(res: { data: ApiResponse<T> }): T {
+    return res.data.data;
 }
 
 const postApi = {
     getAll: () =>
-        axiosInstance.get('/api/post'),
+        axiosInstance.get<ApiResponse<PostInfoDto[]>>('/post').then(unwrap),
 
     getById: (id: number) =>
-        axiosInstance.get(`/api/post/${id}`),
+        axiosInstance.get<ApiResponse<PostInfoDto>>(`/post/${id}`).then(unwrap),
 
     getByUser: (userId: number) =>
-        axiosInstance.get(`/api/post/user/${userId}`),
+        axiosInstance.get<ApiResponse<PostInfoDto[]>>(`/post/user/${userId}`).then(unwrap),
 
     create: (dto: PostCreateDto) =>
-        axiosInstance.post('/api/post', dto),
+        axiosInstance.post<ApiResponse<number>>('/post', dto).then(unwrap),
 
     like: (postId: number, userId: number) =>
-        axiosInstance.post(`/api/post/${postId}/like/${userId}`),
+        axiosInstance.post<ApiResponse<number>>(`/post/${postId}/like/${userId}`).then(unwrap),
 
     addReply: (dto: PostReplyCreateDto) =>
-        axiosInstance.post('/api/post/reply', dto),
+        axiosInstance.post<ApiResponse<number>>('/post/reply', dto).then(unwrap),
 
     delete: (id: number) =>
-        axiosInstance.delete(`/api/post/${id}`),
+        axiosInstance.delete(`/post/${id}`),
 };
 
 export default postApi;

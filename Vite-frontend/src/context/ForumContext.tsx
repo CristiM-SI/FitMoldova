@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
-    INITIAL_THREADS,
     SUGGESTED_USERS,
 } from '../services/mock/forum';
 import type {
@@ -9,6 +8,8 @@ import type {
     ForumCategory,
     SuggestedUser,
 } from '../services/mock/forum';
+import postApi, { type PostInfoDto } from '../services/api/postApi';
+import { useAuth } from './AuthContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -27,6 +28,7 @@ export interface Message {
 interface ForumContextValue {
     threads: ForumThread[];
     setThreads: React.Dispatch<React.SetStateAction<ForumThread[]>>;
+    loading: boolean;
     followedUsers: Set<string>;
     handleFollow: (user: SuggestedUser) => void;
     handleLike: (threadId: number, e: React.MouseEvent) => void;
@@ -45,6 +47,46 @@ interface ForumContextValue {
 }
 
 const ForumContext = createContext<ForumContextValue | null>(null);
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const USER_COLORS = ['#1a6fff', '#e91e8c', '#00b894', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
+
+function userColor(userId: number): string {
+    return USER_COLORS[userId % USER_COLORS.length];
+}
+
+function formatRelativeTime(isoDate: string): string {
+    const diff = Date.now() - new Date(isoDate).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'acum';
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h`;
+    return `${Math.floor(hrs / 24)}z`;
+}
+
+function mapPostToThread(dto: PostInfoDto): ForumThread {
+    return {
+        id: dto.id,
+        author: `Utilizator #${dto.userId}`,
+        avatar: `U${dto.userId}`,
+        color: userColor(dto.userId),
+        handle: `@user${dto.userId}`,
+        verified: false,
+        content: dto.content,
+        category: (dto.sport as ForumCategory) || 'Toate',
+        time: formatRelativeTime(dto.createdAt),
+        likes: dto.likes,
+        liked: false,
+        replies: [],
+        reposts: 0,
+        reposted: false,
+        bookmarked: false,
+        views: 0,
+        commentsCount: dto.commentsCount,
+    } as ForumThread & { commentsCount: number };
+}
 
 // ─── Mock messages (initial) ──────────────────────────────────────────────────
 
@@ -87,18 +129,24 @@ const INITIAL_MESSAGES: Message[] = [
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function ForumProvider({ children }: { children: React.ReactNode }) {
-    const [threads, setThreads] = useState<ForumThread[]>(INITIAL_THREADS);
+    const { user } = useAuth();
+    const [threads, setThreads] = useState<ForumThread[]>([]);
+    const [loading, setLoading] = useState(true);
     const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
     const [heartAnims, setHeartAnims] = useState<Set<number>>(new Set());
     const [toast, setToast] = useState({ msg: '', visible: false });
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
 
-    // Ref that always points to the latest threads without being a dep in callbacks.
-    // This eliminates the cascading re-renders caused by having `threads` in
-    // useCallback dependency arrays — every like/reply update was recreating
-    // handleRepost and handleBookmark, which in turn re-rendered all consumers.
     const threadsRef = useRef(threads);
     threadsRef.current = threads;
+
+    // Load posts from API on mount
+    useEffect(() => {
+        postApi.getAll()
+            .then((posts) => setThreads(posts.map(mapPostToThread)))
+            .catch(() => { /* Keep threads empty on error */ })
+            .finally(() => setLoading(false));
+    }, []);
 
     const showToast = useCallback((msg: string) => {
         setToast({ msg, visible: true });
@@ -109,6 +157,7 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         e.stopPropagation();
         setHeartAnims((prev) => new Set(prev).add(threadId));
         setTimeout(() => setHeartAnims((prev) => { const n = new Set(prev); n.delete(threadId); return n; }), 350);
+        // Optimistic update
         setThreads((prev) =>
             prev.map((t) =>
                 t.id === threadId
@@ -116,9 +165,21 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
                     : t
             )
         );
-    }, []);
+        // Sync with API
+        if (user?.id) {
+            postApi.like(threadId, user.id).catch(() => {
+                // Revert on failure
+                setThreads((prev) =>
+                    prev.map((t) =>
+                        t.id === threadId
+                            ? { ...t, liked: !t.liked, likes: t.liked ? t.likes - 1 : t.likes + 1 }
+                            : t
+                    )
+                );
+            });
+        }
+    }, [user]);
 
-    // Uses threadsRef instead of threads in deps — stable reference, no cascades.
     const handleRepost = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
         setThreads((prev) =>
@@ -132,7 +193,6 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         if (thread && !thread.reposted) showToast('Repostat cu succes!');
     }, [showToast]);
 
-    // Uses threadsRef instead of threads in deps — stable reference, no cascades.
     const handleBookmark = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
         const thread = threadsRef.current.find((t) => t.id === threadId);
@@ -184,8 +244,15 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         userAvatar: string,
         userHandle: string,
     ) => {
-        const newThread: ForumThread = {
-            id: Date.now(),
+        if (!user?.id) {
+            showToast('Trebuie să fii autentificat pentru a posta.');
+            return;
+        }
+
+        // Optimistic UI — add thread immediately with a temp id
+        const tempId = -Date.now();
+        const optimisticThread: ForumThread = {
+            id: tempId,
             author: userName,
             avatar: userAvatar,
             color: '#1a6fff',
@@ -202,9 +269,22 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
             bookmarked: false,
             views: 0,
         };
-        setThreads((prev) => [newThread, ...prev]);
+        setThreads((prev) => [optimisticThread, ...prev]);
         showToast('Postarea ta a fost publicată!');
-    }, [showToast]);
+
+        postApi.create({ userId: user.id, content: content.trim(), sport: category })
+            .then((realId) => {
+                // Replace temp id with real id from server
+                setThreads((prev) =>
+                    prev.map((t) => t.id === tempId ? { ...t, id: realId } : t)
+                );
+            })
+            .catch(() => {
+                // Remove optimistic post on failure
+                setThreads((prev) => prev.filter((t) => t.id !== tempId));
+                showToast('Eroare la publicare. Încearcă din nou.');
+            });
+    }, [user, showToast]);
 
     const handleReplySubmit = useCallback((
         replyText: string,
@@ -214,8 +294,14 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         userHandle: string,
     ) => {
         if (!replyText.trim() || expandedThread === null) return;
+        if (!user?.id) {
+            showToast('Trebuie să fii autentificat pentru a răspunde.');
+            return;
+        }
+
+        const tempReplyId = -Date.now();
         const newReply: ForumReply = {
-            id: Date.now(),
+            id: tempReplyId,
             author: userName,
             avatar: userAvatar,
             color: '#1a6fff',
@@ -234,7 +320,33 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
             )
         );
         showToast('Răspunsul tău a fost adăugat!');
-    }, [showToast]);
+
+        postApi.addReply({ postId: expandedThread, userId: user.id, content: replyText.trim() })
+            .then((realId) => {
+                setThreads((prev) =>
+                    prev.map((t) =>
+                        t.id === expandedThread
+                            ? {
+                                ...t,
+                                replies: t.replies.map((r) =>
+                                    r.id === tempReplyId ? { ...r, id: realId } : r
+                                ),
+                            }
+                            : t
+                    )
+                );
+            })
+            .catch(() => {
+                setThreads((prev) =>
+                    prev.map((t) =>
+                        t.id === expandedThread
+                            ? { ...t, replies: t.replies.filter((r) => r.id !== tempReplyId) }
+                            : t
+                    )
+                );
+                showToast('Eroare la trimitere. Încearcă din nou.');
+            });
+    }, [user, showToast]);
 
     const handleFollow = useCallback((user: SuggestedUser) => {
         setFollowedUsers((prev) => {
@@ -276,10 +388,8 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         );
     }, []);
 
-    // Memoized context value — prevents re-rendering all consumers when unrelated
-    // state changes (e.g. toast appearing should not re-render thread list).
     const ctxValue = useMemo<ForumContextValue>(() => ({
-        threads, setThreads,
+        threads, setThreads, loading,
         followedUsers, handleFollow,
         handleLike, handleRepost, handleBookmark,
         handleReplyLike, handlePollVote,
@@ -287,7 +397,7 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         heartAnims, toast, showToast,
         messages, sendMessage, markAsRead,
     }), [
-        threads, followedUsers, handleFollow,
+        threads, loading, followedUsers, handleFollow,
         handleLike, handleRepost, handleBookmark,
         handleReplyLike, handlePollVote,
         handlePublish, handleReplySubmit,

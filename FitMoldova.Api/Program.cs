@@ -16,13 +16,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// ── Encryption service (SINGLETON — cheia se citește o dată) ──────────────
+// Înregistrat ÎNAINTE de AddDbContext pentru că DbContext depinde de el.
+builder.Services.AddSingleton<IEncryptionService, AesGcmEncryptionService>();
+
 builder.Services.AddDbContext<FitMoldovaContext>(options =>
      options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── AutoMapper ───────────────────────────────────────────────────────────
-// Scanează asamblarea care conține MappingProfile și înregistrează toate
-// profilurile găsite (Profile-derived classes). IMapper devine disponibil
-// prin DI în orice clasă care-l cere în constructor.
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
 builder.Services.AddCors(options =>
@@ -31,8 +31,8 @@ builder.Services.AddCors(options =>
           policy.WithOrigins(
                     "http://localhost:5173",
                     "http://localhost:5174",
-                    "https://vite-frontend-danielus-hehes-projects.vercel.app/",
-                    "https://test2-ruby-two.vercel.app/"
+                    "https://vite-frontend-danielus-hehes-projects.vercel.app",
+                    "https://test2-ruby-two.vercel.app"
                )
                .AllowAnyHeader()
                .AllowAnyMethod());
@@ -73,7 +73,7 @@ builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.EventAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.PostAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.RouteAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ChallengeAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Structure.UserLogic>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Interfaces.IUserLogic, FitMoldova.BusinessLogic.Structure.UserLogic>();
      
 var app = builder.Build();
 
@@ -81,6 +81,11 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowFrontend");
+
+// FIX BUG CRITIC: UseAuthentication TREBUIE să fie înainte de UseAuthorization.
+// În codul original lipsea complet, deci [Authorize] nu funcționa.
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();

@@ -33,16 +33,22 @@ namespace FitMoldova.Domain.Entities.User
           public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
           public UserRole Role { get; set; } = UserRole.User;
-          
-          [StringLength(20)]
+
+          // ── Câmpuri CRIPTATE la rest cu AES-256-GCM ──────────────────────────
+          // StringLength mărit față de original pentru a acomoda:
+          //   ciphertext_base64_len ≈ 4/3 × (12 nonce + plaintext + 16 tag)
+          // Vezi FitMoldovaContext.OnModelCreating pentru wiring.
+
+          [StringLength(200)]  // era 20 — mărit pentru ciphertext Base64
           public string? Phone { get; set; }
 
-          [StringLength(100)]
+          [StringLength(400)]  // era 100
           public string? Location { get; set; }
 
-          [StringLength(500)]
+          [StringLength(1000)] // era 500
           public string? Bio { get; set; }
 
+          // NECriptat — URL public spre imaginea de profil, nu e PII sensibil
           [StringLength(300)]
           public string? ProfileImageUrl { get; set; }
 

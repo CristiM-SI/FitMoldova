@@ -7,12 +7,30 @@ using FitMoldova.Domain.Entities.Club;
 using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Enums;
+using FitMoldova.BusinessLogic.Core;
+using FitMoldova.DataAccesLayer.Converters;
+
 namespace FitMoldova.DataAccesLayer;
 
 public class FitMoldovaContext : DbContext
 {
+    private readonly IEncryptionService? _encryption;
+
+    // Constructor folosit de DI în runtime (Program.cs → AddDbContext)
+    public FitMoldovaContext(DbContextOptions<FitMoldovaContext> options, IEncryptionService encryption)
+        : base(options)
+    {
+        _encryption = encryption;
+    }
+
+    // Constructor folosit de EF Core Tools la design-time (dotnet ef migrations add ...)
+    // La momentul migrării NU avem DI, deci criptarea e dezactivată — migrarea
+    // creează doar schema. Vezi FitMoldovaContextFactory pentru setup.
     public FitMoldovaContext(DbContextOptions<FitMoldovaContext> options)
-        : base(options) { }
+        : base(options)
+    {
+        _encryption = null;
+    }
 
     public DbSet<UDTable> Users { get; set; }
     public DbSet<ActivityEntity> Activities { get; set; }
@@ -33,12 +51,37 @@ public class FitMoldovaContext : DbContext
         modelBuilder.Entity<UDTable>()
             .HasIndex(u => u.Email).IsUnique();
 
-        // Stochează enum-ul UserRole ca string în DB
         modelBuilder.Entity<UDTable>()
             .Property(u => u.Role)
             .HasConversion<string>()
             .HasMaxLength(20)
             .HasDefaultValue(UserRole.User);
+
+        // ── CRIPTARE PII (GDPR-sensitive fields) ──────────────────────────────
+        // Aplicăm encryption doar dacă avem serviciul disponibil (runtime, nu design-time).
+        if (_encryption is not null)
+        {
+            var encryptedConverter = new EncryptedStringConverter(_encryption);
+
+            // Phone: plaintext max 20 chars → ciphertext Base64 ~70 chars.
+            // Mărim la 200 ca să avem margine confortabilă pentru orice valori.
+            modelBuilder.Entity<UDTable>()
+                .Property(u => u.Phone)
+                .HasConversion(encryptedConverter)
+                .HasMaxLength(200);
+
+            // Location: plaintext max 100 chars → ciphertext ~180 chars
+            modelBuilder.Entity<UDTable>()
+                .Property(u => u.Location)
+                .HasConversion(encryptedConverter)
+                .HasMaxLength(400);
+
+            // Bio: plaintext max 500 chars → ciphertext ~720 chars
+            modelBuilder.Entity<UDTable>()
+                .Property(u => u.Bio)
+                .HasConversion(encryptedConverter)
+                .HasMaxLength(1000);
+        }
 
         // ── Activity → User ───────────────────────────────────────────────────
         modelBuilder.Entity<ActivityEntity>()
@@ -64,7 +107,6 @@ public class FitMoldovaContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         // ── ClubMember → Club și User (N-N) ───────────────────────────────────
-        // Unique constraint împiedică un user să se înscrie de 2× la același club.
         modelBuilder.Entity<ClubMemberEntity>()
             .HasIndex(cm => new { cm.ClubId, cm.UserId }).IsUnique();
 

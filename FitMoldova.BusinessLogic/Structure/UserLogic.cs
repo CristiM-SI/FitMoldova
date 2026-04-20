@@ -1,5 +1,6 @@
 ﻿using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
+using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
 
@@ -7,6 +8,14 @@ namespace FitMoldova.BusinessLogic.Structure
 {
      public class UserLogic : UserAction, IUserLogic
      {
+          // Constructor care pasează DbContext-ul către UserAction prin base().
+          // DI (Program.cs: AddScoped<UserLogic>) va injecta automat
+          // FitMoldovaContext aici, și UserAction îl va primi cu
+          // ValueConverter-ul de criptare activ.
+          public UserLogic(FitMoldovaContext ctx) : base(ctx)
+          {
+          }
+
           public ServiceResponse Register(UserCreateDto dto) => RegisterExecution(dto);
           public ServiceResponse Login(UserLoginDto dto) => LoginExecution(dto);
           public ServiceResponse GetAll() => GetAllExecution();

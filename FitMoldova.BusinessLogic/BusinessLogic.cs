@@ -17,8 +17,7 @@ namespace FitMoldova.BusinessLogic
           {
                _mapper = mapper;
           }
-
-          public IUserLogic UserLogic() => new UserLogic();
+          
           public IActivityLogic ActivityLogic() => new ActivityLogic(_mapper);
           public IRouteLogic RouteLogic() => new RouteLogic();
           public IEventLogic EventLogic() => new EventLogic();

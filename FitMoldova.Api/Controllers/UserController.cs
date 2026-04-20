@@ -1,5 +1,3 @@
-using AutoMapper;
-using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.User;
@@ -12,11 +10,12 @@ public class UserController : ControllerBase
 {
      private readonly IUserLogic _userLogic;
      private readonly JwtService _jwtService;
-     
-     public UserController(JwtService jwtService, IMapper mapper)
+
+     // UserLogic vine prin DI, deci FitMoldovaContext-ul lui
+     // are IEncryptionService setat → criptarea funcționează la SaveChanges.
+     public UserController(IUserLogic userLogic, JwtService jwtService)
      {
-          var bl = new BusinessLogic(mapper);
-          _userLogic = bl.UserLogic();
+          _userLogic = userLogic;
           _jwtService = jwtService;
      }
 
@@ -42,12 +41,12 @@ public class UserController : ControllerBase
           var role = (string)type.GetProperty("Role")!.GetValue(data)!;
           var firstName = (string)type.GetProperty("FirstName")!.GetValue(data)!;
           var lastName = (string)type.GetProperty("LastName")!.GetValue(data)!;
-          
+
           var (token, expiresAt) = _jwtService.GenerateToken(id, email, username, role);
-          
+
           return Ok(new
           {
-               token, 
+               token,
                expiresAt,
                userId = id,
                username,
@@ -107,7 +106,7 @@ public class UserController : ControllerBase
           if (!result.isSuccess) return NotFound(result);
           return NoContent();
      }
-     
+
      [HttpGet("profile")]
      [Authorize]
      public IActionResult GetProfile()

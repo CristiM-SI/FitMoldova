@@ -5,16 +5,15 @@ import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useAuth } from '../context/AuthContext';
+import { useForumContext } from '../context/ForumContext';
 import {
     FORUM_CATEGORIES,
     TRENDING_TOPICS,
     SUGGESTED_USERS,
-    INITIAL_THREADS,
 } from '../services/mock/forum';
 import type {
     ForumCategory,
     ForumThread,
-    ForumReply,
     SuggestedUser,
 } from '../services/mock/forum';
 import {
@@ -123,22 +122,23 @@ const notifIcon = (type: Notification['type']) => {
 export default function ForumPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const forum = useForumContext();
     const composeRef = useRef<HTMLTextAreaElement>(null);
 
     const [activeView, setActiveView]             = useState<ActiveView>('feed');
     const [activeCategory, setActiveCategory]     = useState<ForumCategory>('Toate');
-    const [threads, setThreads]                   = useState<ForumThread[]>(INITIAL_THREADS);
     const [expandedThread, setExpandedThread]     = useState<number | null>(null);
     const [composeText, setComposeText]           = useState('');
     const [composeCategory, setComposeCategory]   = useState<ForumCategory>('Antrenament');
     const [replyText, setReplyText]               = useState('');
     const [searchQuery, setSearchQuery]           = useState('');
-    const [followedUsers, setFollowedUsers]       = useState<Set<string>>(new Set());
-    const [heartAnims, setHeartAnims]             = useState<Set<number>>(new Set());
     const [notifications, setNotifications]       = useState<Notification[]>(INITIAL_NOTIFICATIONS);
     const [conversations, setConversations]       = useState<Conversation[]>(INITIAL_CONVERSATIONS);
     const [activeConv, setActiveConv]             = useState<number | null>(null);
     const [msgInput, setMsgInput]                 = useState('');
+
+    // Thread state and actions come from ForumContext (API-backed)
+    const { threads, loading: threadsLoading, heartAnims, followedUsers } = forum;
 
     const userAvatar = user ? (user.firstName[0] + user.lastName[0]).toUpperCase() : 'FM';
     const userName   = user ? `${user.firstName} ${user.lastName}` : 'FitMoldova User';
@@ -162,69 +162,25 @@ export default function ForumPage() {
         }
     }, [activeConv]);
 
-    // ── Thread actions ───────────────────────────────────
-    const handleLike = useCallback((threadId: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setHeartAnims((prev) => new Set(prev).add(threadId));
-        setTimeout(() => setHeartAnims((prev) => { const n = new Set(prev); n.delete(threadId); return n; }), 350);
-        setThreads((prev) => prev.map((t) => t.id === threadId ? { ...t, liked: !t.liked, likes: t.liked ? t.likes - 1 : t.likes + 1 } : t));
-    }, []);
-
-    const handleRepost = useCallback((threadId: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setThreads((prev) => prev.map((t) => t.id === threadId ? { ...t, reposted: !t.reposted, reposts: t.reposted ? t.reposts - 1 : t.reposts + 1 } : t));
-        const thread = threads.find((t) => t.id === threadId);
-        if (thread && !thread.reposted) showToast('Repostat cu succes!');
-    }, [threads, showToast]);
-
-    const handleBookmark = useCallback((threadId: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        const thread = threads.find((t) => t.id === threadId);
-        setThreads((prev) => prev.map((t) => t.id === threadId ? { ...t, bookmarked: !t.bookmarked } : t));
-        showToast(thread?.bookmarked ? 'Eliminat din salvate' : 'Adăugat la salvate ✅');
-    }, [threads, showToast]);
-
-    const handleReplyLike = useCallback((threadId: number, replyId: number) => {
-        setThreads((prev) => prev.map((t) => t.id === threadId ? { ...t, replies: t.replies.map((r) => r.id === replyId ? { ...r, liked: !r.liked, likes: r.liked ? r.likes - 1 : r.likes + 1 } : r) } : t));
-    }, []);
-
-    const handlePollVote = useCallback((threadId: number, optionIdx: number) => {
-        setThreads((prev) => prev.map((t) => {
-            if (t.id !== threadId || !t.poll || t.poll.voted) return t;
-            const newOptions = t.poll.options.map((o, i) => i === optionIdx ? { ...o, votes: o.votes + 1 } : o);
-            return { ...t, poll: { ...t.poll, options: newOptions, totalVotes: t.poll.totalVotes + 1, voted: true } };
-        }));
-        showToast('Votul tău a fost înregistrat!');
-    }, [showToast]);
+    // ── Thread actions — delegate to ForumContext (API-backed) ───────────────────────────────────
+    const handleLike = forum.handleLike;
+    const handleRepost = forum.handleRepost;
+    const handleBookmark = forum.handleBookmark;
+    const handleReplyLike = forum.handleReplyLike;
+    const handlePollVote = forum.handlePollVote;
+    const handleFollow = forum.handleFollow;
 
     const handlePublish = useCallback(() => {
         if (!composeText.trim()) return;
-        const newThread: ForumThread = {
-            id: Date.now(), author: userName, avatar: userAvatar, color: '#1a6fff',
-            handle: userHandle, verified: false, content: composeText.trim(),
-            category: composeCategory, time: 'acum', likes: 0, liked: false,
-            replies: [], reposts: 0, reposted: false, bookmarked: false, views: 0,
-        };
-        setThreads((prev) => [newThread, ...prev]);
+        forum.handlePublish(composeText, composeCategory, userName, userAvatar, userHandle);
         setComposeText('');
-        showToast('Postarea ta a fost publicată!');
-    }, [composeText, composeCategory, userName, userAvatar, userHandle, showToast]);
+    }, [composeText, composeCategory, userName, userAvatar, userHandle, forum]);
 
     const handleReplySubmit = useCallback(() => {
         if (!replyText.trim() || expandedThread === null) return;
-        const newReply: ForumReply = {
-            id: Date.now(), author: userName, avatar: userAvatar, color: '#1a6fff',
-            handle: userHandle, content: replyText.trim(), time: 'acum',
-            likes: 0, liked: false, verified: false,
-        };
-        setThreads((prev) => prev.map((t) => t.id === expandedThread ? { ...t, replies: [newReply, ...t.replies] } : t));
+        forum.handleReplySubmit(replyText, expandedThread, userName, userAvatar, userHandle);
         setReplyText('');
-        showToast('Răspunsul tău a fost adăugat!');
-    }, [replyText, expandedThread, userName, userAvatar, userHandle, showToast]);
-
-    const handleFollow = useCallback((su: SuggestedUser) => {
-        setFollowedUsers((prev) => { const next = new Set(prev); if (next.has(su.handle)) next.delete(su.handle); else next.add(su.handle); return next; });
-    }, []);
+    }, [replyText, expandedThread, userName, userAvatar, userHandle, forum]);
 
     // ── Messages ────────────────────────────────────────
     const openConversation = useCallback((convId: number) => {
@@ -724,7 +680,11 @@ export default function ForumPage() {
                                         </Box>
 
                                         {/* Threads */}
-                                        {filteredThreads.length === 0 ? (
+                                        {threadsLoading ? (
+                                            <Box sx={{ textAlign: 'center', p: '64px 24px', color: ft.muted }}>
+                                                <Box sx={{ fontSize: '.9rem' }}>Se încarcă postările...</Box>
+                                            </Box>
+                                        ) : filteredThreads.length === 0 ? (
                                             <Box sx={{ textAlign: 'center', p: '64px 24px', color: ft.muted }}>
                                                 <Box sx={{ fontSize: '2.5rem', mb: '14px', opacity: 0.5 }}>🔍</Box>
                                                 <Box sx={{ fontFamily: ft.fontCondensed, fontSize: '1.2rem', fontWeight: 700, color: '#fff', mb: '6px' }}>Nicio postare găsită</Box>

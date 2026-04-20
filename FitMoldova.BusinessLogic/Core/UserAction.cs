@@ -9,20 +9,21 @@ namespace FitMoldova.BusinessLogic.Core
 {
      public class UserAction
      {
-          private readonly DbSession _dbSession = new DbSession();
+          private readonly FitMoldovaContext _ctx;
+          public UserAction(FitMoldovaContext ctx)
+          {
+               _ctx = ctx;
+          }
 
           public ServiceResponse RegisterExecution(UserCreateDto dto)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-
-               if (ctx.Users.Any(u => u.Email == dto.Email))
+               if (_ctx.Users.Any(u => u.Email == dto.Email))
                     return new ServiceResponse { isSuccess = false, Message = "Email deja folosit." };
 
-               // Generate unique username from firstName.lastName
                var baseUsername = $"{dto.FirstName.ToLower()}.{dto.LastName.ToLower()}";
                var username = baseUsername;
                var suffix = 1;
-               while (ctx.Users.Any(u => u.Username == username))
+               while (_ctx.Users.Any(u => u.Username == username))
                     username = $"{baseUsername}{suffix++}";
 
                var user = new UDTable
@@ -33,10 +34,15 @@ namespace FitMoldova.BusinessLogic.Core
                     Email = dto.Email,
                     Password = BC.HashPassword(dto.Password),
                     CreatedAt = DateTime.UtcNow,
-                    Role = UserRole.User
+                    Role = UserRole.User,
+
+                    // Câmpuri PII criptate la rest (AES-256-GCM via EF ValueConverter)
+                    Phone = dto.Phone,
+                    Location = dto.Location,
+                    Bio = dto.Bio
                };
-               ctx.Users.Add(user);
-               ctx.SaveChanges();
+               _ctx.Users.Add(user);
+               _ctx.SaveChanges();
                return new ServiceResponse
                {
                     isSuccess = true,
@@ -56,8 +62,7 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse LoginExecution(UserLoginDto dto)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u =>
+               var user = _ctx.Users.FirstOrDefault(u =>
                     u.Username == dto.Username || u.Email == dto.Username);
                if (user == null || !BC.Verify(dto.Password, user.Password))
                     return new ServiceResponse { isSuccess = false, Message = "Credențiale incorecte." };
@@ -80,8 +85,7 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse GetByIdExecution(int id)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == id);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = $"Userul cu ID {id} nu există." };
                return new ServiceResponse
@@ -93,32 +97,29 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse UpdateExecution(int id, UserUpdateDto dto)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == id);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
                user.FirstName = dto.FirstName;
                user.LastName = dto.LastName;
                user.Email = dto.Email;
-               ctx.SaveChanges();
+               _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Profil actualizat." };
           }
 
           public ServiceResponse DeleteExecution(int id)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == id);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
-               ctx.Users.Remove(user);
-               ctx.SaveChanges();
+               _ctx.Users.Remove(user);
+               _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Cont șters." };
           }
 
           public ServiceResponse GetAllExecution()
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var users = ctx.Users.Select(u => new
+               var users = _ctx.Users.Select(u => new
                {
                     u.Id,
                     u.Username,
@@ -134,32 +135,29 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse ChangeRoleExecution(int id, ChangeRoleDto dto)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == id);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
                if (!Enum.TryParse<UserRole>(dto.Role, ignoreCase: true, out var newRole))
                     return new ServiceResponse { isSuccess = false, Message = "Rol invalid." };
                user.Role = newRole;
-               ctx.SaveChanges();
+               _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Rol actualizat." };
           }
 
           public ServiceResponse ChangeStatusExecution(int id, ChangeStatusDto dto)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == id);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == id);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
                user.IsActive = dto.IsActive;
-               ctx.SaveChanges();
+               _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = dto.IsActive ? "Utilizator reactivat." : "Utilizator blocat." };
           }
 
           public ServiceResponse GetProfileExecution(int userId)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == userId);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == userId);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
                return new ServiceResponse
@@ -183,14 +181,13 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse UpdateProfileExecution(int userId, UserUpdateProfileDto dto)
           {
-               using var ctx = _dbSession.FitMoldovaContext();
-               var user = ctx.Users.FirstOrDefault(u => u.Id == userId);
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == userId);
                if (user == null)
                     return new ServiceResponse { isSuccess = false, Message = "Userul nu a fost găsit." };
                if (dto.Phone != null) user.Phone = dto.Phone;
                if (dto.Location != null) user.Location = dto.Location;
                if (dto.Bio != null) user.Bio = dto.Bio;
-               ctx.SaveChanges();
+               _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Profil actualizat." };
           }
      }

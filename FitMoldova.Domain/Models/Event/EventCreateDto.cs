@@ -1,4 +1,6 @@
-﻿namespace FitMoldova.Domain.Models.Event
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace FitMoldova.Domain.Models.Event
 {
      public class EventCreateDto
      {
@@ -12,5 +14,8 @@
           public string Price { get; set; } = string.Empty;
           public string Organizer { get; set; } = string.Empty;
           public string Difficulty { get; set; } = string.Empty;
+
+          [StringLength(500)]
+          public string ImageUrl { get; set; } = string.Empty;
      }
 }

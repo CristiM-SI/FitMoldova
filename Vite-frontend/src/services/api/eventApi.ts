@@ -13,6 +13,7 @@ export interface EventDto {
     price: string;
     organizer: string;
     difficulty: string;
+    imageUrl: string;
 }
 
 export interface EventCreatePayload {
@@ -26,6 +27,7 @@ export interface EventCreatePayload {
     price: string;
     organizer: string;
     difficulty: string;
+    imageUrl: string;
 }
 
 export interface EventUpdatePayload extends EventCreatePayload {}

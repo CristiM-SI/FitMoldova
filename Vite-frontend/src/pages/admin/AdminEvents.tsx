@@ -38,6 +38,7 @@ const AdminEvents: React.FC = () => {
   const [filterCat, setFilterCat]   = useState<string>('all');
   const [modalOpen, setModalOpen]   = useState(false);
   const [editTarget, setEditTarget] = useState<EventDto | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [form]                      = Form.useForm();
   const [messageApi, ctxHolder]     = message.useMessage();
 
@@ -73,6 +74,7 @@ const AdminEvents: React.FC = () => {
   const openAdd = () => {
     setEditTarget(null);
     form.resetFields();
+    setImagePreview('');
     setModalOpen(true);
   };
 
@@ -82,7 +84,6 @@ const AdminEvents: React.FC = () => {
     form.setFieldsValue({
       name:            record.name,
       description:     record.description,
-      // datetime-local asteapta "YYYY-MM-DDTHH:MM" — taiem milisecundele
       date:            record.date.substring(0, 16),
       location:        record.location,
       city:            record.city,
@@ -91,7 +92,9 @@ const AdminEvents: React.FC = () => {
       price:           record.price,
       organizer:       record.organizer,
       difficulty:      record.difficulty,
+      imageUrl:        record.imageUrl,
     });
+    setImagePreview(record.imageUrl ?? '');
     setModalOpen(true);
   };
 
@@ -399,6 +402,37 @@ const AdminEvents: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+
+          <Form.Item
+            name="imageUrl"
+            label="URL Imagine (opțional)"
+            rules={[{
+              validator: (_, value) => {
+                if (!value) return Promise.resolve();
+                try {
+                  const url = new URL(value);
+                  if (url.protocol === 'https:' || url.protocol === 'http:')
+                    return Promise.resolve();
+                } catch {}
+                return Promise.reject('Doar URL-uri http:// sau https:// sunt permise.');
+              }
+            }]}
+          >
+            <Input
+              placeholder="https://images.unsplash.com/..."
+              onChange={(e) => setImagePreview(e.target.value)}
+            />
+          </Form.Item>
+          {imagePreview && (
+            <div style={{ marginBottom: 16, textAlign: 'center' }}>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                onError={() => setImagePreview('')}
+                style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 8, objectFit: 'cover', border: '1px solid #d9d9d9' }}
+              />
+            </div>
+          )}
         </Form>
       </Modal>
     </div>

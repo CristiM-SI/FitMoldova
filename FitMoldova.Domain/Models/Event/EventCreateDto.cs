@@ -12,6 +12,5 @@
           public string Price { get; set; } = string.Empty;
           public string Organizer { get; set; } = string.Empty;
           public string Difficulty { get; set; } = string.Empty;
-          public string ImageUrl { get; set; } = string.Empty;
      }
 }

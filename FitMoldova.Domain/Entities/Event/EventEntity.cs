@@ -36,8 +36,5 @@ namespace FitMoldova.Domain.Entities.Event
 
           [StringLength(20)]
           public string Difficulty { get; set; } = string.Empty;
-          
-          [StringLength(500)]
-          public string ImageUrl { get; set; } = string.Empty;
      }
 }

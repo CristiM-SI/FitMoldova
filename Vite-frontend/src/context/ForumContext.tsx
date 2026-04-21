@@ -7,7 +7,7 @@ import type {
     ForumReply,
     ForumCategory,
     SuggestedUser,
-} from '../services/mock/forum';
+} from '../services/mock/forum'
 import postApi, { type PostInfoDto } from '../services/api/postApi';
 import { useAuth } from './AuthContext';
 

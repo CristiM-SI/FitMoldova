@@ -80,6 +80,15 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+// Adaugă coloane noi fără migrații EF — idempotent (IF NOT EXISTS)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FitMoldovaContext>();
+    db.Database.ExecuteSqlRaw(@"
+        ALTER TABLE ""Events"" ADD COLUMN IF NOT EXISTS ""ImageUrl"" VARCHAR(500) NOT NULL DEFAULT '';
+    ");
+}
+
 app.UseCors("AllowFrontend");
 
 // FIX BUG CRITIC: UseAuthentication TREBUIE să fie înainte de UseAuthorization.

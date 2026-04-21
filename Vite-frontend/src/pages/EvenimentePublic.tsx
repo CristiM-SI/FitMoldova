@@ -1,12 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import EventMap from '../components/EventMap';
 import { useAuth } from '../context/AuthContext';
 import { useDashboardData } from '../context/useDashboardData';
-import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
+import { eventApi } from '../services/api/eventApi';
+import type { EventDto } from '../services/api/eventApi';
 import { ROUTES } from '../routes/paths';
 
 const CATEGORIES = ['Toate', 'Maraton', 'Ciclism', 'Yoga', 'Fitness', 'Trail', 'Înot', 'Social'] as const;
@@ -35,6 +36,25 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
     default: 'linear-gradient(135deg, #1a7fff 0%, #7c3aed 100%)',
 };
 
+const CATEGORY_ICON: Record<string, string> = {
+    Maraton: '🏅', Ciclism: '🚴', Yoga: '🧘', Fitness: '💪',
+    Trail: '🥾', Înot: '🏊', Social: '🎉',
+};
+
+function toEveniment(dto: EventDto): Eveniment {
+    return {
+        ...dto,
+        icon: CATEGORY_ICON[dto.category] ?? '🏋️',
+        image: dto.imageUrl ?? '',
+        time: '—',
+        tags: [],
+        lat: 47.0245,
+        lng: 28.8322,
+        category: dto.category as Eveniment['category'],
+        difficulty: dto.difficulty as Eveniment['difficulty'],
+    };
+}
+
 const MONTHS_RO = [
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
@@ -61,12 +81,23 @@ const EvenimentePublic: React.FC = () => {
     const { evenimenteInscrise: inscrise, addEveniment, removeEveniment } = useDashboardData();
     const navigate = useNavigate();
 
+    const [events, setEvents] = useState<Eveniment[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     const [search, setSearch] = useState('');
     const [catFilter, setCatFilter] = useState<string>('Toate');
     const [diffFilter, setDiffFilter] = useState<string>('Toate');
     const [priceFilter, setPriceFilter] = useState<string>('Toate');
     const [detail, setDetail] = useState<Eveniment | null>(null);
     const [showMap, setShowMap] = useState(false);
+
+    useEffect(() => {
+        eventApi.getAll()
+            .then((data) => setEvents(data.map(toEveniment)))
+            .catch((err: Error) => setError(err.message))
+            .finally(() => setLoading(false));
+    }, []);
 
     const openDetail = (ev: Eveniment) => {
         setDetail(ev);
@@ -95,7 +126,7 @@ const EvenimentePublic: React.FC = () => {
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase();
-        return MOCK_EVENIMENTE.filter((ev) => {
+        return events.filter((ev) => {
             const matchSearch =
                 ev.name.toLowerCase().includes(q) ||
                 ev.city.toLowerCase().includes(q) ||
@@ -108,7 +139,7 @@ const EvenimentePublic: React.FC = () => {
                 (priceFilter === 'Gratuit' ? ev.price === 'Gratuit' : ev.price !== 'Gratuit');
             return matchSearch && matchCat && matchDiff && matchPrice;
         }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }, [search, catFilter, diffFilter, priceFilter]);
+    }, [events, search, catFilter, diffFilter, priceFilter]);
 
     const hasActiveFilters = catFilter !== 'Toate' || diffFilter !== 'Toate' || priceFilter !== 'Toate' || search;
 
@@ -187,8 +218,8 @@ const EvenimentePublic: React.FC = () => {
                                 <span className="ep-filter-label">{cat}</span>
                                 <span className="ep-filter-count">
                                     {cat === 'Toate'
-                                        ? MOCK_EVENIMENTE.length
-                                        : MOCK_EVENIMENTE.filter((e) => e.category === cat).length}
+                                        ? events.length
+                                        : events.filter((e) => e.category === cat).length}
                                 </span>
                             </button>
                         ))}
@@ -265,8 +296,16 @@ const EvenimentePublic: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Empty state */}
-                    {filtered.length === 0 ? (
+                    {/* Loading / Error */}
+                    {loading && (
+                        <div className="ep-loading">Se încarcă evenimentele...</div>
+                    )}
+                    {error && (
+                        <div className="ep-error">⚠️ {error}</div>
+                    )}
+
+                {/* Empty state / Grid */}
+                    {!loading && !error && (filtered.length === 0 ? (
                         <div className="ep-empty">
                             <div className="ep-empty-icon">🔍</div>
                             <h3 className="ep-empty-title">Niciun eveniment găsit</h3>
@@ -366,7 +405,7 @@ const EvenimentePublic: React.FC = () => {
                                 );
                             })}
                         </div>
-                    )}
+                    ))}
                 </div>
             </div>
 

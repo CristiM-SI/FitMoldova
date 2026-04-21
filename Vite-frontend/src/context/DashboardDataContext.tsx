@@ -6,6 +6,27 @@ import type { Provocare } from '../services/mock/provocari';
 import { MOCK_EVENIMENTE } from '../services/mock/evenimente';
 import type { Eveniment } from '../services/mock/evenimente';
 import type { Traseu } from '../types/Route';
+import { eventApi } from '../services/api/eventApi';
+import type { EventDto } from '../services/api/eventApi';
+
+const CATEGORY_ICON: Record<string, string> = {
+    Maraton: '🏅', Ciclism: '🚴', Yoga: '🧘', Fitness: '💪',
+    Trail: '🥾', Înot: '🏊', Social: '🎉',
+};
+
+function toEveniment(dto: EventDto): Eveniment {
+    return {
+        ...dto,
+        icon: CATEGORY_ICON[dto.category] ?? '🏋️',
+        image: dto.imageUrl ?? '',
+        time: '—',
+        tags: [],
+        lat: 47.0245,
+        lng: 28.8322,
+        category: dto.category as Eveniment['category'],
+        difficulty: dto.difficulty as Eveniment['difficulty'],
+    };
+}
 
 /**
  * NOTĂ: cluburile NU mai sunt în acest context. Sunt gestionate exclusiv
@@ -85,6 +106,14 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         return DEFAULT_DATA;
     });
 
+    const [apiEvents, setApiEvents] = useState<Eveniment[]>([]);
+
+    useEffect(() => {
+        eventApi.getAll()
+            .then((data) => setApiEvents(data.map(toEveniment)))
+            .catch(() => setApiEvents(MOCK_EVENIMENTE));
+    }, []);
+
     useEffect(() => {
         const id = setTimeout(() => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -159,15 +188,10 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     }, []);
 
     const removeEveniment = useCallback((id: number) => {
-        setData((p) => {
-            const rm = p.evenimenteInscrise.find((e) => e.id === id);
-            const orig = rm ? MOCK_EVENIMENTE.find((m) => m.name === rm.name) : null;
-            return {
-                ...p,
-                evenimenteInscrise: p.evenimenteInscrise.filter((e) => e.id !== id),
-                evenimenteDisponibile: orig ? [...p.evenimenteDisponibile, orig] : p.evenimenteDisponibile,
-            };
-        });
+        setData((p) => ({
+            ...p,
+            evenimenteInscrise: p.evenimenteInscrise.filter((e) => e.id !== id),
+        }));
     }, []);
 
     /* ---- Trasee ---- */
@@ -190,14 +214,21 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         localStorage.removeItem(STORAGE_KEY);
     }, []);
 
+    const evenimenteDisponibile = useMemo(() => {
+        const inscribeIds = new Set(data.evenimenteInscrise.map((e) => e.id));
+        const source = apiEvents.length > 0 ? apiEvents : data.evenimenteDisponibile;
+        return source.filter((e) => !inscribeIds.has(e.id));
+    }, [apiEvents, data.evenimenteInscrise, data.evenimenteDisponibile]);
+
     const ctxValue = useMemo(() => ({
         ...data,
+        evenimenteDisponibile,
         addActivitate, removeActivitate, addRecomandare,
         addProvocare, removeProvocare,
         addEveniment, removeEveniment,
         addTraseu, removeTraseu,
         resetAll,
-    }), [data, addActivitate, removeActivitate, addRecomandare, addProvocare, removeProvocare, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
+    }), [data, evenimenteDisponibile, addActivitate, removeActivitate, addRecomandare, addProvocare, removeProvocare, addEveniment, removeEveniment, addTraseu, removeTraseu, resetAll]);
 
     return (
         <DashboardDataContext.Provider value={ctxValue}>

@@ -14,13 +14,6 @@ namespace FitMoldova.BusinessLogic.Core
           /// Forțează DateTime.Kind = Utc pentru PostgreSQL (coloană timestamptz).
           /// Evită eroarea "Cannot write DateTime with Kind=Unspecified".
           /// </summary>
-          private static bool IsValidImageUrl(string url)
-          {
-               if (string.IsNullOrWhiteSpace(url)) return true; // opțional
-               return Uri.TryCreate(url, UriKind.Absolute, out var uri)
-                    && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
-          }
-
           private static DateTime EnsureUtc(DateTime dt) => dt.Kind switch
           {
                DateTimeKind.Utc         => dt,
@@ -47,9 +40,6 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse CreateEventExecution(EventCreateDto dto)
           {
-               if (!IsValidImageUrl(dto.ImageUrl))
-                    return new ServiceResponse { isSuccess = false, Message = "URL-ul imaginii nu este valid. Folosește doar http:// sau https://." };
-
                using var ctx = _dbSession.FitMoldovaContext();
                var ev = new EventEntity
                {
@@ -63,7 +53,6 @@ namespace FitMoldova.BusinessLogic.Core
                     Price = dto.Price,
                     Organizer = dto.Organizer,
                     Difficulty = dto.Difficulty,
-                    ImageUrl = dto.ImageUrl,
                     Participants = 0
                };
                ctx.Events.Add(ev);
@@ -74,9 +63,6 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse UpdateEventExecution(int id, EventCreateDto dto)
           {
-               if (!IsValidImageUrl(dto.ImageUrl))
-                    return new ServiceResponse { isSuccess = false, Message = "URL-ul imaginii nu este valid. Folosește doar http:// sau https://." };
-
                using var ctx = _dbSession.FitMoldovaContext();
                var ev = ctx.Events.FirstOrDefault(e => e.Id == id);
                if (ev == null)
@@ -91,7 +77,6 @@ namespace FitMoldova.BusinessLogic.Core
                ev.Price = dto.Price;
                ev.Organizer = dto.Organizer;
                ev.Difficulty = dto.Difficulty;
-               ev.ImageUrl = dto.ImageUrl;
                ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Eveniment actualizat.", Data = ev };
           }

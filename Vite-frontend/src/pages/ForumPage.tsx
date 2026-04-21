@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { message } from 'antd';
 import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
@@ -14,7 +13,6 @@ import {
 import type {
     ForumCategory,
     ForumThread,
-    SuggestedUser,
 } from '../services/mock/forum';
 import {
     ft, fontImportCSS, keyframesCSS,
@@ -147,9 +145,7 @@ export default function ForumPage() {
     const unreadNotifs = notifications.filter((n) => !n.read).length;
     const unreadMsgs   = conversations.reduce((s, c) => s + c.unread, 0);
 
-    const showToast = useCallback((msg: string) => { message.info(msg); }, []);
-
-    // ── Nav helper ──────────────────────────────────────
+// ── Nav helper ──────────────────────────────────────
     const goTo = useCallback((view: ActiveView) => {
         setActiveView(view);
         setExpandedThread(null);

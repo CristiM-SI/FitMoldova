@@ -53,6 +53,7 @@ namespace FitMoldova.BusinessLogic.Core
                     Price = dto.Price,
                     Organizer = dto.Organizer,
                     Difficulty = dto.Difficulty,
+                    ImageUrl = dto.ImageUrl,
                     Participants = 0
                };
                ctx.Events.Add(ev);

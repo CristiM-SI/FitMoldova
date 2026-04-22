@@ -12,5 +12,14 @@
           public string Region { get; set; } = string.Empty;
           public string Surface { get; set; } = string.Empty;
           public bool IsLoop { get; set; }
+          public string Icon { get; set; } = string.Empty;
+          public string BestSeason { get; set; } = string.Empty;
+          public double StartLat { get; set; }
+          public double StartLng { get; set; }
+          public double EndLat { get; set; }
+          public double EndLng { get; set; }
+          public List<string> Highlights { get; set; } = new();
+          public List<RouteCoordDto> Path { get; set; } = new();
+
      }
 }

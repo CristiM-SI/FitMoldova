@@ -8,10 +8,7 @@ namespace FitMoldova.BusinessLogic.Structure
 {
      public class UserLogic : UserAction, IUserLogic
      {
-          // Constructor care pasează DbContext-ul către UserAction prin base().
-          // DI (Program.cs: AddScoped<UserLogic>) va injecta automat
-          // FitMoldovaContext aici, și UserAction îl va primi cu
-          // ValueConverter-ul de criptare activ.
+         
           public UserLogic(FitMoldovaContext ctx) : base(ctx)
           {
           }

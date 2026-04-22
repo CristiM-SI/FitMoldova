@@ -36,12 +36,15 @@ public class FitMoldovaContext : DbContext
     public DbSet<ActivityEntity> Activities { get; set; }
     public DbSet<ActivityParticipantEntity> ActivityParticipants { get; set; }
     public DbSet<RouteEntity> Routes { get; set; }
+    public DbSet<RouteHighlightEntity> RouteHighlights { get; set; }
+    public DbSet<RouteCoordEntity> RouteCoords { get; set; }
     public DbSet<EventEntity> Events { get; set; }
     public DbSet<ClubEntity> Clubs { get; set; }
     public DbSet<ClubMemberEntity> ClubMembers { get; set; }
     public DbSet<ChallengeEntity> Challenges { get; set; }
     public DbSet<PostEntity> Posts { get; set; }
     public DbSet<PostReplyEntity> PostReplies { get; set; }
+    public DbSet<EventParticipantEntity> EventParticipants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +59,20 @@ public class FitMoldovaContext : DbContext
             .HasConversion<string>()
             .HasMaxLength(20)
             .HasDefaultValue(UserRole.User);
+        modelBuilder.Entity<EventParticipantEntity>()
+             .HasIndex(ep => new { ep.EventId, ep.UserId }).IsUnique();
+
+        modelBuilder.Entity<EventParticipantEntity>()
+             .HasOne(ep => ep.Event)
+             .WithMany(e => e.EventParticipants)
+             .HasForeignKey(ep => ep.EventId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EventParticipantEntity>()
+             .HasOne(ep => ep.User)
+             .WithMany()
+             .HasForeignKey(ep => ep.UserId)
+             .OnDelete(DeleteBehavior.NoAction);
 
         // ── CRIPTARE PII (GDPR-sensitive fields) ──────────────────────────────
         // Aplicăm encryption doar dacă avem serviciul disponibil (runtime, nu design-time).
@@ -121,6 +138,20 @@ public class FitMoldovaContext : DbContext
             .WithMany()
             .HasForeignKey(cm => cm.UserId)
             .OnDelete(DeleteBehavior.NoAction);
+        
+        modelBuilder.Entity<RouteHighlightEntity>()
+             .HasOne(h => h.Route)
+             .WithMany(r => r.Highlights)
+             .HasForeignKey(h => h.RouteId)
+             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<RouteCoordEntity>()
+             .HasOne(c => c.Route)
+             .WithMany(r => r.Path)
+             .HasForeignKey(c => c.RouteId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+
 
         // ── Post → User ───────────────────────────────────────────────────────
         modelBuilder.Entity<PostEntity>()

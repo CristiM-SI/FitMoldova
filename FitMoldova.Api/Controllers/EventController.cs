@@ -72,4 +72,20 @@ public class EventController : ControllerBase
                return NotFound(result);
           return NoContent();
      }
+     
+     [HttpDelete("{id}/leave/{userId}")]
+     public IActionResult Leave(int id, int userId)
+     {
+          var result = _eventLogic.LeaveEvent(id, userId);
+          if (!result.isSuccess)
+               return BadRequest(result);
+          return Ok(result);
+     }
+
+     [HttpGet("{id}/isParticipant/{userId}")]
+     public IActionResult IsParticipant(int id, int userId)
+     {
+          var result = _eventLogic.IsParticipant(id, userId);
+          return Ok(result);
+     }
 }

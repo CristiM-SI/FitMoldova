@@ -1,49 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace FitMoldova.Domain.Entities.Route
+﻿namespace FitMoldova.Domain.Models.Route
 {
-     public class RouteEntity
+     public class RouteInfoDto
      {
-          [Key]
-          [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
           public int Id { get; set; }
-
-          [Required]
-          [StringLength(100)]
           public string Name { get; set; } = string.Empty;
-
-          [StringLength(20)]
           public string Type { get; set; } = string.Empty;
-
-          [StringLength(20)]
           public string Difficulty { get; set; } = string.Empty;
-
           public double Distance { get; set; }
           public int EstimatedDuration { get; set; }
           public int ElevationGain { get; set; }
           public string Description { get; set; } = string.Empty;
-
-          [StringLength(60)]
           public string Region { get; set; } = string.Empty;
-
-          [StringLength(20)]
           public string Surface { get; set; } = string.Empty;
-
           public bool IsLoop { get; set; }
-
-          [StringLength(10)]
           public string Icon { get; set; } = string.Empty;
-
-          [StringLength(50)]
           public string BestSeason { get; set; } = string.Empty;
-
           public double StartLat { get; set; }
           public double StartLng { get; set; }
           public double EndLat { get; set; }
           public double EndLng { get; set; }
+          public List<string> Highlights { get; set; } = new();
+          public List<RouteCoordDto> Path { get; set; } = new();
 
-          public ICollection<RouteHighlightEntity> Highlights { get; set; } = new List<RouteHighlightEntity>();
-          public ICollection<RouteCoordEntity> Path { get; set; } = new List<RouteCoordEntity>();
      }
 }

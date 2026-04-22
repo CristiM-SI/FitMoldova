@@ -3,6 +3,7 @@ using System;
 using FitMoldova.DataAccesLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FitMoldova.DataAccesLayer.Migrations
 {
     [DbContext(typeof(FitMoldovaContext))]
-    partial class FitMoldovaContextModelSnapshot : ModelSnapshot
+    [Migration("20260422190746_AddRouteGeoFields")]
+    partial class AddRouteGeoFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,33 +283,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Events");
-                });
-
-            modelBuilder.Entity("FitMoldova.Domain.Entities.Event.EventParticipantEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("EventId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("EventParticipants");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
@@ -633,25 +609,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FitMoldova.Domain.Entities.Event.EventParticipantEntity", b =>
-                {
-                    b.HasOne("FitMoldova.Domain.Entities.Event.EventEntity", "Event")
-                        .WithMany("EventParticipants")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
                 {
                     b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
@@ -700,11 +657,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
             modelBuilder.Entity("FitMoldova.Domain.Entities.Club.ClubEntity", b =>
                 {
                     b.Navigation("Members");
-                });
-
-            modelBuilder.Entity("FitMoldova.Domain.Entities.Event.EventEntity", b =>
-                {
-                    b.Navigation("EventParticipants");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>

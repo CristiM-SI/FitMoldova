@@ -39,5 +39,7 @@ namespace FitMoldova.Domain.Entities.Event
           
           [StringLength(500)]
           public string ImageUrl { get; set; } = string.Empty;
+          
+          public ICollection<EventParticipantEntity> EventParticipants { get; set; } = new List<EventParticipantEntity>();
      }
 }

@@ -77,7 +77,7 @@ const getGradient = (category: string) =>
     CATEGORY_GRADIENTS[category] ?? CATEGORY_GRADIENTS['default'];
 
 const EvenimentePublic: React.FC = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const { evenimenteInscrise: inscrise, addEveniment, removeEveniment } = useDashboardData();
     const navigate = useNavigate();
 
@@ -111,16 +111,32 @@ const EvenimentePublic: React.FC = () => {
 
     const isJoined = (id: number) => inscrise.some((e) => e.id === id);
 
-    const handleJoin = (ev: Eveniment, e?: React.MouseEvent) => {
+    const handleJoin = async (ev: Eveniment, e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!isAuthenticated) {
             navigate({ to: ROUTES.LOGIN });
             return;
         }
-        if (isJoined(ev.id)) {
-            removeEveniment(ev.id);
-        } else {
-            addEveniment(ev);
+        try {
+            if (isJoined(ev.id)) {
+                await eventApi.leave(ev.id, user!.id);
+                removeEveniment(ev.id);
+                setEvents((prev) =>
+                    prev.map((item) =>
+                        item.id === ev.id ? { ...item, participants: Math.max(0, item.participants - 1) } : item
+                    )
+                );
+            } else {
+                await eventApi.join(ev.id, user!.id);
+                addEveniment(ev);
+                setEvents((prev) =>
+                    prev.map((item) =>
+                        item.id === ev.id ? { ...item, participants: item.participants + 1 } : item
+                    )
+                );
+            }
+        } catch (err) {
+            setError((err as Error).message);
         }
     };
 

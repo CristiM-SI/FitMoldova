@@ -85,14 +85,63 @@ namespace FitMoldova.BusinessLogic.Core
           public ServiceResponse JoinEventExecution(int eventId, int userId)
           {
                using var ctx = _dbSession.FitMoldovaContext();
+
                var ev = ctx.Events.FirstOrDefault(e => e.Id == eventId);
                if (ev == null)
                     return new ServiceResponse { isSuccess = false, Message = "Evenimentul nu a fost găsit." };
+
                if (ev.Participants >= ev.MaxParticipants)
                     return new ServiceResponse { isSuccess = false, Message = "Evenimentul este complet." };
+
+               // Verifică dacă userul e deja înscris
+               bool alreadyJoined = ctx.EventParticipants
+                    .Any(ep => ep.EventId == eventId && ep.UserId == userId);
+               if (alreadyJoined)
+                    return new ServiceResponse { isSuccess = false, Message = "Ești deja înscris la acest eveniment." };
+
+               // Adaugă în tabela N-N
+               ctx.EventParticipants.Add(new EventParticipantEntity
+               {
+                    EventId = eventId,
+                    UserId = userId,
+                    JoinedAt = DateTime.UtcNow
+               });
+
+               // Actualizează contorul
                ev.Participants++;
                ctx.SaveChanges();
+
                return new ServiceResponse { isSuccess = true, Message = "Înscris la eveniment." };
+          }
+
+          public ServiceResponse LeaveEventExecution(int eventId, int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+
+               var ev = ctx.Events.FirstOrDefault(e => e.Id == eventId);
+               if (ev == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Evenimentul nu a fost găsit." };
+
+               var participant = ctx.EventParticipants
+                    .FirstOrDefault(ep => ep.EventId == eventId && ep.UserId == userId);
+               if (participant == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Nu ești înscris la acest eveniment." };
+
+               ctx.EventParticipants.Remove(participant);
+
+               if (ev.Participants > 0)
+                    ev.Participants--;
+
+               ctx.SaveChanges();
+
+               return new ServiceResponse { isSuccess = true, Message = "Ai ieșit din eveniment." };
+          }
+          public ServiceResponse IsParticipantExecution(int eventId, int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               bool joined = ctx.EventParticipants
+                    .Any(ep => ep.EventId == eventId && ep.UserId == userId);
+               return new ServiceResponse { isSuccess = true, Data = joined };
           }
 
           public ServiceResponse DeleteExecution(int id)

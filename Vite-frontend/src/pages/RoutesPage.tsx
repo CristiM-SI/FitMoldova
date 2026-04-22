@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { ROUTES } from '../routes/paths';
-import { MOCK_TRASEE } from '../services/mock/trasee';
+import { routeApi } from '../services/api/routeApi';
 import MoldovaRoutesMap from '../components/MoldovaRoutesMap';
 import RoutesSidebar from '../components/RoutesSidebar';
 import type { RouteDifficulty, RouteType, Traseu } from '../types/Route';
@@ -12,6 +12,9 @@ import { useAuth } from '../context/AuthContext';
 
 
 const RoutesPage: React.FC = () => {
+  const [trasee, setTrasee] = useState<Traseu[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filterType, setFilterType] = useState<RouteType | null>(null);
   const [filterDiff, setFilterDiff] = useState<RouteDifficulty | null>(null);
@@ -22,18 +25,25 @@ const RoutesPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { addTraseu, traseeSalvate } = useDashboardData();
 
+  useEffect(() => {
+    routeApi.getAll()
+      .then(setTrasee)
+      .catch(() => setError('Nu s-au putut încărca traseele. Încearcă din nou.'))
+      .finally(() => setLoading(false));
+  }, []);
+
   const filteredTrasee = useMemo(
-      () => MOCK_TRASEE.filter((t) => {
+      () => trasee.filter((t) => {
         if (filterType && t.type !== filterType) return false;
         if (filterDiff && t.difficulty !== filterDiff) return false;
         return true;
       }),
-      [filterType, filterDiff],
+      [trasee, filterType, filterDiff],
   );
 
   const selectedRoute: Traseu | undefined = useMemo(
-      () => MOCK_TRASEE.find((t) => t.id === selectedId),
-      [selectedId],
+      () => trasee.find((t) => t.id === selectedId),
+      [trasee, selectedId],
   );
 
   const isAlreadySaved = useMemo(
@@ -42,9 +52,9 @@ const RoutesPage: React.FC = () => {
   );
 
   const routeStats = useMemo(() => ({
-    totalKm: Math.round(MOCK_TRASEE.reduce((s, t) => s + t.distance, 0)),
-    regionCount: new Set(MOCK_TRASEE.map((t) => t.region)).size,
-  }), []);
+    totalKm: Math.round(trasee.reduce((s, t) => s + t.distance, 0)),
+    regionCount: new Set(trasee.map((t) => t.region)).size,
+  }), [trasee]);
 
   // Dacă traseul selectat dispare după filtrare, resetăm selecția
   useEffect(() => {
@@ -85,13 +95,13 @@ const RoutesPage: React.FC = () => {
               Trasee <span className="routes-hero-highlight">Moldova</span>
             </h1>
             <p className="routes-hero-subtitle">
-              Explorează {MOCK_TRASEE.length} trasee interactive de alergare, ciclism și drumeție
+              Explorează {trasee.length} trasee interactive de alergare, ciclism și drumeție
               pe harta Moldovei. Adaugă-ți traseul preferat ca obiectiv în dashboard.
             </p>
 
             <div className="routes-hero-stats">
               <div className="routes-stat">
-                <span className="routes-stat-value">{MOCK_TRASEE.length}</span>
+                <span className="routes-stat-value">{trasee.length}</span>
                 <span className="routes-stat-label">Trasee</span>
               </div>
               <div className="routes-stat">
@@ -134,8 +144,9 @@ const RoutesPage: React.FC = () => {
 
           <div className="routes-layout">
             <aside className="routes-sidebar">
+              {error && <p className="routes-error">{error}</p>}
               <RoutesSidebar
-                  trasee={MOCK_TRASEE}
+                  trasee={loading ? [] : trasee}
                   selectedId={selectedId}
                   onSelect={setSelectedId}
                   filterType={filterType}

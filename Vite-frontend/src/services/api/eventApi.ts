@@ -58,6 +58,9 @@ export const eventApi = {
     join: (id: number, userId: number) =>
         axiosInstance.post(`/event/${id}/join/${userId}`).then(() => {}),
 
+    leave: (id: number, userId: number) =>
+        axiosInstance.delete(`/event/${id}/leave/${userId}`).then(() => {}),
+
     delete: (id: number) =>
         axiosInstance.delete(`/event/${id}`).then(() => {}),
 };

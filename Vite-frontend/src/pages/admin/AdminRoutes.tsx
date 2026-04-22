@@ -9,7 +9,8 @@ import {
     DeleteOutlined, CompassOutlined, ReloadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { routeApi, type RouteDto, type RouteCreatePayload } from '../../services/api/routeApi';
+import { routeApi, type RouteCreatePayload } from '../../services/api/routeApi';
+import type { Traseu } from '../../types/Route';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -34,7 +35,7 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 const AdminRoutes: React.FC = () => {
-    const [routes, setRoutes] = useState<RouteDto[]>([]);
+    const [routes, setRoutes] = useState<Traseu[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
@@ -42,7 +43,7 @@ const AdminRoutes: React.FC = () => {
     const [filterType, setFilterType] = useState<RouteType | 'all'>('all');
     const [filterDiff, setFilterDiff] = useState<RouteDifficulty | 'all'>('all');
     const [modalOpen, setModalOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<RouteDto | null>(null);
+    const [editTarget, setEditTarget] = useState<Traseu | null>(null);
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
 
@@ -83,7 +84,7 @@ const AdminRoutes: React.FC = () => {
         setModalOpen(true);
     };
 
-    const openEdit = (record: RouteDto) => {
+    const openEdit = (record: Traseu) => {
         setEditTarget(record);
         form.setFieldsValue({
             name: record.name,
@@ -148,7 +149,7 @@ const AdminRoutes: React.FC = () => {
         }
     };
 
-    const columns: ColumnsType<RouteDto> = [
+    const columns: ColumnsType<Traseu> = [
         {
             title: 'Traseu',
             key: 'name',

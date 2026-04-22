@@ -282,6 +282,33 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Event.EventParticipantEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("EventId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("EventParticipants");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -352,6 +379,33 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.ToTable("PostReplies");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteCoordEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Lng")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RouteId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RouteId");
+
+                    b.ToTable("RouteCoords");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -359,6 +413,11 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BestSeason")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -375,8 +434,19 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Property<int>("ElevationGain")
                         .HasColumnType("integer");
 
+                    b.Property<double>("EndLat")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("EndLng")
+                        .HasColumnType("double precision");
+
                     b.Property<int>("EstimatedDuration")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<bool>("IsLoop")
                         .HasColumnType("boolean");
@@ -391,6 +461,12 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
 
+                    b.Property<double>("StartLat")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("StartLng")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Surface")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -404,6 +480,32 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Routes");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteHighlightEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RouteId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RouteId");
+
+                    b.ToTable("RouteHighlights");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.User.UDTable", b =>
@@ -531,6 +633,25 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Event.EventParticipantEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Event.EventEntity", "Event")
+                        .WithMany("EventParticipants")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
                 {
                     b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
@@ -549,6 +670,28 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .HasForeignKey("PostEntityId");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteCoordEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Route.RouteEntity", "Route")
+                        .WithMany("Path")
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Route");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteHighlightEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Route.RouteEntity", "Route")
+                        .WithMany("Highlights")
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Route");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Activity.ActivityEntity", b =>
                 {
                     b.Navigation("Participants");
@@ -559,9 +702,21 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Navigation("Members");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Event.EventEntity", b =>
+                {
+                    b.Navigation("EventParticipants");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
                 {
                     b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteEntity", b =>
+                {
+                    b.Navigation("Highlights");
+
+                    b.Navigation("Path");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.User.UDTable", b =>

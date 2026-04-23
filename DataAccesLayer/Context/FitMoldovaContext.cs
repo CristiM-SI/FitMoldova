@@ -45,6 +45,7 @@ public class FitMoldovaContext : DbContext
     public DbSet<PostEntity> Posts { get; set; }
     public DbSet<PostReplyEntity> PostReplies { get; set; }
     public DbSet<EventParticipantEntity> EventParticipants { get; set; }
+    public DbSet<ChallengeParticipantEntity> ChallengeParticipants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -159,5 +160,14 @@ public class FitMoldovaContext : DbContext
             .WithMany(u => u.Posts)
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        //ChallengeParticipantEntity
+        modelBuilder.Entity<ChallengeParticipantEntity>()
+             .HasIndex(cp => new { cp.ChallengeId, cp.UserId }).IsUnique();
+        modelBuilder.Entity<ChallengeParticipantEntity>()
+             .HasOne(cp => cp.Challenge).WithMany()
+             .HasForeignKey(cp => cp.ChallengeId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<ChallengeParticipantEntity>()
+             .HasOne(cp => cp.User).WithMany()
+             .HasForeignKey(cp => cp.UserId).OnDelete(DeleteBehavior.NoAction);
     }
 }

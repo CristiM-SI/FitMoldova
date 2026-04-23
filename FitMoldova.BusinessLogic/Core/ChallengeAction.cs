@@ -61,13 +61,32 @@ namespace FitMoldova.BusinessLogic.Core
 
         public ServiceResponse JoinChallengeExecution(int challengeId, int userId)
         {
-            using var ctx = _dbSession.FitMoldovaContext();
-            var ch = ctx.Challenges.FirstOrDefault(c => c.Id == challengeId);
-            if (ch == null)
-                return new ServiceResponse { isSuccess = false, Message = "Provocarea nu a fost găsită." };
-            ch.Participants++;
-            ctx.SaveChanges();
-            return new ServiceResponse { isSuccess = true, Message = "Participi la provocare." };
+             using var ctx = _dbSession.FitMoldovaContext();
+             var ch = ctx.Challenges.FirstOrDefault(c => c.Id == challengeId);
+             if (ch == null) return new ServiceResponse { isSuccess = false, Message = "Provocarea nu a fost găsită." };
+
+             bool alreadyJoined = ctx.ChallengeParticipants.Any(cp => cp.ChallengeId == challengeId && cp.UserId == userId);
+             if (alreadyJoined) return new ServiceResponse { isSuccess = false, Message = "Ești deja înscris." };
+
+             ctx.ChallengeParticipants.Add(new ChallengeParticipantEntity { ChallengeId = challengeId, UserId = userId, JoinedAt = DateTime.UtcNow });
+             ch.Participants++;
+             ctx.SaveChanges();
+             return new ServiceResponse { isSuccess = true, Message = "Participi la provocare." };
+        }
+
+        public ServiceResponse LeaveChallengeExecution(int challengeId, int userId)
+        {
+             using var ctx = _dbSession.FitMoldovaContext();
+             var ch = ctx.Challenges.FirstOrDefault(c => c.Id == challengeId);
+             if (ch == null) return new ServiceResponse { isSuccess = false, Message = "Provocarea nu a fost găsită." };
+
+             var participant = ctx.ChallengeParticipants.FirstOrDefault(cp => cp.ChallengeId == challengeId && cp.UserId == userId);
+             if (participant == null) return new ServiceResponse { isSuccess = false, Message = "Nu ești înscris." };
+
+             ctx.ChallengeParticipants.Remove(participant);
+             if (ch.Participants > 0) ch.Participants--;
+             ctx.SaveChanges();
+             return new ServiceResponse { isSuccess = true, Message = "Ai ieșit din provocare." };
         }
 
         public ServiceResponse DeleteExecution(int id)

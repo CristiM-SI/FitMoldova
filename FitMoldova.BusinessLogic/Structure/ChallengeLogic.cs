@@ -13,5 +13,11 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse UpdateChallenge(int id, ChallengeUpdateDto dto)  => UpdateChallengeExecution(id, dto);
           public ServiceResponse JoinChallenge(int cId, int uId)                  => JoinChallengeExecution(cId, uId);
           public ServiceResponse Delete(int id)                                   => DeleteExecution(id);
+          
+          public ServiceResponse LeaveChallenge(int challengeId, int userId)
+          {
+               var action = new ChallengeAction();
+               return action.LeaveChallengeExecution(challengeId, userId);
+          }
      }
 }

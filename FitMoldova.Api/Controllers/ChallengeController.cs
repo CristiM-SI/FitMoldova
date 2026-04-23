@@ -2,6 +2,7 @@
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Challenge;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -32,6 +33,7 @@ public class ChallengeController : ControllerBase
      }
 
      [HttpPost]
+     [Authorize(Roles = "Admin")]
      public IActionResult Create([FromBody] ChallengeCreateDto dto)
      {
           var result = _challengeLogic.CreateChallenge(dto);
@@ -40,6 +42,7 @@ public class ChallengeController : ControllerBase
      }
 
      [HttpPut("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Update(int id, [FromBody] ChallengeUpdateDto dto)
      {
           var result = _challengeLogic.UpdateChallenge(id, dto);
@@ -54,8 +57,18 @@ public class ChallengeController : ControllerBase
           if (!result.isSuccess) return BadRequest(result);
           return Ok(result);
      }
+     
+     [HttpDelete("{id}/leave/{userId}")]
+     [Authorize]
+     public IActionResult Leave(int id, int userId)
+     {
+          var result = _challengeLogic.LeaveChallenge(id, userId);
+          if (!result.isSuccess) return BadRequest(result);
+          return Ok(result);
+     }
 
      [HttpDelete("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Delete(int id)
      {
           var result = _challengeLogic.Delete(id);

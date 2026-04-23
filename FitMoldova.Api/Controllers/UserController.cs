@@ -58,7 +58,7 @@ public class UserController : ControllerBase
      }
 
      [HttpGet]
-     [Authorize]
+     [Authorize(Roles = "Admin")]
      public IActionResult GetAll()
      {
           var result = _userLogic.GetAll();
@@ -66,7 +66,7 @@ public class UserController : ControllerBase
      }
 
      [HttpPatch("{id}/role")]
-     [Authorize]
+     [Authorize(Roles = "Admin")]
      public IActionResult ChangeRole(int id, [FromBody] ChangeRoleDto dto)
      {
           var result = _userLogic.ChangeRole(id, dto);
@@ -75,7 +75,7 @@ public class UserController : ControllerBase
      }
 
      [HttpPatch("{id}/status")]
-     [Authorize]
+     [Authorize(Roles = "Admin")]
      public IActionResult ChangeStatus(int id, [FromBody] ChangeStatusDto dto)
      {
           var result = _userLogic.ChangeStatus(id, dto);

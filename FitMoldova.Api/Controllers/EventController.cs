@@ -2,6 +2,7 @@
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Event;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -37,6 +38,7 @@ public class EventController : ControllerBase
 
 
      [HttpPost]
+     [Authorize(Roles = "Admin")]
      public IActionResult Create([FromBody] EventCreateDto dto)
      {
           var result = _eventLogic.CreateEvent(dto);
@@ -47,6 +49,7 @@ public class EventController : ControllerBase
 
 
      [HttpPut("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Update(int id, [FromBody] EventCreateDto dto)
      {
           var result = _eventLogic.UpdateEvent(id, dto);
@@ -65,6 +68,7 @@ public class EventController : ControllerBase
 
     
      [HttpDelete("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Delete(int id)
      {
           var result = _eventLogic.Delete(id);

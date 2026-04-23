@@ -84,11 +84,20 @@ const Provocari: React.FC = () => {
         }
     }, [user?.id, joinedIds, joining, completeChallenge]);
 
-    const handleLeave = useCallback((id: number) => {
-        const newIds = joinedIds.filter(x => x !== id);
-        setJoinedIds(newIds);
-        saveJoinedIds(newIds);
-    }, [joinedIds]);
+    const handleLeave = useCallback(async (id: number) => {
+        if (!user?.id || joining !== null) return;
+        setJoining(id);
+        try {
+            await challengeApi.leaveChallenge(id, user.id);
+            const newIds = joinedIds.filter(x => x !== id);
+            setJoinedIds(newIds);
+            saveJoinedIds(newIds);
+        } catch {
+            // leave eșuat
+        } finally {
+            setJoining(null);
+        }
+    }, [user?.id, joinedIds, joining]);
 
     return (
         <DashboardLayout>

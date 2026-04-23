@@ -42,6 +42,9 @@ export const challengeApi = {
 
     joinChallenge: (challengeId: number, userId: number) =>
         axiosInstance.post(`/challenge/${challengeId}/join/${userId}`).then(() => {}),
+    
+    leaveChallenge: (challengeId: number, userId: number) =>
+        axiosInstance.delete(`/challenge/${challengeId}/leave/${userId}`).then(() => {}),
 
     delete: (id: number) =>
         axiosInstance.delete(`/challenge/${id}`).then(() => {}),

@@ -2,6 +2,7 @@
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Route;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -35,6 +36,7 @@ public class RouteController : ControllerBase
 
     
      [HttpPost]
+     [Authorize(Roles = "Admin")]
      public IActionResult Create([FromBody] RouteCreateDto dto)
      {
           var result = _routeLogic.CreateRoute(dto);
@@ -45,6 +47,7 @@ public class RouteController : ControllerBase
 
    
      [HttpPut("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Update(int id, [FromBody] RouteCreateDto dto)
      {
           var result = _routeLogic.Update(id, dto);
@@ -55,6 +58,7 @@ public class RouteController : ControllerBase
 
   
      [HttpDelete("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Delete(int id)
      {
           var result = _routeLogic.Delete(id);

@@ -58,9 +58,9 @@ export const userApi = {
             .post<LoginResponse>('/user/login', { username, password })
             .then((r) => r.data),
 
-    register: (firstName: string, lastName: string, email: string, password: string) =>
+    register: (username: string, firstName: string, lastName: string, email: string, password: string) =>
         axiosInstance
-            .post<ServiceResponse<RegisterResponse>>('/user/register', { firstName, lastName, email, password })
+            .post<ServiceResponse<RegisterResponse>>('/user/register', { username, firstName, lastName, email, password })
             .then((r) => r.data),
 
     getById: (id: number) =>

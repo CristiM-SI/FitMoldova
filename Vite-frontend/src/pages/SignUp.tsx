@@ -6,6 +6,7 @@ import { useUser } from "../context/UserContext";
 import { signUpStyles } from "../styles/signUpStyles";
 
 interface FormData {
+    username: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -14,6 +15,7 @@ interface FormData {
 }
 
 interface FormErrors {
+    username?: string;
     firstName?: string;
     lastName?: string;
     email?: string;
@@ -47,6 +49,7 @@ function validateEmail(email: string): string | undefined {
 
 const SignUp = () => {
     const [formData, setFormData] = useState<FormData>({
+        username: '',
         firstName: "", lastName: "", email: "", password: "", confirmPassword: "",
     });
     const navigate = useNavigate();
@@ -61,6 +64,7 @@ const SignUp = () => {
 
     const validate = useCallback((data: FormData): FormErrors => {
         const e: FormErrors = {};
+        if (!data.username.trim()) e.username = 'Username-ul este obligatoriu.';
         if (!data.firstName.trim()) e.firstName = "Prenumele este obligatoriu.";
         if (!data.lastName.trim()) e.lastName = "Numele este obligatoriu.";
         const emailErr = validateEmail(data.email);
@@ -97,6 +101,7 @@ const SignUp = () => {
 
         if (Object.keys(newErrors).length === 0) {
             const result = await register({
+                username: formData.username,
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 email: formData.email,
@@ -119,7 +124,7 @@ const SignUp = () => {
                 });
 
                 setSubmitted(true);
-                navigate({ to: ROUTES.DASHBOARD });
+                navigate({ to: ROUTES.LOGIN });
             } else {
                 setErrors((prev) => ({ ...prev, email: result.error }));
             }
@@ -197,6 +202,17 @@ const SignUp = () => {
                             />
                             {touched.firstName && errors.firstName && <span className="su-error">{errors.firstName}</span>}
                         </div>
+                    </div>
+
+                    <div className="su-field">
+                        <label className="su-label" htmlFor="username">Username</label>
+                        <input
+                            id="username" name="username" type="text" autoComplete="username"
+                            className={`su-input ${touched.username && errors.username ? 'su-inputError' : ''} ${touched.username && !errors.username && formData.username ? 'su-inputValid' : ''}`}
+                            placeholder="ion.popescu"
+                            value={formData.username} onChange={handleChange} onBlur={handleBlur}
+                        />
+                        {touched.username && errors.username && <span className="su-error">{errors.username}</span>}
                     </div>
 
                     <div className="su-field">

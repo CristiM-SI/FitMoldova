@@ -22,7 +22,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isAdmin: boolean;
     loading: boolean;
-    register: (data: { firstName: string; lastName: string; email: string; password: string }) => Promise<AuthResult>;
+    register: (data: { username: string; firstName: string; lastName: string; email: string; password: string }) => Promise<AuthResult>;
     login: (username: string, password: string) => Promise<AuthResult>;
     logout: () => void;
 }
@@ -69,48 +69,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isAdmin, setIsAdmin] = useState(initial.isAdmin);
     const [loading] = useState(false);
 
-    const register = async (data: { firstName: string; lastName: string; email: string; password: string }): Promise<AuthResult> => {
-    try {
-        const res = await userApi.register(data.firstName, data.lastName, data.email, data.password);
-        if (res.isSuccess) {
-            // după register, facem login automat ca să obținem JWT
-            return await login(data.email, data.password);
-        }
-        return { success: false, error: res.message ?? 'Eroare la inregistrare.' };
-    } catch (err: any) {
-        return { success: false, error: err.message ?? 'Eroare de conexiune.' };
-    }
-};
-
     const login = async (username: string, password: string): Promise<AuthResult> => {
-    try {
-        const res = await userApi.login(username, password);
-        // res este direct { token, expiresAt, userId, username, ... }
-        localStorage.setItem('fitmoldova_token', res.token);
-        const loggedUser: User = {
-            id: res.userId,
-            username: res.username,
-            firstName: res.firstName,
-            lastName: res.lastName,
-            email: res.email,
-            avatar: `${res.firstName[0]}${res.lastName[0]}`.toUpperCase(),
-            registeredAt: res.expiresAt,
-            isAdmin: res.role === 'Admin',
-        };
-        applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
-        return { success: true };
-    } catch (err: any) {
-        return { success: false, error: err.message ?? 'Eroare de conexiune.' };
-    }
-};
+        try {
+            const res = await userApi.login(username, password);
+            localStorage.setItem('fitmoldova_token', res.token);
+            const loggedUser: User = {
+                id: res.userId,
+                username: res.username,
+                firstName: res.firstName,
+                lastName: res.lastName,
+                email: res.email,
+                avatar: `${res.firstName[0]}${res.lastName[0]}`.toUpperCase(),
+                registeredAt: res.expiresAt,
+                isAdmin: res.role === 'Admin',
+            };
+            applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
+            return { success: true };
+        } catch (err: any) {
+            return { success: false, error: err.message ?? 'Eroare de conexiune.' };
+        }
+    };
 
-const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    localStorage.removeItem('fitmoldova_user');
-    localStorage.removeItem('fitmoldova_token');
-};
+    const register = async (data: { username: string; firstName: string; lastName: string; email: string; password: string }): Promise<AuthResult> => {
+        try {
+            const res = await userApi.register(data.username, data.firstName, data.lastName, data.email, data.password);
+            if (res.isSuccess) {
+                return { success: true };
+            }
+            return { success: false, error: res.message ?? 'Eroare la inregistrare.' };
+        } catch (err: any) {
+            return { success: false, error: err.message ?? 'Eroare de conexiune.' };
+        }
+    };
+
+    const logout = () => {
+        setUser(null);
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+        localStorage.removeItem('fitmoldova_user');
+        localStorage.removeItem('fitmoldova_token');
+    };
 
     return (
         <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, loading, register, login, logout }}>

@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
     const { user: authUser } = useAuth();
     const { user, updateUser } = useUser();
     const { completeProfile } = useProgress();
-    const { activitatiCurente, provocariInscrise } = useDashboardData();
+    const { activitatiCurente, joinedChallengeIds } = useDashboardData();
     const { count: cluburiJoinedCount } = useUserClubs();
     const navigate = useNavigate();
 
@@ -233,7 +233,7 @@ const handleSave = async () => {
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                             {[
                                 { label: 'Activitati inregistrate', value: activitatiCurente.length, emoji: '🏃', color: '#1a6fff', bg: '#f0f7ff' },
-                                { label: 'Provocari active', value: provocariInscrise.length, emoji: '🏆', color: '#f59e0b', bg: '#fffbeb' },
+                                { label: 'Provocari active', value: joinedChallengeIds.length, emoji: '🏆', color: '#f59e0b', bg: '#fffbeb' },
                                 { label: 'Cluburi inscrise', value: cluburiJoinedCount, emoji: '👥', color: '#10b981', bg: '#ecfdf5' },
                                 { label: 'Completare profil', value: `${profileCompletion}%`, emoji: '⭐', color: '#a855f7', bg: '#fdf4ff' },
                             ].map((s) => (

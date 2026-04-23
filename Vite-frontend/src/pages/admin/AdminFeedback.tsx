@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Table, Card, Input, Space, Tag, Button, Tabs, Typography,
     Avatar, Popconfirm, message, Select, Rate, Row, Col,
     Statistic, Badge, Tooltip,
 } from 'antd';
+import feedbackApi from '../../services/api/feedbackApi';
+import type { FeedbackInfoDto } from '../../types/Feedback';
 import {
     SearchOutlined, DeleteOutlined, MessageOutlined,
     PushpinOutlined, EyeInvisibleOutlined, EyeOutlined,
@@ -15,30 +17,7 @@ import { INITIAL_THREADS, FORUM_CATEGORIES, type ForumThread, type ForumCategory
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
-/* ─── Feedback review types & seed data ─── */
-interface Review {
-    id: number;
-    name: string;
-    initials: string;
-    date: string;
-    stars: number;
-    category: string;
-    text: string;
-    status: 'vizibil' | 'ascuns';
-}
-
 const FEEDBACK_CATEGORIES = ['Interfață (UX)', 'Performanță', 'Funcționalități', 'Comunitate', 'Suport', 'Altele'];
-
-const SEED_REVIEWS: Review[] = [
-    { id: 1, name: 'Alexandru Moraru', initials: 'AM', date: '18 feb 2026', stars: 5, category: 'Funcționalități', text: 'Platforma este extraordinară! Tracking-ul de activități funcționează perfect.', status: 'vizibil' },
-    { id: 2, name: 'Maria Popescu', initials: 'MP', date: '14 feb 2026', stars: 5, category: 'Comunitate', text: 'Comunitatea de pe FitMoldova este incredibil de prietenoasă. Am găsit parteneri de alergare!', status: 'vizibil' },
-    { id: 3, name: 'Ion Cebanu', initials: 'IC', date: '10 feb 2026', stars: 4, category: 'Interfață (UX)', text: 'Design modern și intuitiv. M-ar bucura câteva îmbunătățiri la filtrarea provocărilor.', status: 'vizibil' },
-    { id: 4, name: 'Elena Rusu', initials: 'ER', date: '5 feb 2026', stars: 5, category: 'Performanță', text: 'Aplicația se încarcă rapid și nu am întâmpinat niciun bug. Suportul a răspuns rapid.', status: 'vizibil' },
-    { id: 5, name: 'Andrei Lungu', initials: 'AL', date: '1 feb 2026', stars: 4, category: 'Funcționalități', text: 'Provocările sunt motivante și bine organizate. Aș vrea mai multe tipuri de activități.', status: 'vizibil' },
-    { id: 6, name: 'Cristina Bălan', initials: 'CB', date: '28 ian 2026', stars: 5, category: 'Suport', text: 'Am avut o problemă cu contul și echipa de suport a rezolvat totul în câteva ore!', status: 'vizibil' },
-    { id: 7, name: 'Vasile Toma', initials: 'VT', date: '22 ian 2026', stars: 2, category: 'Performanță', text: 'Uneori aplicația se blochează pe telefon. Sper să fie rezolvat în curând.', status: 'vizibil' },
-    { id: 8, name: 'Daniela Ciobanu', initials: 'DC', date: '15 ian 2026', stars: 3, category: 'Interfață (UX)', text: 'Interfața e bună, dar navigarea pe mobil poate fi îmbunătățită.', status: 'vizibil' },
-];
 
 /* ─── Admin thread type (adds status) ─── */
 interface AdminThread extends ForumThread {
@@ -215,78 +194,109 @@ const ForumTab: React.FC = () => {
 
 /* ─── Feedback tab ─── */
 const FeedbackTab: React.FC = () => {
-    const [reviews, setReviews] = useState<Review[]>(SEED_REVIEWS);
+    const [reviews, setReviews] = useState<FeedbackInfoDto[]>([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filterStars, setFilterStars] = useState<number | 'all'>('all');
     const [filterCat, setFilterCat] = useState<string>('all');
     const [messageApi, contextHolder] = message.useMessage();
 
+    useEffect(() => {
+        feedbackApi.getAllAdmin()
+            .then(setReviews)
+            .catch(() => messageApi.error('Nu s-au putut încărca recenziile.'))
+            .finally(() => setLoading(false));
+    }, []);
+
     const filtered = reviews.filter(r => {
         const term = search.toLowerCase();
         const matchSearch =
-            r.name.toLowerCase().includes(term) ||
-            r.text.toLowerCase().includes(term);
-        const matchStars = filterStars === 'all' || r.stars === filterStars;
-        const matchCat = filterCat === 'all' || r.category === filterCat;
+            r.title.toLowerCase().includes(term) ||
+            r.message.toLowerCase().includes(term);
+        const matchStars = filterStars === 'all' || r.rating === filterStars;
+        const matchCat = filterCat === 'all' || r.categories.includes(filterCat);
         return matchSearch && matchStars && matchCat;
     });
 
-    const toggleVisibility = (id: number) => {
-        setReviews(prev =>
-            prev.map(r => r.id === id
-                ? { ...r, status: r.status === 'vizibil' ? 'ascuns' : 'vizibil' }
-                : r
-            )
-        );
+    const toggleVisibility = async (id: number) => {
         const rev = reviews.find(r => r.id === id);
-        messageApi.success(rev?.status === 'vizibil' ? 'Recenzia a fost ascunsă.' : 'Recenzia este din nou vizibilă.');
+        if (!rev) return;
+        const newStatus = rev.status === 'vizibil' ? 'ascuns' : 'vizibil';
+        try {
+            await feedbackApi.updateStatus(id, newStatus);
+            setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+            messageApi.success(newStatus === 'ascuns' ? 'Recenzia a fost ascunsă.' : 'Recenzia este din nou vizibilă.');
+        } catch {
+            messageApi.error('Eroare la actualizare.');
+        }
     };
 
-    const deleteReview = (id: number) => {
-        setReviews(prev => prev.filter(r => r.id !== id));
-        messageApi.success('Recenzia a fost ștearsă.');
+    const togglePin = async (id: number) => {
+        const rev = reviews.find(r => r.id === id);
+        if (!rev) return;
+        try {
+            await feedbackApi.togglePin(id);
+            setReviews(prev => prev.map(r => r.id === id ? { ...r, isPinned: !r.isPinned } : r));
+            messageApi.success(rev.isPinned ? 'Recenzia a fost despinsă.' : 'Recenzia a fost pinsată pe pagina publică.');
+        } catch {
+            messageApi.error('Eroare la actualizare.');
+        }
+    };
+
+    const deleteReview = async (id: number) => {
+        try {
+            await feedbackApi.delete(id);
+            setReviews(prev => prev.filter(r => r.id !== id));
+            messageApi.success('Recenzia a fost ștearsă.');
+        } catch {
+            messageApi.error('Eroare la ștergere.');
+        }
     };
 
     const avgRating = reviews.length
-        ? (reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1)
+        ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
         : '0';
 
     const starCounts = [5, 4, 3, 2, 1].map(s => ({
         star: s,
-        count: reviews.filter(r => r.stars === s).length,
+        count: reviews.filter(r => r.rating === s).length,
     }));
 
-    const columns: ColumnsType<Review> = [
+    const columns: ColumnsType<FeedbackInfoDto> = [
         {
-            title: 'Utilizator',
-            key: 'user',
+            title: 'Titlu',
+            key: 'title',
             render: (_, record) => (
-                <Space>
-                    <Avatar style={{ backgroundColor: '#1677ff' }}>{record.initials}</Avatar>
-                    <div>
-                        <Text strong style={{ fontSize: 13 }}>{record.name}</Text>
-                        <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>{record.date}</Text>
-                    </div>
-                </Space>
+                <div>
+                    <Space size={4}>
+                        {record.isPinned && <Tag color="gold">📌 Pinned</Tag>}
+                        <Text strong style={{ fontSize: 13 }}>{record.title}</Text>
+                    </Space>
+                    <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
+                        {new Date(record.createdAt).toLocaleDateString('ro-RO')}
+                    </Text>
+                </div>
             ),
         },
         {
             title: 'Rating',
-            dataIndex: 'stars',
-            key: 'stars',
-            sorter: (a, b) => a.stars - b.stars,
-            render: (stars: number) => <Rate disabled defaultValue={stars} style={{ fontSize: 14 }} />,
+            dataIndex: 'rating',
+            key: 'rating',
+            sorter: (a, b) => a.rating - b.rating,
+            render: (rating: number) => <Rate disabled defaultValue={rating} style={{ fontSize: 14 }} />,
         },
         {
-            title: 'Categorie',
-            dataIndex: 'category',
-            key: 'category',
-            render: (cat: string) => <Tag color="purple">{cat}</Tag>,
+            title: 'Categorii',
+            dataIndex: 'categories',
+            key: 'categories',
+            render: (cats: string[]) => (
+                <>{cats.map(c => <Tag key={c} color="purple">{c}</Tag>)}</>
+            ),
         },
         {
-            title: 'Recenzie',
-            dataIndex: 'text',
-            key: 'text',
+            title: 'Mesaj',
+            dataIndex: 'message',
+            key: 'message',
             render: (text: string, record) => (
                 <Paragraph
                     ellipsis={{ rows: 2 }}
@@ -311,6 +321,14 @@ const FeedbackTab: React.FC = () => {
             key: 'actions',
             render: (_, record) => (
                 <Space>
+                    <Tooltip title={record.isPinned ? 'Desprinde de pe pagina publică' : 'Pinsează pe pagina publică'}>
+                        <Button
+                            size="small"
+                            icon={<PushpinOutlined />}
+                            type={record.isPinned ? 'primary' : 'default'}
+                            onClick={() => togglePin(record.id)}
+                        />
+                    </Tooltip>
                     <Tooltip title={record.status === 'vizibil' ? 'Ascunde' : 'Arată'}>
                         <Button
                             size="small"
@@ -404,6 +422,7 @@ const FeedbackTab: React.FC = () => {
                     columns={columns}
                     dataSource={filtered}
                     rowKey="id"
+                    loading={loading}
                     pagination={{ pageSize: 6, showSizeChanger: true }}
                     size="middle"
                 />

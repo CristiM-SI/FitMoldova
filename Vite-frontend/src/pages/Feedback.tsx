@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
+import { useAuth } from '../context/AuthContext';
+import feedbackApi from '../services/api/feedbackApi';
+import type { FeedbackInfoDto, FeedbackStatsDto } from '../types/Feedback';
 
-
-interface Review {
-  name: string;
-  initials: string;
-  date: string;
-  stars: number;
-  category: string;
-  text: string;
-}
 
 const STAR_LABELS: Record<number, string> = {
   1: 'Foarte nemulțumit',
@@ -30,71 +24,26 @@ const CATEGORIES = [
   'Altele',
 ];
 
-const RATING_BREAKDOWN: { label: string; pct: number }[] = [
-  { label: '5 ★', pct: 62 },
-  { label: '4 ★', pct: 22 },
-  { label: '3 ★', pct: 9 },
-  { label: '2 ★', pct: 4 },
-  { label: '1 ★', pct: 3 },
-];
-
-const RECENT_REVIEWS: Review[] = [
-  {
-    name: 'Alexandru Moraru',
-    initials: 'AM',
-    date: '18 feb 2026',
-    stars: 5,
-    category: 'Funcționalități',
-    text: 'Platforma este extraordinară! Tracking-ul de activități funcționează perfect și îmi place că pot vedea progresul în timp real. Recomand tuturor pasionaților de sport.',
-  },
-  {
-    name: 'Maria Popescu',
-    initials: 'MP',
-    date: '14 feb 2026',
-    stars: 5,
-    category: 'Comunitate',
-    text: 'Comunitatea de pe FitMoldova este incredibil de prietenoasă. Am găsit parteneri de alergare și am participat la primul meu eveniment sportiv. Mulțumesc!',
-  },
-  {
-    name: 'Ion Cebanu',
-    initials: 'IC',
-    date: '10 feb 2026',
-    stars: 4,
-    category: 'Interfață (UX)',
-    text: 'Design modern și intuitiv. M-ar bucura câteva îmbunătățiri la filtrarea provocărilor, dar în rest totul este bine pus la punct.',
-  },
-  {
-    name: 'Elena Rusu',
-    initials: 'ER',
-    date: '5 feb 2026',
-    stars: 5,
-    category: 'Performanță',
-    text: 'Aplicația se încarcă rapid și nu am întâmpinat niciun bug. Echipa de suport a răspuns în mai puțin de o oră la întrebarea mea. Impresionant!',
-  },
-  {
-    name: 'Andrei Lungu',
-    initials: 'AL',
-    date: '1 feb 2026',
-    stars: 4,
-    category: 'Funcționalități',
-    text: 'Provocările sunt motivante și bine organizate. Aș vrea mai multe tipuri de activități disponibile, dar per total sunt foarte mulțumit de platformă.',
-  },
-  {
-    name: 'Cristina Bălan',
-    initials: 'CB',
-    date: '28 ian 2026',
-    stars: 5,
-    category: 'Suport',
-    text: 'Am avut o problemă cu contul și echipa de suport a rezolvat totul în câteva ore. Servicii excelente și oameni dedicați. FitMoldova merită fiecare stea!',
-  },
-];
 
 const Feedback: React.FC = () => {
+  const { user } = useAuth();
+
+  // ── Date din API ──────────────────────────────────────────────────────────
+  const [reviews, setReviews]   = useState<FeedbackInfoDto[]>([]);
+  const [stats, setStats]       = useState<FeedbackStatsDto | null>(null);
+
+  useEffect(() => {
+    feedbackApi.getAll().then(setReviews).catch(() => {});
+    feedbackApi.getStats().then(setStats).catch(() => {});
+  }, []);
+
+  // ── Form state ────────────────────────────────────────────────────────────
   const [rating, setRating] = useState<number>(0);
   const [hovered, setHovered] = useState<number>(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [form, setForm] = useState({ title: '', message: '' });
   const [errors, setErrors] = useState<Partial<typeof form & { rating: string }>>({});
+  const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const toggleCategory = (cat: string) => {
@@ -126,13 +75,28 @@ const Feedback: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    setStatus('success');
-    setForm({ title: '', message: '' });
-    setRating(0);
-    setSelectedCategories([]);
+    setIsLoading(true);
+    setStatus('idle');
+    try {
+      await feedbackApi.submit({
+        userId: user!.id,
+        rating,
+        title: form.title,
+        message: form.message,
+        categories: selectedCategories,
+      });
+      setStatus('success');
+      setForm({ title: '', message: '' });
+      setRating(0);
+      setSelectedCategories([]);
+    } catch {
+      setStatus('error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const displayRating = hovered || rating;
@@ -162,15 +126,21 @@ const Feedback: React.FC = () => {
         {/* ── STATS BAR ────────────────────────────────────── */}
         <div className="feedback-stats-bar">
           <div className="feedback-stat">
-            <div className="feedback-stat-number">4.7</div>
+            <div className="feedback-stat-number">
+              {stats ? stats.averageRating.toFixed(1) : '—'}
+            </div>
             <div className="feedback-stat-label">Rating Mediu</div>
           </div>
           <div className="feedback-stat">
-            <div className="feedback-stat-number">3.2K+</div>
+            <div className="feedback-stat-number">
+              {stats ? (stats.totalCount >= 1000 ? `${(stats.totalCount / 1000).toFixed(1)}K+` : `${stats.totalCount}`) : '—'}
+            </div>
             <div className="feedback-stat-label">Recenzii</div>
           </div>
           <div className="feedback-stat">
-            <div className="feedback-stat-number">94%</div>
+            <div className="feedback-stat-number">
+              {stats ? `${stats.satisfactionPct}%` : '—'}
+            </div>
             <div className="feedback-stat-label">Utilizatori Mulțumiți</div>
           </div>
           <div className="feedback-stat">
@@ -291,8 +261,9 @@ const Feedback: React.FC = () => {
                 <button
                     type="submit"
                     className="btn btn-primary feedback-submit-btn"
+                    disabled={isLoading}
                 >
-                  Trimite Feedback
+                  {isLoading ? 'Se trimite...' : 'Trimite Feedback'}
                 </button>
               </form>
             </div>
@@ -303,14 +274,18 @@ const Feedback: React.FC = () => {
               {/* Overall rating card */}
               <div className="feedback-overall-card">
                 <h3>Rating General</h3>
-                <div className="feedback-big-rating">4.7</div>
+                <div className="feedback-big-rating">
+                  {stats ? stats.averageRating.toFixed(1) : '—'}
+                </div>
                 <div className="feedback-big-stars">★★★★★</div>
-                <div className="feedback-review-count">bazat pe 3.247 recenzii</div>
+                <div className="feedback-review-count">
+                  {stats ? `bazat pe ${stats.totalCount.toLocaleString('ro-RO')} recenzii` : 'Se încarcă...'}
+                </div>
 
                 <div className="feedback-breakdown">
-                  {RATING_BREAKDOWN.map((row) => (
-                      <div key={row.label} className="breakdown-row">
-                        <span className="breakdown-label">{row.label}</span>
+                  {(stats?.distribution ?? []).map((row) => (
+                      <div key={row.star} className="breakdown-row">
+                        <span className="breakdown-label">{row.star} ★</span>
                         <div className="breakdown-bar-bg">
                           <div
                               className="breakdown-bar-fill"
@@ -346,20 +321,28 @@ const Feedback: React.FC = () => {
           </div>
 
           <div className="feedback-reviews-grid">
-            {RECENT_REVIEWS.map((review, idx) => (
-                <div key={idx} className="review-card">
+            {reviews.slice(0, 6).map((review) => (
+                <div key={review.id} className="review-card">
                   <div className="review-header">
-                    <div className="review-avatar">{review.initials}</div>
+                    <div className="review-avatar">
+                      {review.title.slice(0, 2).toUpperCase()}
+                    </div>
                     <div className="review-meta">
-                      <div className="review-name">{review.name}</div>
-                      <div className="review-date">{review.date}</div>
+                      <div className="review-name">{review.title}</div>
+                      <div className="review-date">
+                        {new Date(review.createdAt).toLocaleDateString('ro-RO', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                        })}
+                      </div>
                     </div>
                     <div className="review-stars">
-                      {'★'.repeat(review.stars)}{'☆'.repeat(5 - review.stars)}
+                      {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                     </div>
                   </div>
-                  <div className="review-category-chip">{review.category}</div>
-                  <p className="review-text">{review.text}</p>
+                  {review.categories.length > 0 && (
+                      <div className="review-category-chip">{review.categories[0]}</div>
+                  )}
+                  <p className="review-text">{review.message}</p>
                 </div>
             ))}
           </div>

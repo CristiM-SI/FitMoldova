@@ -74,6 +74,7 @@ builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.PostAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.RouteAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ChallengeAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ContactAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.FeedbackAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Interfaces.IUserLogic, FitMoldova.BusinessLogic.Structure.UserLogic>();
      
 var app = builder.Build();

@@ -45,6 +45,7 @@ namespace FitMoldova.BusinessLogic.Core
                 .Where(f => f.Status == "vizibil")
                 .OrderByDescending(f => f.IsPinned)
                 .ThenByDescending(f => f.CreatedAt)
+                .ToList()
                 .Select(f => new FeedbackInfoDto
                 {
                     Id         = f.Id,
@@ -68,6 +69,7 @@ namespace FitMoldova.BusinessLogic.Core
             var list = ctx.Feedbacks
                 .OrderByDescending(f => f.IsPinned)
                 .ThenByDescending(f => f.CreatedAt)
+                .ToList()
                 .Select(f => new FeedbackInfoDto
                 {
                     Id         = f.Id,

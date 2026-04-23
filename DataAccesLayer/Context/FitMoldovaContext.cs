@@ -7,6 +7,7 @@ using FitMoldova.Domain.Entities.Club;
 using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Entities.Contact;
+using FitMoldova.Domain.Entities.Feedback;
 using FitMoldova.Domain.Enums;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.DataAccesLayer.Converters;
@@ -46,6 +47,7 @@ public class FitMoldovaContext : DbContext
     public DbSet<PostEntity> Posts { get; set; }
     public DbSet<PostReplyEntity> PostReplies { get; set; }
     public DbSet<ContactMessageEntity> ContactMessages { get; set; }
+    public DbSet<FeedbackEntity> Feedbacks { get; set; }
     public DbSet<EventParticipantEntity> EventParticipants { get; set; }
     public DbSet<ChallengeParticipantEntity> ChallengeParticipants { get; set; }
 

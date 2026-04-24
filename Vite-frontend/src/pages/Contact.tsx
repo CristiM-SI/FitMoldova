@@ -3,6 +3,7 @@ import { useClickOutside } from '../hooks/useClickOutside';
 import { Link } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
+import contactApi from '../services/api/contactApi';
 
 
 interface ContactInfo {
@@ -77,7 +78,7 @@ const Contact: React.FC = () => {
     message: '',
   });
 
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Partial<typeof form>>({});
   const [subjectOpen, setSubjectOpen] = useState(false);
   const subjectRef = useRef<HTMLDivElement>(null);
@@ -121,12 +122,27 @@ const Contact: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    // Simulated submit — replace with real API call
-    setStatus('success');
-    setForm({ name: '', email: '', subject: '', message: '' });
+
+    setStatus('loading');
+    try {
+      const result = await contactApi.submit({
+        name: form.name,
+        email: form.email,
+        subject: form.subject,
+        message: form.message,
+      });
+      if (result.isSuccess) {
+        setStatus('success');
+        setForm({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    }
   };
 
   return (
@@ -284,8 +300,13 @@ const Contact: React.FC = () => {
                   )}
                 </div>
 
-                <button type="submit" className="btn btn-primary contact-submit-btn">
-                  Trimite Mesajul
+                <button
+                  type="submit"
+                  className="btn btn-primary contact-submit-btn"
+                  disabled={status === 'loading'}
+                  style={{ opacity: status === 'loading' ? 0.7 : 1, cursor: status === 'loading' ? 'not-allowed' : 'pointer' }}
+                >
+                  {status === 'loading' ? '⏳ Se trimite...' : 'Trimite Mesajul'}
                 </button>
               </form>
             </div>

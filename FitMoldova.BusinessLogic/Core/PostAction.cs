@@ -1,9 +1,7 @@
-﻿using AutoMapper;
-using FitMoldova.DataAccesLayer;
+﻿using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Models.Post;
 using FitMoldova.Domain.Models.Services;
-using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace FitMoldova.BusinessLogic.Core
 {

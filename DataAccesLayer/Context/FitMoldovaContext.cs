@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using FitMoldova.Domain.Entities.User;
 using FitMoldova.Domain.Entities.Activity;
 using FitMoldova.Domain.Entities.Route;
@@ -12,6 +12,7 @@ using FitMoldova.Domain.Entities.Notification;
 using FitMoldova.Domain.Enums;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.DataAccesLayer.Converters;
+using FitMoldova.Domain.Entities.Gallery;
 
 namespace FitMoldova.DataAccesLayer;
 
@@ -51,7 +52,9 @@ public class FitMoldovaContext : DbContext
     public DbSet<FeedbackEntity> Feedbacks { get; set; }
     public DbSet<EventParticipantEntity> EventParticipants { get; set; }
     public DbSet<ChallengeParticipantEntity> ChallengeParticipants { get; set; }
+    public DbSet<GalleryEntity> Galleries { get; set; }
     public DbSet<NotificationEntity> Notifications { get; set; }
+    public DbSet<UserFollowEntity> UserFollows { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -185,5 +188,10 @@ public class FitMoldovaContext : DbContext
         modelBuilder.Entity<UserFollowEntity>()
             .HasOne(f => f.Followed).WithMany()
             .HasForeignKey(f => f.FollowedId).OnDelete(DeleteBehavior.NoAction);
+        
+        modelBuilder.Entity<GalleryEntity>()
+             .HasIndex(g => g.Category);
+        modelBuilder.Entity<GalleryEntity>()
+             .HasIndex(g => g.CreatedAt);
     }
 }

@@ -126,4 +126,31 @@ public class UserController : ControllerBase
           if (!result.isSuccess) return NotFound(result);
           return Ok(result);
      }
+
+     [HttpGet("community")]
+     public IActionResult GetCommunity()
+     {
+          var result = _userLogic.GetCommunity();
+          return Ok(result);
+     }
+
+     [HttpPost("{id}/follow")]
+     [Authorize]
+     public IActionResult Follow(int id)
+     {
+          var followerId = int.Parse(User.FindFirst("userId")!.Value);
+          var result = _userLogic.Follow(followerId, id);
+          if (!result.isSuccess) return BadRequest(result);
+          return Ok(result);
+     }
+
+     [HttpDelete("{id}/unfollow")]
+     [Authorize]
+     public IActionResult Unfollow(int id)
+     {
+          var followerId = int.Parse(User.FindFirst("userId")!.Value);
+          var result = _userLogic.Unfollow(followerId, id);
+          if (!result.isSuccess) return BadRequest(result);
+          return Ok(result);
+     }
 }

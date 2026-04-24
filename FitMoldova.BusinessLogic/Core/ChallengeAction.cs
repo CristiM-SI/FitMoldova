@@ -3,6 +3,7 @@ using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Models.Challenge;
 using FitMoldova.Domain.Models.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace FitMoldova.BusinessLogic.Core
 {
@@ -13,14 +14,30 @@ namespace FitMoldova.BusinessLogic.Core
         public ServiceResponse GetAllExecution()
         {
             using var ctx = _dbSession.FitMoldovaContext();
-            var list = ctx.Challenges.ToList();
+            var list = ctx.Challenges.Select(c => new ChallengeDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Duration = c.Duration,
+                Difficulty = c.Difficulty,
+                Participants = ctx.ChallengeParticipants.Count(cp => cp.ChallengeId == c.Id)
+            }).ToList();
             return new ServiceResponse { isSuccess = true, Data = list };
         }
 
         public ServiceResponse GetByIdExecution(int id)
         {
             using var ctx = _dbSession.FitMoldovaContext();
-            var ch = ctx.Challenges.FirstOrDefault(c => c.Id == id);
+            var ch = ctx.Challenges.Where(c => c.Id == id).Select(c => new ChallengeDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Duration = c.Duration,
+                Difficulty = c.Difficulty,
+                Participants = ctx.ChallengeParticipants.Count(cp => cp.ChallengeId == c.Id)
+            }).FirstOrDefault();
             if (ch == null)
                 return new ServiceResponse { isSuccess = false, Message = "Provocarea nu a fost găsită." };
             return new ServiceResponse { isSuccess = true, Data = ch };

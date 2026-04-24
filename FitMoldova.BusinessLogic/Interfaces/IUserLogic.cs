@@ -15,5 +15,8 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse ChangeStatus(int id, ChangeStatusDto dto);
           ServiceResponse GetProfile(int userId);
           ServiceResponse UpdateProfile(int userId, UserUpdateProfileDto dto);
+          ServiceResponse GetCommunity();
+          ServiceResponse Follow(int followerId, int followedId);
+          ServiceResponse Unfollow(int followerId, int followedId);
      }
 }

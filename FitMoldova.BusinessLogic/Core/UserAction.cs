@@ -4,6 +4,7 @@ using FitMoldova.Domain.Enums;
 using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
 using BC = BCrypt.Net.BCrypt;
+using Microsoft.EntityFrameworkCore;
 
 namespace FitMoldova.BusinessLogic.Core
 {
@@ -189,6 +190,46 @@ namespace FitMoldova.BusinessLogic.Core
                if (dto.Bio != null) user.Bio = dto.Bio;
                _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Profil actualizat." };
+          }
+
+          public ServiceResponse GetCommunityExecution()
+          {
+               var users = _ctx.Users
+                   .Where(u => u.IsActive)
+                   .Select(u => new
+                   {
+                        u.Id,
+                        u.Username,
+                        u.FirstName,
+                        u.LastName,
+                        u.ProfileImageUrl,
+                        FollowersCount = _ctx.UserFollows.Count(f => f.FollowedId == u.Id)
+                   }).ToList();
+               return new ServiceResponse { isSuccess = true, Data = users };
+          }
+
+          public ServiceResponse FollowExecution(int followerId, int followedId)
+          {
+               if (followerId == followedId)
+                    return new ServiceResponse { isSuccess = false, Message = "Nu te poți urmări pe tine însuți." };
+               if (!_ctx.Users.Any(u => u.Id == followedId))
+                    return new ServiceResponse { isSuccess = false, Message = "Utilizatorul nu există." };
+               if (_ctx.UserFollows.Any(f => f.FollowerId == followerId && f.FollowedId == followedId))
+                    return new ServiceResponse { isSuccess = false, Message = "Deja urmărești acest utilizator." };
+
+               _ctx.UserFollows.Add(new UserFollowEntity { FollowerId = followerId, FollowedId = followedId });
+               _ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Urmărești acum acest utilizator." };
+          }
+
+          public ServiceResponse UnfollowExecution(int followerId, int followedId)
+          {
+               var follow = _ctx.UserFollows.FirstOrDefault(f => f.FollowerId == followerId && f.FollowedId == followedId);
+               if (follow == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Nu urmărești acest utilizator." };
+               _ctx.UserFollows.Remove(follow);
+               _ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Nu mai urmărești acest utilizator." };
           }
      }
 }

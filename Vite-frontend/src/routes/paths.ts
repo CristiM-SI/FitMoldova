@@ -23,7 +23,8 @@ export const ROUTES = {
     ADMIN_EVENTS: '/admin/events',
     ADMIN_CLUBS: '/admin/clubs',
     ADMIN_CHALLENGES: '/admin/challenges',
-    ADMIN_ACTIVITIES: '/admin/activities',   // ← NOU
+    ADMIN_ACTIVITIES: '/admin/activities',
+    ADMIN_GALLERY: '/admin/gallery',
     ADMIN_ROUTES: '/admin/routes',
     ADMIN_FEEDBACK: '/admin/feedback',
 

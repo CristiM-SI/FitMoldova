@@ -18,6 +18,7 @@ import {
 import { useNavigate, useLocation, Outlet } from '@tanstack/react-router';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../routes/paths';
+import { PictureOutlined } from '@ant-design/icons';
 
 const { Sider, Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -30,6 +31,7 @@ const menuItems = [
     { key: ROUTES.ADMIN_ACTIVITIES, icon: <ThunderboltOutlined />, label: 'Activități' },
     { key: ROUTES.ADMIN_CHALLENGES, icon: <TrophyOutlined />, label: 'Provocări' },
     { key: ROUTES.ADMIN_ROUTES, icon: <CompassOutlined />, label: 'Trasee' },
+    { key: ROUTES.ADMIN_GALLERY, icon: <PictureOutlined />, label: 'Galerie' },
     { key: ROUTES.ADMIN_FEEDBACK, icon: <MessageOutlined />, label: 'Forum & Feedback' },
 ];
 

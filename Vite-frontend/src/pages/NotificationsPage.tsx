@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
@@ -11,6 +11,8 @@ import {
   sxHeader, sxHeaderTitle, sxEmpty, sxEmptyIcon, sxEmptyTitle,
   sxEmptySub, sxToast, sxTab, sxTabs,
 } from '../styles/forumStyles';
+import notificationApi from '../services/api/notificationApi';
+import type { NotificationInfoDto } from '../types/Notification';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,18 +30,44 @@ interface Notification {
     read: boolean;
 }
 
-// ─── Mock notifications ───────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Convertește NotificationInfoDto (backend) → Notification (local UI) */
+function dtoToNotif(dto: NotificationInfoDto): Notification {
+    const createdAt = new Date(dto.createdAt);
+    const diffMs    = Date.now() - createdAt.getTime();
+    const diffMin   = Math.floor(diffMs / 60_000);
+    let time: string;
+    if (diffMin < 1)         time = 'acum';
+    else if (diffMin < 60)   time = `${diffMin} min`;
+    else if (diffMin < 1440) time = `${Math.floor(diffMin / 60)}h`;
+    else                     time = `${Math.floor(diffMin / 1440)}z`;
+
+    return {
+        id:         dto.id,
+        type:       dto.type,
+        fromName:   dto.fromUserName,
+        fromHandle: dto.fromUserHandle,
+        fromAvatar: dto.fromUserAvatar,
+        fromColor:  dto.fromUserColor,
+        content:    dto.content,
+        time,
+        read:       dto.isRead,
+    };
+}
+
+// ─── Mock notifications (fallback cât backend-ul nu e implementat) ─────────────
 
 const INITIAL_NOTIFS: Notification[] = [
-    { id: 1, type: 'like', fromName: 'Ion Ceban', fromHandle: '@ion_fitness', fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a apreciat postarea ta despre maratonul din septembrie.', time: '2 min', read: false },
-    { id: 2, type: 'follow', fromName: 'Maria Lungu', fromHandle: '@maria_runs', fromAvatar: 'ML', fromColor: '#e91e8c', content: 'a început să te urmărească.', time: '15 min', read: false },
-    { id: 3, type: 'reply', fromName: 'Pavel Rotaru', fromHandle: '@pavel_rotaru', fromAvatar: 'PR', fromColor: '#00b894', content: 'a răspuns la postarea ta: "Complet de acord! Antrenamentul de dimineață e 🔥"', time: '1h', read: false },
-    { id: 4, type: 'repost', fromName: 'FitMoldova', fromHandle: '@fitmoldova', fromAvatar: 'FM', fromColor: '#9b59b6', content: 'a repostat postarea ta despre nutriție.', time: '2h', read: false },
-    { id: 5, type: 'mention', fromName: 'Ana Popescu', fromHandle: '@ana_fit', fromAvatar: 'AP', fromColor: '#e67e22', content: 'te-a menționat într-o postare: "Mulțumesc @user pentru sfaturile despre recuperare!"', time: '3h', read: true },
-    { id: 6, type: 'like', fromName: 'Dmitri Vasiliev', fromHandle: '@dmitri_runs', fromAvatar: 'DV', fromColor: '#2ecc71', content: 'și alți 12 au apreciat postarea ta despre #LegDay.', time: '5h', read: true },
-    { id: 7, type: 'bookmark', fromName: 'Cristina Moga', fromHandle: '@cristina_fit', fromAvatar: 'CM', fromColor: '#e74c3c', content: 'a salvat postarea ta despre planul de antrenament.', time: '1z', read: true },
-    { id: 8, type: 'follow', fromName: 'Radu Nistor', fromHandle: '@radu_athlete', fromAvatar: 'RN', fromColor: '#3498db', content: 'a început să te urmărească.', time: '1z', read: true },
-    { id: 9, type: 'reply', fromName: 'Ion Ceban', fromHandle: '@ion_fitness', fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a răspuns la comentariul tău: "Super plan! Ai inclus și exerciții pentru mobilitate?"', time: '2z', read: true },
+    { id: 1, type: 'like',     fromName: 'Ion Ceban',      fromHandle: '@ion_fitness',   fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a apreciat postarea ta despre maratonul din septembrie.',                                            time: '2 min', read: false },
+    { id: 2, type: 'follow',   fromName: 'Maria Lungu',    fromHandle: '@maria_runs',    fromAvatar: 'ML', fromColor: '#e91e8c', content: 'a început să te urmărească.',                                                                         time: '15 min', read: false },
+    { id: 3, type: 'reply',    fromName: 'Pavel Rotaru',   fromHandle: '@pavel_rotaru',  fromAvatar: 'PR', fromColor: '#00b894', content: 'a răspuns la postarea ta: "Complet de acord! Antrenamentul de dimineață e 🔥"',                       time: '1h', read: false },
+    { id: 4, type: 'repost',   fromName: 'FitMoldova',     fromHandle: '@fitmoldova',    fromAvatar: 'FM', fromColor: '#9b59b6', content: 'a repostat postarea ta despre nutriție.',                                                             time: '2h', read: false },
+    { id: 5, type: 'mention',  fromName: 'Ana Popescu',    fromHandle: '@ana_fit',       fromAvatar: 'AP', fromColor: '#e67e22', content: 'te-a menționat într-o postare: "Mulțumesc @user pentru sfaturile despre recuperare!"',               time: '3h', read: true },
+    { id: 6, type: 'like',     fromName: 'Dmitri Vasiliev',fromHandle: '@dmitri_runs',   fromAvatar: 'DV', fromColor: '#2ecc71', content: 'și alți 12 au apreciat postarea ta despre #LegDay.',                                                  time: '5h', read: true },
+    { id: 7, type: 'bookmark', fromName: 'Cristina Moga',  fromHandle: '@cristina_fit',  fromAvatar: 'CM', fromColor: '#e74c3c', content: 'a salvat postarea ta despre planul de antrenament.',                                                  time: '1z', read: true },
+    { id: 8, type: 'follow',   fromName: 'Radu Nistor',    fromHandle: '@radu_athlete',  fromAvatar: 'RN', fromColor: '#3498db', content: 'a început să te urmărească.',                                                                         time: '1z', read: true },
+    { id: 9, type: 'reply',    fromName: 'Ion Ceban',      fromHandle: '@ion_fitness',   fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a răspuns la comentariul tău: "Super plan! Ai inclus și exerciții pentru mobilitate?"',               time: '2z', read: true },
 ];
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
@@ -53,16 +81,36 @@ const NOTIF_ICONS: Record<NotifType, { icon: string; color: string }> = {
     bookmark: { icon: '🔖', color: '#00c8ff' },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Filter tabs ──────────────────────────────────────────────────────────────
 
 const FILTER_TABS = ['Toate', 'Aprecieri', 'Răspunsuri', 'Urmăritori', 'Mențiuni'];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function NotificationsPage() {
     const navigate = useNavigate();
     const { toast } = useForumContext();
 
-    const [notifs, setNotifs] = useState<Notification[]>(INITIAL_NOTIFS);
+    const [notifs, setNotifs]       = useState<Notification[]>(INITIAL_NOTIFS);
     const [activeTab, setActiveTab] = useState('Toate');
+    const [loading, setLoading]     = useState(true);
+
+    // ── Încarcă notificările de la API; fallback la mock dacă backend-ul nu e gata ──
+    useEffect(() => {
+        let cancelled = false;
+        notificationApi.getAll()
+            .then((dtos) => {
+                if (!cancelled) {
+                    setNotifs(dtos.map(dtoToNotif));
+                    setLoading(false);
+                }
+            })
+            .catch(() => {
+                // Backend-ul pentru notificări nu e implementat încă — folosim mock data
+                if (!cancelled) setLoading(false);
+            });
+        return () => { cancelled = true; };
+    }, []);
 
     const unreadCount = notifs.filter((n) => !n.read).length;
 
@@ -77,9 +125,21 @@ export default function NotificationsPage() {
         return notifs.filter((n) => map[activeTab]?.includes(n.type));
     }, [notifs, activeTab]);
 
-    const markAllRead = () => setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
-    const markRead = (id: number) => setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
-    const dismiss = (id: number, e: React.MouseEvent) => { e.stopPropagation(); setNotifs((prev) => prev.filter((n) => n.id !== id)); };
+    const markAllRead = () => {
+        setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+        notificationApi.markAllAsRead().catch(() => {}); // fire-and-forget
+    };
+
+    const markRead = (id: number) => {
+        setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+        notificationApi.markAsRead(id).catch(() => {}); // fire-and-forget
+    };
+
+    const dismiss = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setNotifs((prev) => prev.filter((n) => n.id !== id));
+        notificationApi.delete(id).catch(() => {}); // fire-and-forget
+    };
 
     const dismissIcon = (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -116,7 +176,11 @@ export default function NotificationsPage() {
                         <Box component="button" sx={sxNavItemActive} className="nav-item">
                             <Box component="span" sx={sxNavIconActive}>🔔</Box>
                             <Box component="span" className="sidebar-text">Notificări</Box>
-                            {unreadCount > 0 && <Box component="span" sx={sxNavBadge} className="nav-badge">{unreadCount}</Box>}
+                            {unreadCount > 0 && (
+                                <Box component="span" sx={sxNavBadge} className="nav-badge">
+                                    {unreadCount}
+                                </Box>
+                            )}
                         </Box>
                         <Box component="button" sx={sxNavItem} className="nav-item" onClick={() => navigate({ to: ROUTES.SAVED })}>
                             <Box component="span" sx={sxNavIcon}>🔖</Box>
@@ -133,14 +197,20 @@ export default function NotificationsPage() {
 
                     {/* ── MAIN ── */}
                     <Box component="main" sx={sxMain}>
+
+                        {/* Header */}
                         <Box sx={{ ...sxHeader, bgcolor: 'rgba(5,13,26,0.9)' }}>
                             <Box>
                                 <Box sx={sxHeaderTitle}>🔔 Notificări</Box>
                                 <Box sx={{ fontSize: '.78rem', color: ft.muted, mt: '2px' }}>
-                                    {unreadCount > 0 ? `${unreadCount} necitite` : 'Toate citite ✓'}
+                                    {loading
+                                        ? 'Se încarcă...'
+                                        : unreadCount > 0
+                                            ? `${unreadCount} necitite`
+                                            : 'Toate citite ✓'}
                                 </Box>
                             </Box>
-                            {unreadCount > 0 && (
+                            {!loading && unreadCount > 0 && (
                                 <Box
                                     component="button"
                                     sx={{
@@ -170,11 +240,7 @@ export default function NotificationsPage() {
                                 <Box
                                     component="button"
                                     key={tab}
-                                    sx={{
-                                        ...sxTab(activeTab === tab),
-                                        p: '12px 18px',
-                                        fontSize: '.8rem',
-                                    }}
+                                    sx={{ ...sxTab(activeTab === tab), p: '12px 18px', fontSize: '.8rem' }}
                                     onClick={() => setActiveTab(tab)}
                                 >
                                     {tab}
@@ -182,8 +248,21 @@ export default function NotificationsPage() {
                             ))}
                         </Box>
 
+                        {/* Loading spinner */}
+                        {loading && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', p: '48px' }}>
+                                <Box sx={{
+                                    width: 36, height: 36, borderRadius: '50%',
+                                    border: `3px solid rgba(26,111,255,0.18)`,
+                                    borderTopColor: ft.blue,
+                                    animation: 'notifSpin 0.7s linear infinite',
+                                }} />
+                                <style>{`@keyframes notifSpin { to { transform: rotate(360deg); } }`}</style>
+                            </Box>
+                        )}
+
                         {/* Notifications list */}
-                        {filtered.length === 0 ? (
+                        {!loading && (filtered.length === 0 ? (
                             <Box sx={sxEmpty}>
                                 <Box sx={sxEmptyIcon}>🔔</Box>
                                 <Box sx={sxEmptyTitle}>Nicio notificare</Box>
@@ -195,7 +274,7 @@ export default function NotificationsPage() {
                             </Box>
                         ) : (
                             filtered.map((notif, idx) => {
-                                const meta = NOTIF_ICONS[notif.type];
+                                const meta   = NOTIF_ICONS[notif.type];
                                 const isText = notif.type === 'mention';
                                 return (
                                     <Box
@@ -217,6 +296,7 @@ export default function NotificationsPage() {
                                         }}
                                         onClick={() => { markRead(notif.id); navigate({ to: ROUTES.FORUM }); }}
                                     >
+                                        {/* Unread indicator bar */}
                                         {!notif.read && (
                                             <Box sx={{
                                                 position: 'absolute', left: 0, top: 0, bottom: 0,
@@ -224,6 +304,7 @@ export default function NotificationsPage() {
                                             }} />
                                         )}
 
+                                        {/* Avatar + type icon */}
                                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
                                             <Box sx={{
                                                 width: 44, height: 44, borderRadius: '50%',
@@ -248,6 +329,7 @@ export default function NotificationsPage() {
                                             </Box>
                                         </Box>
 
+                                        {/* Content */}
                                         <Box sx={{ flex: 1, minWidth: 0 }}>
                                             <Box sx={{ fontSize: '.88rem', lineHeight: 1.55, color: ft.contentColor, mb: '4px' }}>
                                                 <strong style={{ color: '#fff', fontWeight: 700 }}>{notif.fromName}</strong>{' '}
@@ -256,6 +338,7 @@ export default function NotificationsPage() {
                                             <Box sx={{ fontSize: '.74rem', color: ft.muted }}>{notif.time} în urmă</Box>
                                         </Box>
 
+                                        {/* Dismiss button */}
                                         <Box
                                             component="button"
                                             className="notif-dismiss"
@@ -265,7 +348,7 @@ export default function NotificationsPage() {
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                                                 '&:hover': { color: ft.red, bgcolor: 'rgba(255,77,109,0.1)' },
                                             }}
-                                            title="Șterge notificarea"
+                                            title="\u015eterge notificarea"
                                             onClick={(e: React.MouseEvent) => dismiss(notif.id, e)}
                                         >
                                             {dismissIcon}
@@ -273,10 +356,11 @@ export default function NotificationsPage() {
                                     </Box>
                                 );
                             })
-                        )}
+                        ))}
+
                     </Box>
 
-                    {/* ── RIGHT PANEL ── */}
+                    {/* \u2500\u2500 RIGHT PANEL \u2500\u2500 */}
                     <Box component="aside" sx={{
                         width: 300, flexShrink: 0, position: 'sticky', top: 72,
                         height: 'calc(100vh - 72px)', overflowY: 'auto', p: '20px 16px',
@@ -285,14 +369,14 @@ export default function NotificationsPage() {
                     }}>
                         <Box sx={{ bgcolor: ft.card, border: `1px solid ${ft.border}`, borderRadius: ft.radius, p: '18px' }}>
                             <Box sx={{ fontFamily: ft.fontCondensed, fontWeight: 800, fontSize: '1.05rem', mb: '14px' }}>
-                                📊 Activitatea ta
+                                \ud83d\udcca Activitatea ta
                             </Box>
                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                 {[
-                                    { val: totalLikes, label: 'Aprecieri', color: '#ff4d6d' },
-                                    { val: totalReplies, label: 'Răspunsuri', color: '#00c8ff' },
-                                    { val: totalFollows, label: 'Urmăritori noi', color: '#00b894' },
-                                    { val: totalMentions, label: 'Mențiuni', color: '#1a6fff' },
+                                    { val: totalLikes,    label: 'Aprecieri',      color: '#ff4d6d' },
+                                    { val: totalReplies,  label: 'R\u0103spunsuri',     color: '#00c8ff' },
+                                    { val: totalFollows,  label: 'Urm\u0103ritori noi', color: '#00b894' },
+                                    { val: totalMentions, label: 'Men\u021biuni',        color: '#1a6fff' },
                                 ].map((s) => (
                                     <Box key={s.label} sx={{
                                         bgcolor: ft.card2, border: `1px solid ${ft.border2}`,

@@ -26,5 +26,6 @@ namespace FitMoldova.BusinessLogic
           public IClubLogic ClubLogic() => new ClubLogic(_mapper);
           public IChallengeLogic ChallengeLogic() => new ChallengeLogic();
           public IPostLogic PostLogic() => new PostLogic();
+          public INotificationLogic NotificationLogic() => new NotificationLogic();
      }
 }

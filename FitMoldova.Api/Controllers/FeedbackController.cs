@@ -41,7 +41,7 @@ public class FeedbackController : ControllerBase
     // GET api/feedback/admin
     // Toate recenziile inclusiv ascunse — doar admin
     [HttpGet("admin")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult GetAllAdmin()
     {
         var result = _feedbackLogic.GetAllAdmin();
@@ -60,7 +60,7 @@ public class FeedbackController : ControllerBase
     // PUT api/feedback/42/status
     // Schimbă vizibilitatea — doar admin
     [HttpPut("{id}/status")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
     {
         var result = _feedbackLogic.UpdateStatus(id, request.Status);
@@ -72,7 +72,7 @@ public class FeedbackController : ControllerBase
     // PUT api/feedback/42/pin
     // Toggle pin pentru pagina publică — doar admin
     [HttpPut("{id}/pin")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult TogglePin(int id)
     {
         var result = _feedbackLogic.TogglePin(id);
@@ -84,7 +84,7 @@ public class FeedbackController : ControllerBase
     // DELETE api/feedback/42
     // Șterge o recenzie — doar admin
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult Delete(int id)
     {
         var result = _feedbackLogic.Delete(id);

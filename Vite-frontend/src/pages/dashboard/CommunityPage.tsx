@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
 import {
     Box, Typography, Button, Avatar, Chip, TextField, IconButton,
-    Divider, Dialog, DialogContent, Tooltip,
+    Divider, Dialog, DialogContent, Tooltip, CircularProgress,
 } from '@mui/material';
 import {
     Favorite, FavoriteBorder, ChatBubbleOutline, Send, Close,
@@ -14,8 +14,12 @@ import { ROUTES } from '../../routes/paths';
 import { useDashboardData } from '../../context/useDashboardData';
 import { useProgress } from '../../context/ProgressContext';
 import { useAuth } from '../../context/AuthContext';
+import postApi from '../../services/api/postApi';
+import type { PostInfoDto, PostWithRepliesDto } from '../../services/api/postApi';
+import { challengeApi } from '../../services/api/challengeApi';
+import type { ChallengeDto } from '../../services/api/challengeApi';
 import {
-    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS, MEMBER_POSTS,
+    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS,
 } from '../../services/mock/community';
 import type { Sport, FeedTab, Post, Challenge, ToastState, Member } from '../../services/mock/community';
 
@@ -37,6 +41,54 @@ const T = {
 // ── HELPERS ───────────────────────────────────
 const getInitials = (name: string): string =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+
+function stringToColor(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    const colors = ['#1a6fff', '#00b4d8', '#7209b7', '#f72585', '#06d6a0', '#ff9100', '#4361ee', '#e63946'];
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'acum câteva secunde';
+    if (m < 60) return `acum ${m} ${m === 1 ? 'minut' : 'minute'}`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `acum ${h} ${h === 1 ? 'oră' : 'ore'}`;
+    const d = Math.floor(h / 24);
+    return `acum ${d} ${d === 1 ? 'zi' : 'zile'}`;
+}
+
+function dtoToPost(dto: PostInfoDto): Post {
+    const name = dto.authorName || `Utilizator #${dto.userId}`;
+    return {
+        id: dto.id,
+        author: name,
+        color: stringToColor(name),
+        sport: (dto.sport as Sport) || 'Fotbal',
+        time: timeAgo(dto.createdAt),
+        content: dto.content,
+        likes: dto.likes,
+        comments: dto.commentsCount,
+        liked: false,
+    };
+}
+
+function challengeDtoToChallenge(dto: ChallengeDto): Challenge {
+    const match = dto.duration.match(/\d+/);
+    const days = match ? parseInt(match[0]) : 30;
+    return {
+        id: dto.id,
+        sport: '🏆',
+        title: dto.name,
+        desc: dto.description,
+        participants: dto.participants,
+        days,
+        progress: 0,
+        joined: false,
+    };
+}
 
 // ── CIRCLE PROGRESS ──────────────────────────
 function CircleProgress({ pct, uid }: { pct: number; uid: string }) {
@@ -111,68 +163,144 @@ export default function CommunityPage() {
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
 
-    const userName  = user ? `${user.firstName} ${user.lastName}` : 'Oaspete';
-    const userTag   = user ? `@${user.email.split('@')[0]}` : '';
+    const userName = user ? `${user.firstName} ${user.lastName}` : 'Oaspete';
+    const userTag  = user ? `@${user.email.split('@')[0]}` : '';
 
     const [tab,            setTab]            = useState<FeedTab>('feed');
     const [filter,         setFilter]         = useState<Sport | 'all'>('all');
     const [posts,          setPosts]          = useState<Post[]>([]);
-    const [challenges,     setChallenges]     = useState<Challenge[]>(INITIAL_CHALLENGES);
+    const [postsLoading,   setPostsLoading]   = useState(true);
+    const [challenges,     setChallenges]     = useState<Challenge[]>([]);
+    const [challengesLoading, setChallengesLoading] = useState(true);
     const [postInput,      setPostInput]      = useState('');
     const [postSport,      setPostSport]      = useState<Sport>('Fotbal');
     const [toast,          setToast]          = useState<ToastState>({ icon: '', msg: '', visible: false });
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [following,      setFollowing]      = useState<Set<string>>(new Set());
 
+    // Comments dialog state
+    const [commentsPostId,  setCommentsPostId]  = useState<number | null>(null);
+    const [commentsData,    setCommentsData]    = useState<PostWithRepliesDto | null>(null);
+    const [commentsLoading, setCommentsLoading] = useState(false);
+    const [replyInput,      setReplyInput]      = useState('');
+
     const { addProvocare, removeProvocare } = useDashboardData();
     const { completeChallenge }             = useProgress();
+
+    // ── LOAD POSTS FROM API ───────────────────
+    useEffect(() => {
+        setPostsLoading(true);
+        postApi.getAll()
+            .then((data) => setPosts(data.map(dtoToPost)))
+            .catch(() => setPosts([]))
+            .finally(() => setPostsLoading(false));
+    }, []);
+
+    // ── LOAD CHALLENGES FROM API ──────────────
+    useEffect(() => {
+        setChallengesLoading(true);
+        challengeApi.getAll()
+            .then((data) => setChallenges(data.map(challengeDtoToChallenge)))
+            .catch(() => setChallenges(INITIAL_CHALLENGES))
+            .finally(() => setChallengesLoading(false));
+    }, []);
+
+    // ── LOAD COMMENTS WHEN DIALOG OPENS ──────
+    useEffect(() => {
+        if (commentsPostId === null) { setCommentsData(null); return; }
+        setCommentsLoading(true);
+        postApi.getById(commentsPostId)
+            .then(setCommentsData)
+            .catch(() => setCommentsData(null))
+            .finally(() => setCommentsLoading(false));
+    }, [commentsPostId]);
 
     const showToast = useCallback((icon: string, msg: string) => {
         setToast({ icon, msg, visible: true });
         setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3000);
     }, []);
 
-    const handlePublish = useCallback(() => {
-        if (!isAuthenticated) { navigate({ to: ROUTES.LOGIN }); return; }
+    // ── PUBLISH POST ─────────────────────────
+    const handlePublish = useCallback(async () => {
+        if (!isAuthenticated || !user) { navigate({ to: ROUTES.LOGIN }); return; }
         if (!postInput.trim()) { showToast('⚠️', 'Scrie ceva înainte de a publica!'); return; }
-        const newPost: Post = {
-            id: Date.now(), author: userName, color: T.blue,
-            sport: postSport, time: 'acum câteva secunde',
-            content: postInput.trim(), likes: 0, comments: 0, liked: false,
-        };
-        setPosts((prev) => [newPost, ...prev]);
-        setPostInput('');
-        showToast('✅', 'Postare publicată!');
-    }, [postInput, postSport, showToast, userName, isAuthenticated, navigate]);
+        try {
+            const newId = await postApi.create({ userId: user.id, content: postInput.trim(), sport: postSport });
+            const newPost: Post = {
+                id: newId,
+                author: userName,
+                color: stringToColor(userName),
+                sport: postSport,
+                time: 'acum câteva secunde',
+                content: postInput.trim(),
+                likes: 0,
+                comments: 0,
+                liked: false,
+            };
+            setPosts((prev) => [newPost, ...prev]);
+            setPostInput('');
+            showToast('✅', 'Postare publicată!');
+        } catch {
+            showToast('❌', 'Eroare la publicare. Încearcă din nou.');
+        }
+    }, [postInput, postSport, showToast, user, userName, isAuthenticated, navigate]);
 
+    // ── LIKE POST ────────────────────────────
     const handleLike = useCallback((id: number) => {
+        if (!isAuthenticated || !user) { navigate({ to: ROUTES.LOGIN }); return; }
+        // Optimistic toggle
         setPosts((prev) => prev.map((p) =>
             p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
-    }, []);
+        postApi.like(id, user.id)
+            .then((newCount) => {
+                setPosts((prev) => prev.map((p) => p.id === id ? { ...p, likes: newCount } : p));
+            })
+            .catch(() => {
+                // Revert on error
+                setPosts((prev) => prev.map((p) =>
+                    p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
+            });
+    }, [isAuthenticated, user, navigate]);
 
+    // ── JOIN / LEAVE CHALLENGE ───────────────
     const handleJoin = useCallback((id: number) => {
-        if (!isAuthenticated) { navigate({ to: ROUTES.LOGIN }); return; }
-        setChallenges((prev) => prev.map((c) => {
-            if (c.id !== id) return c;
-            const joining = !c.joined;
-            showToast(joining ? '🏆' : '👋', joining ? 'Te-ai alăturat provocării!' : 'Ai ieșit din provocare.');
-            if (joining) {
-                const difficulty = c.days <= 7 ? 'Ușor' : c.days <= 30 ? 'Mediu' : 'Greu';
-                addProvocare({
-                    id: 10000 + c.id, name: c.title, description: c.desc,
-                    participants: c.participants + 1,
-                    duration: `${c.days} zile`,
-                    difficulty: difficulty as 'Ușor' | 'Mediu' | 'Greu',
-                    progress: 0,
-                });
-                completeChallenge();
-            } else {
-                removeProvocare(10000 + c.id);
-            }
-            return { ...c, joined: joining, participants: joining ? c.participants + 1 : c.participants - 1 };
-        }));
-    }, [showToast, isAuthenticated, navigate, addProvocare, removeProvocare, completeChallenge]);
+        if (!isAuthenticated || !user) { navigate({ to: ROUTES.LOGIN }); return; }
+        const challenge = challenges.find((c) => c.id === id);
+        if (!challenge) return;
+        const joining = !challenge.joined;
 
+        setChallenges((prev) => prev.map((c) =>
+            c.id !== id ? c : { ...c, joined: joining, participants: joining ? c.participants + 1 : c.participants - 1 }));
+
+        showToast(joining ? '🏆' : '👋', joining ? 'Te-ai alăturat provocării!' : 'Ai ieșit din provocare.');
+
+        if (joining) {
+            const difficulty = challenge.days <= 7 ? 'Ușor' : challenge.days <= 30 ? 'Mediu' : 'Greu';
+            addProvocare({
+                id: 10000 + id, name: challenge.title, description: challenge.desc,
+                participants: challenge.participants + 1,
+                duration: `${challenge.days} zile`,
+                difficulty: difficulty as 'Ușor' | 'Mediu' | 'Greu',
+                progress: 0,
+            });
+            completeChallenge();
+            challengeApi.joinChallenge(id, user.id).catch(() => {
+                setChallenges((prev) => prev.map((c) =>
+                    c.id !== id ? c : { ...c, joined: false, participants: c.participants - 1 }));
+                removeProvocare(10000 + id);
+                showToast('❌', 'Eroare la server. Încearcă din nou.');
+            });
+        } else {
+            removeProvocare(10000 + id);
+            challengeApi.leaveChallenge(id, user.id).catch(() => {
+                setChallenges((prev) => prev.map((c) =>
+                    c.id !== id ? c : { ...c, joined: true, participants: c.participants + 1 }));
+                showToast('❌', 'Eroare la server. Încearcă din nou.');
+            });
+        }
+    }, [isAuthenticated, user, navigate, challenges, showToast, addProvocare, removeProvocare, completeChallenge]);
+
+    // ── FOLLOW / UNFOLLOW MEMBER ─────────────
     const handleFollow = useCallback((member: Member) => {
         const isFollowing = following.has(member.name);
         setFollowing((prev) => {
@@ -180,15 +308,25 @@ export default function CommunityPage() {
             if (isFollowing) next.delete(member.name); else next.add(member.name);
             return next;
         });
-        if (isFollowing) {
-            setPosts((prev) => prev.filter((p) => p.author !== member.name));
-            showToast('👋', `Ai încetat să urmărești pe ${member.name}`);
-        } else {
-            const newPosts = MEMBER_POSTS.filter((p) => p.author === member.name);
-            setPosts((prev) => [...prev, ...newPosts]);
-            showToast('👤', `Urmărești acum pe ${member.name}!`);
-        }
+        showToast(isFollowing ? '👋' : '👤',
+            isFollowing ? `Ai încetat să urmărești pe ${member.name}` : `Urmărești acum pe ${member.name}!`);
     }, [following, showToast]);
+
+    // ── ADD REPLY ────────────────────────────
+    const handleAddReply = useCallback(async () => {
+        if (!isAuthenticated || !user || commentsPostId === null) return;
+        if (!replyInput.trim()) return;
+        try {
+            await postApi.addReply({ postId: commentsPostId, userId: user.id, content: replyInput.trim() });
+            setReplyInput('');
+            const updated = await postApi.getById(commentsPostId);
+            setCommentsData(updated);
+            setPosts((prev) => prev.map((p) =>
+                p.id === commentsPostId ? { ...p, comments: p.comments + 1 } : p));
+        } catch {
+            showToast('❌', 'Eroare la trimiterea comentariului.');
+        }
+    }, [isAuthenticated, user, commentsPostId, replyInput, showToast]);
 
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
@@ -203,7 +341,6 @@ export default function CommunityPage() {
         <>
             <Navbar />
 
-            {/* Page wrapper with dark bg + grid lines */}
             <Box sx={{
                 bgcolor: T.bg, color: T.text, minHeight: '100vh',
                 fontFamily: "'Barlow', sans-serif",
@@ -216,7 +353,6 @@ export default function CommunityPage() {
                     backgroundSize: '60px 60px', pointerEvents: 'none', zIndex: 0,
                 },
             }}>
-                {/* Body layout */}
                 <Box sx={{
                     position: 'relative', zIndex: 1,
                     maxWidth: 1340, mx: 'auto', px: { xs: 2, sm: 3.5 }, py: 3.5,
@@ -226,7 +362,6 @@ export default function CommunityPage() {
                     {/* ── LEFT SIDEBAR ── */}
                     <Box component="aside" sx={{ width: 220, flexShrink: 0, display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: 0.75 }}>
 
-                        {/* Profile chip */}
                         <Box onClick={() => navigate({ to: ROUTES.PROFILE })} sx={{
                             display: 'flex', alignItems: 'center', gap: 1.25,
                             p: '12px 14px', bgcolor: T.card2, borderRadius: '10px',
@@ -252,10 +387,8 @@ export default function CommunityPage() {
                                     active={tab === item.id} badge={item.badge} onClick={item.onClick} />
                         ))}
 
-
                         <NavBtn icon="💬" label="Forum" active={false} onClick={() => navigate({ to: ROUTES.FORUM })} />
                         <NavBtn icon="🏟️" label="Cluburi" active={false} onClick={() => navigate({ to: ROUTES.CLUBS })} />
-
 
                         {isAuthenticated ? (
                             <Link to={ROUTES.DASHBOARD} style={{ textDecoration: 'none' }}>
@@ -267,7 +400,6 @@ export default function CommunityPage() {
                             </Link>
                         )}
                     </Box>
-
 
                     {/* ── MOBILE TAB BAR ── */}
                     <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 0.75, overflowX: 'auto', pb: 0.5, mb: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
@@ -400,7 +532,12 @@ export default function CommunityPage() {
 
                                 {/* Posts */}
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-                                    {filteredPosts.length === 0 ? (
+                                    {postsLoading ? (
+                                        <DarkCard sx={{ textAlign: 'center', py: 6 }}>
+                                            <CircularProgress size={32} sx={{ color: T.cyan }} />
+                                            <Typography sx={{ color: T.muted, mt: 2, fontSize: '0.85rem' }}>Se încarcă postările…</Typography>
+                                        </DarkCard>
+                                    ) : filteredPosts.length === 0 ? (
                                         <DarkCard sx={{ textAlign: 'center', py: 8 }}>
                                             <Typography sx={{ fontSize: '2.8rem', mb: 1.75, opacity: 0.4 }}>📭</Typography>
                                             <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#fff', mb: 0.75 }}>Nicio postare încă</Typography>
@@ -409,7 +546,6 @@ export default function CommunityPage() {
                                     ) : (
                                         filteredPosts.map((p) => (
                                             <DarkCard key={p.id}>
-                                                {/* Post header */}
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
                                                     <Avatar sx={{ width: 42, height: 42, bgcolor: p.color, fontSize: '0.9rem', fontWeight: 900, flexShrink: 0 }}>
                                                         {getInitials(p.author)}
@@ -420,18 +556,16 @@ export default function CommunityPage() {
                                                     </Box>
                                                     <Chip label={p.sport} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.7rem', fontWeight: 600, height: 22 }} />
                                                 </Box>
-                                                {/* Content */}
                                                 <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75 }}>
                                                     {p.content}
                                                 </Typography>
-                                                {/* Actions */}
                                                 <Box sx={{ display: 'flex', gap: 0.5, borderTop: `1px solid ${T.border}`, pt: 1.5 }}>
                                                     <Box component="button" onClick={() => handleLike(p.id)}
                                                          sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: p.liked ? '#ff4d6d' : T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: p.liked ? 'rgba(255,77,109,.1)' : T.cdim, color: p.liked ? '#ff4d6d' : T.cyan } }}>
                                                         {p.liked ? <Favorite sx={{ fontSize: 15 }} /> : <FavoriteBorder sx={{ fontSize: 15 }} />}
                                                         {p.likes}
                                                     </Box>
-                                                    <Box component="button"
+                                                    <Box component="button" onClick={() => setCommentsPostId(p.id)}
                                                          sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: T.cdim, color: T.cyan } }}>
                                                         <ChatBubbleOutline sx={{ fontSize: 15 }} />
                                                         {p.comments}
@@ -453,48 +587,52 @@ export default function CommunityPage() {
                                 <Typography sx={{ fontSize: '0.84rem', color: T.muted, mb: 2.5 }}>
                                     Alătură-te și câștigă puncte în clasament
                                 </Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                                    {challenges.map((c, i) => (
-                                        <Box key={c.id}>
-                                            {i > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
-                                                {/* Circle progress */}
-                                                <CircleProgress pct={c.progress} uid={String(c.id)} />
-                                                {/* Info */}
-                                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                    <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: T.text, mb: 0.25 }}>
-                                                        {c.title}
-                                                    </Typography>
-                                                    <Typography sx={{ fontSize: '0.8rem', color: T.muted, mb: 0.75, lineHeight: 1.5 }}>{c.desc}</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                                                        <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
-                                                            👥 {c.participants.toLocaleString()} participanți
+
+                                {challengesLoading ? (
+                                    <Box sx={{ textAlign: 'center', py: 5 }}>
+                                        <CircularProgress size={32} sx={{ color: T.cyan }} />
+                                        <Typography sx={{ color: T.muted, mt: 2, fontSize: '0.85rem' }}>Se încarcă provocările…</Typography>
+                                    </Box>
+                                ) : (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                                        {challenges.map((c, i) => (
+                                            <Box key={c.id}>
+                                                {i > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
+                                                    <CircleProgress pct={c.progress} uid={String(c.id)} />
+                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: T.text, mb: 0.25 }}>
+                                                            {c.title}
                                                         </Typography>
-                                                        <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
-                                                            ⏱ {c.days} zile rămase
-                                                        </Typography>
+                                                        <Typography sx={{ fontSize: '0.8rem', color: T.muted, mb: 0.75, lineHeight: 1.5 }}>{c.desc}</Typography>
+                                                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
+                                                                👥 {c.participants.toLocaleString()} participanți
+                                                            </Typography>
+                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
+                                                                ⏱ {c.days} zile rămase
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box sx={{ mt: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                                                            <Box sx={{ height: '100%', borderRadius: 2, width: `${c.progress}%`, background: `linear-gradient(90deg, ${T.blue}, ${T.cyan})`, transition: 'width .5s ease' }} />
+                                                        </Box>
                                                     </Box>
-                                                    {/* Progress bar */}
-                                                    <Box sx={{ mt: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                                                        <Box sx={{ height: '100%', borderRadius: 2, width: `${c.progress}%`, background: `linear-gradient(90deg, ${T.blue}, ${T.cyan})`, transition: 'width .5s ease' }} />
+                                                    <Box component="button" onClick={() => handleJoin(c.id)}
+                                                         sx={{
+                                                             px: 2, py: 0.875, borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
+                                                             fontSize: '0.78rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+                                                             flexShrink: 0, transition: 'all .2s',
+                                                             ...(c.joined
+                                                                 ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: 'transparent', color: '#ff4d6d', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d' } }
+                                                                 : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
+                                                         }}>
+                                                        {c.joined ? 'Părăsește' : 'Alătură-te'}
                                                     </Box>
-                                                </Box>
-                                                {/* Button */}
-                                                <Box component="button" onClick={() => handleJoin(c.id)}
-                                                     sx={{
-                                                         px: 2, py: 0.875, borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
-                                                         fontSize: '0.78rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
-                                                         flexShrink: 0, transition: 'all .2s',
-                                                         ...(c.joined
-                                                             ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: 'transparent', color: '#ff4d6d', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d' } }
-                                                             : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
-                                                     }}>
-                                                    {c.joined ? 'Părăsește' : 'Alătură-te'}
                                                 </Box>
                                             </Box>
-                                        </Box>
-                                    ))}
-                                </Box>
+                                        ))}
+                                    </Box>
+                                )}
                             </DarkCard>
                         )}
 
@@ -554,13 +692,10 @@ export default function CommunityPage() {
                     slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text, overflow: 'hidden' } } }}>
                 {selectedMember && (
                     <>
-                        {/* Close */}
                         <IconButton onClick={() => setSelectedMember(null)} size="small"
                                     sx={{ position: 'absolute', top: 10, right: 10, color: T.muted, zIndex: 1, bgcolor: 'rgba(0,0,0,.3)', '&:hover': { color: '#fff' } }}>
                             <Close fontSize="small" />
                         </IconButton>
-
-                        {/* Header */}
                         <Box sx={{ textAlign: 'center', px: 3, pt: 4.5, pb: 2.5, borderBottom: `1px solid ${T.border}` }}>
                             <Avatar sx={{ width: 82, height: 82, bgcolor: selectedMember.color, fontSize: '1.9rem', fontWeight: 900, mx: 'auto', mb: 1.75, boxShadow: `0 0 24px ${selectedMember.color}66` }}>
                                 {getInitials(selectedMember.name)}
@@ -577,9 +712,7 @@ export default function CommunityPage() {
                                 {selectedMember.points.toLocaleString()} pts
                             </Typography>
                         </Box>
-
                         <DialogContent sx={{ p: 0 }}>
-                            {/* Stats */}
                             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: `1px solid ${T.border}`, py: 2.25 }}>
                                 {[
                                     { val: selectedMember.activities, lbl: 'Activități' },
@@ -593,13 +726,9 @@ export default function CommunityPage() {
                                     </Box>
                                 ))}
                             </Box>
-
-                            {/* Bio */}
                             <Box sx={{ px: 2.75, py: 2, borderBottom: `1px solid ${T.border}` }}>
                                 <Typography sx={{ fontSize: '0.85rem', lineHeight: 1.7, color: '#c8d8f0' }}>{selectedMember.bio}</Typography>
                             </Box>
-
-                            {/* Achievements */}
                             <Box sx={{ px: 2.75, py: 2, borderBottom: `1px solid ${T.border}` }}>
                                 <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: T.muted, mb: 1.25 }}>
                                     🏅 Realizări
@@ -616,8 +745,6 @@ export default function CommunityPage() {
                                     ))}
                                 </Box>
                             </Box>
-
-                            {/* Footer */}
                             <Box sx={{ px: 2.75, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>Membru din {selectedMember.joinedDate}</Typography>
                                 <Box component="button" onClick={() => handleFollow(selectedMember)}
@@ -638,6 +765,123 @@ export default function CommunityPage() {
                         </DialogContent>
                     </>
                 )}
+            </Dialog>
+
+            {/* ── COMMENTS DIALOG ── */}
+            <Dialog open={commentsPostId !== null} onClose={() => { setCommentsPostId(null); setReplyInput(''); }}
+                    maxWidth="sm" fullWidth
+                    slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 1.75, borderBottom: `1px solid ${T.border}` }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
+                        💬 Comentarii
+                    </Typography>
+                    <IconButton onClick={() => { setCommentsPostId(null); setReplyInput(''); }} size="small"
+                                sx={{ color: T.muted, '&:hover': { color: '#fff' } }}>
+                        <Close fontSize="small" />
+                    </IconButton>
+                </Box>
+
+                <DialogContent sx={{ p: 0, maxHeight: '60vh', overflowY: 'auto' }}>
+                    {commentsLoading ? (
+                        <Box sx={{ textAlign: 'center', py: 5 }}>
+                            <CircularProgress size={28} sx={{ color: T.cyan }} />
+                        </Box>
+                    ) : !commentsData ? (
+                        <Box sx={{ textAlign: 'center', py: 5 }}>
+                            <Typography sx={{ color: T.muted, fontSize: '0.85rem' }}>Nu s-au putut încărca comentariile.</Typography>
+                        </Box>
+                    ) : (
+                        <>
+                            {/* Original post */}
+                            <Box sx={{ px: 2.5, py: 2, bgcolor: T.card2, borderBottom: `1px solid ${T.border}` }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1 }}>
+                                    <Avatar sx={{ width: 34, height: 34, bgcolor: stringToColor(commentsData.authorName || ''), fontSize: '0.8rem', fontWeight: 900 }}>
+                                        {getInitials(commentsData.authorName || `U${commentsData.userId}`)}
+                                    </Avatar>
+                                    <Box>
+                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>
+                                            {commentsData.authorName || `Utilizator #${commentsData.userId}`}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '0.7rem', color: T.muted }}>{timeAgo(commentsData.createdAt)}</Typography>
+                                    </Box>
+                                </Box>
+                                <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.6 }}>
+                                    {commentsData.content}
+                                </Typography>
+                            </Box>
+
+                            {/* Replies */}
+                            {(commentsData.replies ?? []).length === 0 ? (
+                                <Box sx={{ textAlign: 'center', py: 4 }}>
+                                    <Typography sx={{ fontSize: '1.8rem', opacity: 0.3, mb: 1 }}>💬</Typography>
+                                    <Typography sx={{ color: T.muted, fontSize: '0.82rem' }}>Niciun comentariu încă. Fii primul!</Typography>
+                                </Box>
+                            ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                    {(commentsData.replies ?? []).map((reply, i) => (
+                                        <Box key={reply.id}>
+                                            {i > 0 && <Divider sx={{ borderColor: T.border }} />}
+                                            <Box sx={{ px: 2.5, py: 1.75 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.75 }}>
+                                                    <Avatar sx={{ width: 30, height: 30, bgcolor: stringToColor(reply.authorName || ''), fontSize: '0.72rem', fontWeight: 900 }}>
+                                                        {getInitials(reply.authorName || `U${reply.userId}`)}
+                                                    </Avatar>
+                                                    <Box>
+                                                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: T.text }}>
+                                                            {reply.authorName || `Utilizator #${reply.userId}`}
+                                                        </Typography>
+                                                        <Typography sx={{ fontSize: '0.68rem', color: T.muted }}>{timeAgo(reply.createdAt)}</Typography>
+                                                    </Box>
+                                                </Box>
+                                                <Typography sx={{ fontSize: '0.84rem', color: '#c8d8f0', lineHeight: 1.6, pl: '42px' }}>
+                                                    {reply.content}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
+                        </>
+                    )}
+                </DialogContent>
+
+                {/* Reply input */}
+                <Box sx={{ px: 2.5, py: 2, borderTop: `1px solid ${T.border}` }}>
+                    {isAuthenticated ? (
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+                            <Avatar sx={{ width: 32, height: 32, background: `linear-gradient(135deg,${T.blue},${T.cyan})`, fontSize: '0.75rem', fontWeight: 900, flexShrink: 0, mb: 0.25 }}>
+                                {getInitials(userName)}
+                            </Avatar>
+                            <TextField
+                                fullWidth size="small"
+                                placeholder="Scrie un comentariu…"
+                                value={replyInput}
+                                onChange={(e) => setReplyInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddReply(); } }}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        bgcolor: T.bg, borderRadius: '10px', color: T.text, fontSize: '0.85rem',
+                                        '& fieldset': { borderColor: T.border },
+                                        '&:hover fieldset': { borderColor: 'rgba(0,200,255,.3)' },
+                                        '&.Mui-focused fieldset': { borderColor: 'rgba(0,200,255,.5)' },
+                                    },
+                                    '& .MuiInputBase-input::placeholder': { color: T.muted, opacity: 1 },
+                                }}
+                            />
+                            <IconButton onClick={handleAddReply} disabled={!replyInput.trim()}
+                                        sx={{ color: replyInput.trim() ? T.cyan : T.muted, transition: 'color .2s', flexShrink: 0 }}>
+                                <Send sx={{ fontSize: 18 }} />
+                            </IconButton>
+                        </Box>
+                    ) : (
+                        <Typography sx={{ color: T.muted, fontSize: '0.82rem', textAlign: 'center' }}>
+                            <Box component="span" onClick={() => navigate({ to: ROUTES.LOGIN })}
+                                 sx={{ color: T.cyan, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+                                Autentifică-te
+                            </Box>{' '}pentru a comenta
+                        </Typography>
+                    )}
+                </Box>
             </Dialog>
 
             {/* ── TOAST ── */}

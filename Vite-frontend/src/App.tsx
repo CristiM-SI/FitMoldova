@@ -41,6 +41,7 @@ const AdminClubs        = lazy(() => import('./pages/admin/AdminClubs'))
 const AdminChallenges   = lazy(() => import('./pages/admin/AdminChallenges'))
 const AdminActivities = lazy(() => import('./pages/admin/AdminActivities'))
 const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
+const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
 
@@ -168,6 +169,11 @@ const registerRoute = createRoute({
     getParentRoute: () => rootRoute, path: '/register',
     component: () => <PublicRoute><SignUp /></PublicRoute>,
 })
+const adminGalleryRoute = createRoute({
+    getParentRoute: () => adminRoute,
+    path: '/gallery',
+    component: () => <AdminGallery />,
+})
 
 // ── Protected routes (auth guard via protectedLayoutRoute) ────────────────────
 const dashboardRoute       = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/dashboard',        component: () => <Dashboard /> })
@@ -230,6 +236,7 @@ const routeTree = rootRoute.addChildren([
         adminActivitiesRoute,
         adminRoutesRoute,
         adminFeedbackRoute,
+        adminGalleryRoute,
     ]),
 ])
 

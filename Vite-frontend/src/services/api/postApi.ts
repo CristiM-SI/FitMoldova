@@ -15,11 +15,25 @@ export interface PostReplyCreateDto {
 export interface PostInfoDto {
     id: number;
     userId: number;
+    authorName: string;
+    authorUsername: string;
     content: string;
     sport: string;
     likes: number;
     commentsCount: number;
     createdAt: string;
+}
+
+export interface ReplyDto {
+    id: number;
+    userId: number;
+    authorName: string;
+    content: string;
+    createdAt: string;
+}
+
+export interface PostWithRepliesDto extends PostInfoDto {
+    replies: ReplyDto[];
 }
 
 type ApiResponse<T> = { isSuccess: boolean; data: T; message?: string };
@@ -33,7 +47,7 @@ const postApi = {
         axiosInstance.get<ApiResponse<PostInfoDto[]>>('/post').then(unwrap),
 
     getById: (id: number) =>
-        axiosInstance.get<ApiResponse<PostInfoDto>>(`/post/${id}`).then(unwrap),
+        axiosInstance.get<ApiResponse<PostWithRepliesDto>>(`/post/${id}`).then(unwrap),
 
     getByUser: (userId: number) =>
         axiosInstance.get<ApiResponse<PostInfoDto[]>>(`/post/user/${userId}`).then(unwrap),

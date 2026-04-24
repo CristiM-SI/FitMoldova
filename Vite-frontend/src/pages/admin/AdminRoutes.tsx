@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Table, Card, Input, Space, Tag, Button, Modal, Form,
     Select, InputNumber, Typography, Popconfirm, message,
-    Switch, Row, Col, Statistic, Spin, Alert,
+    Switch, Row, Col, Statistic, Spin, Alert, Tabs,
 } from 'antd';
 import {
     SearchOutlined, PlusOutlined, EditOutlined,
@@ -10,7 +10,8 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { routeApi, type RouteCreatePayload } from '../../services/api/routeApi';
-import type { Traseu } from '../../types/Route';
+import type { Traseu, RouteCoord } from '../../types/Route';
+import RoutePathBuilder, { calcDistance } from '../../components/RoutePathBuilder';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -47,6 +48,10 @@ const AdminRoutes: React.FC = () => {
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
 
+    /* Path & highlights state — outside Form since they're not antd inputs */
+    const [path, setPath] = useState<RouteCoord[]>([]);
+    const [highlightsInput, setHighlightsInput] = useState('');
+
     const fetchRoutes = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -65,9 +70,9 @@ const AdminRoutes: React.FC = () => {
     const filtered = routes.filter(r => {
         const term = search.toLowerCase();
         const matchSearch =
-            r.name.toLowerCase().includes(term) ||
-            r.region.toLowerCase().includes(term) ||
-            r.description.toLowerCase().includes(term);
+            (r.name        ?? '').toLowerCase().includes(term) ||
+            (r.region      ?? '').toLowerCase().includes(term) ||
+            (r.description ?? '').toLowerCase().includes(term);
         const matchType = filterType === 'all' || r.type === filterType;
         const matchDiff = filterDiff === 'all' || r.difficulty === filterDiff;
         return matchSearch && matchType && matchDiff;
@@ -81,6 +86,8 @@ const AdminRoutes: React.FC = () => {
     const openAdd = () => {
         setEditTarget(null);
         form.resetFields();
+        setPath([]);
+        setHighlightsInput('');
         setModalOpen(true);
     };
 
@@ -97,23 +104,46 @@ const AdminRoutes: React.FC = () => {
             surface: record.surface,
             isLoop: record.isLoop,
             description: record.description,
+            icon: record.icon,
+            bestSeason: record.bestSeason,
         });
+        setPath(record.path ?? []);
+        setHighlightsInput((record.highlights ?? []).join(', '));
         setModalOpen(true);
     };
 
     const handleSave = () => {
         form.validateFields().then(async (values) => {
+            const highlights = highlightsInput
+                .split(',')
+                .map(h => h.trim())
+                .filter(Boolean);
+
+            const start = path[0]     ?? { lat: 0, lng: 0 };
+            const end   = path[path.length - 1] ?? { lat: 0, lng: 0 };
+
+            /* Auto-fill distance from path if admin left it blank */
+            const distance = values.distance ?? (path.length > 1 ? calcDistance(path) : 0);
+
             const payload: RouteCreatePayload = {
-                name: values.name,
-                type: values.type,
-                difficulty: values.difficulty,
-                distance: values.distance ?? 0,
+                name:              values.name,
+                type:              values.type,
+                difficulty:        values.difficulty,
+                distance,
                 estimatedDuration: values.estimatedDuration ?? 0,
-                elevationGain: values.elevationGain ?? 0,
-                region: values.region ?? '',
-                surface: values.surface ?? '',
-                isLoop: values.isLoop ?? false,
-                description: values.description ?? '',
+                elevationGain:     values.elevationGain     ?? 0,
+                region:            values.region            ?? '',
+                surface:           values.surface           ?? '',
+                isLoop:            values.isLoop            ?? false,
+                description:       values.description       ?? '',
+                icon:              values.icon              ?? TYPE_ICONS[values.type] ?? '📍',
+                bestSeason:        values.bestSeason        ?? '',
+                highlights,
+                startLat: start.lat,
+                startLng: start.lng,
+                endLat:   end.lat,
+                endLng:   end.lng,
+                path,
             };
 
             setActionLoading(true);
@@ -155,7 +185,7 @@ const AdminRoutes: React.FC = () => {
             key: 'name',
             render: (_, record) => (
                 <Space>
-                    <span style={{ fontSize: 20 }}>{TYPE_ICONS[record.type] ?? '📍'}</span>
+                    <span style={{ fontSize: 20 }}>{record.icon || TYPE_ICONS[record.type] || '📍'}</span>
                     <div>
                         <Text strong style={{ display: 'block' }}>{record.name}</Text>
                         <Text type="secondary" style={{ fontSize: 12 }}>{record.region}</Text>
@@ -200,18 +230,13 @@ const AdminRoutes: React.FC = () => {
             render: (e: number) => `+${e} m`,
         },
         {
-            title: 'Suprafață',
-            dataIndex: 'surface',
-            key: 'surface',
-            render: (s: string) => <Tag>{s}</Tag>,
-        },
-        {
-            title: 'Circuit',
-            dataIndex: 'isLoop',
-            key: 'isLoop',
-            render: (v: boolean) => v
-                ? <Tag color="green">Da</Tag>
-                : <Tag color="default">Nu</Tag>,
+            title: 'Puncte traseu',
+            key: 'pathLen',
+            render: (_, record) => (
+                <Tag color={record.path?.length ? 'blue' : 'default'}>
+                    {record.path?.length ?? 0} pts
+                </Tag>
+            ),
         },
         {
             title: 'Acțiuni',
@@ -332,6 +357,7 @@ const AdminRoutes: React.FC = () => {
                 )}
             </Card>
 
+            {/* ── Modal adaugă / editează ─────────────────────────────────────── */}
             <Modal
                 title={
                     <Space>
@@ -345,76 +371,135 @@ const AdminRoutes: React.FC = () => {
                 okText={editTarget ? 'Salvează' : 'Adaugă'}
                 cancelText="Anulează"
                 confirmLoading={actionLoading}
-                width={680}
+                width={820}
                 destroyOnClose
+                styles={{ body: { maxHeight: '78vh', overflowY: 'auto', paddingRight: 4 } }}
             >
-                <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-                    <Form.Item name="name" label="Denumire traseu"
-                        rules={[{ required: true, message: 'Câmp obligatoriu' }]}>
-                        <Input placeholder="Ex: Parcul Valea Morilor - Buiucani" />
-                    </Form.Item>
+                <Tabs
+                    defaultActiveKey="info"
+                    items={[
+                        {
+                            key: 'info',
+                            label: '📋 Informații',
+                            children: (
+                                <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
+                                    <Form.Item name="name" label="Denumire traseu"
+                                        rules={[{ required: true, message: 'Câmp obligatoriu' }]}>
+                                        <Input placeholder="Ex: Parcul Valea Morilor - Buiucani" />
+                                    </Form.Item>
 
-                    <Form.Item name="description" label="Descriere">
-                        <TextArea rows={3} placeholder="Descrierea traseului..." />
-                    </Form.Item>
+                                    <Form.Item name="description" label="Descriere">
+                                        <TextArea rows={3} placeholder="Descrierea traseului..." />
+                                    </Form.Item>
 
-                    <Row gutter={16}>
-                        <Col span={8}>
-                            <Form.Item name="type" label="Tip traseu"
-                                rules={[{ required: true, message: 'Selectează' }]}>
-                                <Select placeholder="Selectează...">
-                                    {ROUTE_TYPES.map(t => <Option key={t} value={t}>{TYPE_ICONS[t]} {t}</Option>)}
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="difficulty" label="Dificultate"
-                                rules={[{ required: true, message: 'Selectează' }]}>
-                                <Select placeholder="Selectează...">
-                                    {DIFFICULTIES.map(d => <Option key={d} value={d}>{d}</Option>)}
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="surface" label="Suprafață">
-                                <Select placeholder="Selectează...">
-                                    {SURFACES.map(s => <Option key={s} value={s}>{s}</Option>)}
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                                    <Row gutter={16}>
+                                        <Col span={8}>
+                                            <Form.Item name="type" label="Tip traseu"
+                                                rules={[{ required: true, message: 'Selectează' }]}>
+                                                <Select placeholder="Selectează...">
+                                                    {ROUTE_TYPES.map(t => <Option key={t} value={t}>{TYPE_ICONS[t]} {t}</Option>)}
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                            <Form.Item name="difficulty" label="Dificultate"
+                                                rules={[{ required: true, message: 'Selectează' }]}>
+                                                <Select placeholder="Selectează...">
+                                                    {DIFFICULTIES.map(d => <Option key={d} value={d}>{d}</Option>)}
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                            <Form.Item name="surface" label="Suprafață">
+                                                <Select placeholder="Selectează...">
+                                                    {SURFACES.map(s => <Option key={s} value={s}>{s}</Option>)}
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
 
-                    <Row gutter={16}>
-                        <Col span={8}>
-                            <Form.Item name="distance" label="Distanță (km)">
-                                <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="estimatedDuration" label="Durată (min)">
-                                <InputNumber min={0} style={{ width: '100%' }} />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="elevationGain" label="Denivelare (m)">
-                                <InputNumber min={0} style={{ width: '100%' }} />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                                    <Row gutter={16}>
+                                        <Col span={8}>
+                                            <Form.Item
+                                                name="distance"
+                                                label={
+                                                    <span>
+                                                        Distanță (km)
+                                                        {path.length > 1 && (
+                                                            <Text type="secondary" style={{ fontSize: 11, marginLeft: 6 }}>
+                                                                ≈ {calcDistance(path)} km din hartă
+                                                            </Text>
+                                                        )}
+                                                    </span>
+                                                }
+                                            >
+                                                <InputNumber min={0} step={0.1} style={{ width: '100%' }} placeholder="Auto din hartă" />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                            <Form.Item name="estimatedDuration" label="Durată (min)">
+                                                <InputNumber min={0} style={{ width: '100%' }} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                            <Form.Item name="elevationGain" label="Denivelare (m)">
+                                                <InputNumber min={0} style={{ width: '100%' }} />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
 
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="region" label="Regiune">
-                                <Input placeholder="Ex: Chișinău" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="isLoop" label="Traseu circular" valuePropName="checked">
-                                <Switch />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                </Form>
+                                    <Row gutter={16}>
+                                        <Col span={8}>
+                                            <Form.Item name="region" label="Regiune">
+                                                <Input placeholder="Ex: Chișinău" />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                            <Form.Item name="icon" label="Icon (emoji)">
+                                                <Input placeholder="Ex: 🏃" maxLength={4} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={8}>
+                                            <Form.Item name="bestSeason" label="Sezon recomandat">
+                                                <Input placeholder="Ex: Primăvară-Toamnă" />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Form.Item name="isLoop" label="Traseu circular" valuePropName="checked">
+                                                <Switch />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                label="Repere (separate prin virgulă)"
+                                                tooltip="Ex: Podul Înalt, Fântâna Satului, Pădure de Stejar"
+                                            >
+                                                <Input
+                                                    value={highlightsInput}
+                                                    onChange={e => setHighlightsInput(e.target.value)}
+                                                    placeholder="Reper 1, Reper 2, ..."
+                                                />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            ),
+                        },
+                        {
+                            key: 'map',
+                            label: `🗺️ Traseu pe hartă${path.length > 0 ? ` (${path.length} pts)` : ''}`,
+                            children: (
+                                <div style={{ paddingTop: 8 }}>
+                                    <RoutePathBuilder path={path} onChange={setPath} />
+                                </div>
+                            ),
+                            forceRender: true,
+                        },
+                    ]}
+                />
             </Modal>
         </div>
     );

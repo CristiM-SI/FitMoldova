@@ -3,6 +3,7 @@ using System;
 using FitMoldova.DataAccesLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FitMoldova.DataAccesLayer.Migrations
 {
     [DbContext(typeof(FitMoldovaContext))]
-    partial class FitMoldovaContextModelSnapshot : ModelSnapshot
+    [Migration("20260424111229_AddNotifications")]
+    partial class AddNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -734,33 +737,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FitMoldova.Domain.Entities.User.UserFollowEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("FollowedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("FollowedId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FollowerId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FollowedId");
-
-                    b.HasIndex("FollowerId", "FollowedId")
-                        .IsUnique();
-
-                    b.ToTable("UserFollows");
-                });
-
             modelBuilder.Entity("ChallengeParticipantEntity", b =>
                 {
                     b.HasOne("FitMoldova.Domain.Entities.Challenge.ChallengeEntity", "Challenge")
@@ -886,25 +862,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("Route");
-                });
-
-            modelBuilder.Entity("FitMoldova.Domain.Entities.User.UserFollowEntity", b =>
-                {
-                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "Followed")
-                        .WithMany()
-                        .HasForeignKey("FollowedId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "Follower")
-                        .WithMany()
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Followed");
-
-                    b.Navigation("Follower");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Activity.ActivityEntity", b =>

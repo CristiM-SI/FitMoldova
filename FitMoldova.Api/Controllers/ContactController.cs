@@ -31,7 +31,7 @@ public class ContactController : ControllerBase
      // GET api/contact
      // Returnează toate mesajele — doar admin
      [HttpGet]
-     [Authorize]
+     [Authorize(Roles = "Admin")]
      public IActionResult GetAll()
      {
           var result = _contactLogic.GetAll();
@@ -41,7 +41,7 @@ public class ContactController : ControllerBase
      // PUT api/contact/42/read
      // Marchează mesajul ca citit — doar admin
      [HttpPut("{id}/read")]
-     [Authorize]
+     [Authorize(Roles = "Admin")]
      public IActionResult MarkAsRead(int id)
      {
           var result = _contactLogic.MarkAsRead(id);
@@ -53,7 +53,7 @@ public class ContactController : ControllerBase
      // DELETE api/contact/42
      // Șterge un mesaj — doar admin
      [HttpDelete("{id}")]
-     [Authorize]
+     [Authorize(Roles = "Admin")]
      public IActionResult Delete(int id)
      {
           var result = _contactLogic.Delete(id);

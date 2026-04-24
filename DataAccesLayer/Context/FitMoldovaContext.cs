@@ -8,6 +8,7 @@ using FitMoldova.Domain.Entities.Challenge;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Entities.Contact;
 using FitMoldova.Domain.Entities.Feedback;
+using FitMoldova.Domain.Entities.Notification;
 using FitMoldova.Domain.Enums;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.DataAccesLayer.Converters;
@@ -50,7 +51,7 @@ public class FitMoldovaContext : DbContext
     public DbSet<FeedbackEntity> Feedbacks { get; set; }
     public DbSet<EventParticipantEntity> EventParticipants { get; set; }
     public DbSet<ChallengeParticipantEntity> ChallengeParticipants { get; set; }
-    public DbSet<UserFollowEntity> UserFollows { get; set; }
+    public DbSet<NotificationEntity> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

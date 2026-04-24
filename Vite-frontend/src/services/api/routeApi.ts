@@ -34,6 +34,14 @@ export interface RouteCreatePayload {
     region: string;
     surface: string;
     isLoop: boolean;
+    icon: string;
+    bestSeason: string;
+    highlights: string[];
+    startLat: number;
+    startLng: number;
+    endLat: number;
+    endLng: number;
+    path: { lat: number; lng: number }[];
 }
 
 export interface RouteUpdatePayload extends RouteCreatePayload {}

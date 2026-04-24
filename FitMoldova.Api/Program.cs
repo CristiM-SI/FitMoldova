@@ -6,6 +6,7 @@ using FitMoldova.BusinessLogic.Mappings;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,32 @@ FitMoldova.DataAccesLayer.DbSession.ConnectionString =
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+     {
+          Description = "JWT Authorization header. Exemplu: Bearer eyJhbGci...",
+          Name = "Authorization",
+          In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+          Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+          Scheme = "Bearer"
+     });
+
+     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+     {
+          {
+               new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+               {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                         Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                    }
+               },
+               new string[] {}
+          }
+     });
+});
 
 // ── Encryption service (SINGLETON — cheia se citește o dată) ──────────────
 // Înregistrat ÎNAINTE de AddDbContext pentru că DbContext depinde de el.
@@ -75,9 +101,13 @@ builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.RouteAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ChallengeAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ContactAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.FeedbackAction>();
+builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.GalleryAction>();
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Interfaces.IUserLogic, FitMoldova.BusinessLogic.Structure.UserLogic>();
      
 var app = builder.Build();
+
+var uploadsDir = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads", "gallery");
+Directory.CreateDirectory(Path.Combine(uploadsDir, "thumbs"));
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -93,8 +123,13 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowFrontend");
 
-// FIX BUG CRITIC: UseAuthentication TREBUIE să fie înainte de UseAuthorization.
-// În codul original lipsea complet, deci [Authorize] nu funcționa.
+app.UseStaticFiles(new StaticFileOptions
+{
+     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+          Path.Combine(app.Environment.ContentRootPath, "wwwroot")),
+     RequestPath = ""
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 

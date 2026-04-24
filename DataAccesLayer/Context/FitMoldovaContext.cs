@@ -175,5 +175,15 @@ public class FitMoldovaContext : DbContext
         modelBuilder.Entity<ChallengeParticipantEntity>()
              .HasOne(cp => cp.User).WithMany()
              .HasForeignKey(cp => cp.UserId).OnDelete(DeleteBehavior.NoAction);
+
+        // ── UserFollow (Follow/Unfollow N-N) ──────────────────────────────────
+        modelBuilder.Entity<UserFollowEntity>()
+            .HasIndex(f => new { f.FollowerId, f.FollowedId }).IsUnique();
+        modelBuilder.Entity<UserFollowEntity>()
+            .HasOne(f => f.Follower).WithMany()
+            .HasForeignKey(f => f.FollowerId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<UserFollowEntity>()
+            .HasOne(f => f.Followed).WithMany()
+            .HasForeignKey(f => f.FollowedId).OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -19,6 +19,8 @@ namespace FitMoldova.BusinessLogic.Core
                    {
                         Id = p.Id,
                         UserId = p.UserId,
+                        AuthorName = p.User.FirstName + " " + p.User.LastName,
+                        AuthorUsername = p.User.Username,
                         Content = p.Content,
                         Sport = p.Sport,
                         Likes = p.Likes,
@@ -37,6 +39,8 @@ namespace FitMoldova.BusinessLogic.Core
                    {
                         Id = p.Id,
                         UserId = p.UserId,
+                        AuthorName = p.User.FirstName + " " + p.User.LastName,
+                        AuthorUsername = p.User.Username,
                         Content = p.Content,
                         Sport = p.Sport,
                         Likes = p.Likes,
@@ -49,12 +53,39 @@ namespace FitMoldova.BusinessLogic.Core
           public ServiceResponse GetByIdExecution(int id)
           {
                using var ctx = _dbSession.FitMoldovaContext();
-               var post = ctx.Posts.FirstOrDefault(p => p.Id == id);
+               var post = ctx.Posts.Where(p => p.Id == id)
+                   .Select(p => new PostInfoDto
+                   {
+                        Id = p.Id,
+                        UserId = p.UserId,
+                        AuthorName = p.User.FirstName + " " + p.User.LastName,
+                        AuthorUsername = p.User.Username,
+                        Content = p.Content,
+                        Sport = p.Sport,
+                        Likes = p.Likes,
+                        CommentsCount = p.CommentsCount,
+                        CreatedAt = p.CreatedAt
+                   }).FirstOrDefault();
                if (post == null)
                     return new ServiceResponse { isSuccess = false, Message = $"Postarea cu ID {id} nu există." };
-               var replies = ctx.PostReplies.Where(r => r.PostId == id)
-                                .OrderBy(r => r.CreatedAt).ToList();
-               return new ServiceResponse { isSuccess = true, Data = new { Post = post, Replies = replies } };
+
+               var replies = (from r in ctx.PostReplies
+                              join u in ctx.Users on r.UserId equals u.Id
+                              where r.PostId == id
+                              orderby r.CreatedAt
+                              select new ReplyDto
+                              {
+                                   Id = r.Id,
+                                   PostId = r.PostId,
+                                   UserId = r.UserId,
+                                   AuthorName = u.FirstName + " " + u.LastName,
+                                   AuthorUsername = u.Username,
+                                   Content = r.Content,
+                                   Likes = r.Likes,
+                                   CreatedAt = r.CreatedAt
+                              }).ToList();
+
+               return new ServiceResponse { isSuccess = true, Data = new PostWithRepliesDto { Post = post, Replies = replies } };
           }
 
           public ServiceResponse CreatePostExecution(PostCreateDto dto)

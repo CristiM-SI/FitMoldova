@@ -70,9 +70,9 @@ const AdminRoutes: React.FC = () => {
     const filtered = routes.filter(r => {
         const term = search.toLowerCase();
         const matchSearch =
-            r.name.toLowerCase().includes(term) ||
-            r.region.toLowerCase().includes(term) ||
-            r.description.toLowerCase().includes(term);
+            (r.name        ?? '').toLowerCase().includes(term) ||
+            (r.region      ?? '').toLowerCase().includes(term) ||
+            (r.description ?? '').toLowerCase().includes(term);
         const matchType = filterType === 'all' || r.type === filterType;
         const matchDiff = filterDiff === 'all' || r.difficulty === filterDiff;
         return matchSearch && matchType && matchDiff;

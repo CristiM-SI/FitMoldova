@@ -2,11 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
 import {
     Box, Typography, Button, Avatar, Chip, TextField, IconButton,
-    Divider, Dialog, DialogContent, Tooltip, CircularProgress,
+    Divider, Dialog, DialogContent, DialogActions, DialogTitle, Tooltip, CircularProgress,
 } from '@mui/material';
 import {
     Favorite, FavoriteBorder, ChatBubbleOutline, Send, Close,
-    PhotoCamera, FitnessCenter, PersonAdd, Check,
+    PhotoCamera, FitnessCenter, PersonAdd, Check, Edit, Delete,
 } from '@mui/icons-material';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
@@ -15,7 +15,7 @@ import { useDashboardData } from '../../context/useDashboardData';
 import { useProgress } from '../../context/ProgressContext';
 import { useAuth } from '../../context/AuthContext';
 import postApi from '../../services/api/postApi';
-import type { PostInfoDto, PostWithRepliesDto } from '../../services/api/postApi';
+import type { PostInfoDto, ReplyDto } from '../../services/api/postApi';
 import { challengeApi } from '../../services/api/challengeApi';
 import type { ChallengeDto } from '../../services/api/challengeApi';
 import {
@@ -60,10 +60,11 @@ function timeAgo(dateStr: string): string {
     return `acum ${d} ${d === 1 ? 'zi' : 'zile'}`;
 }
 
-function dtoToPost(dto: PostInfoDto): Post {
+function dtoToPost(dto: PostInfoDto): Post & { userId: number } {
     const name = dto.authorName || `Utilizator #${dto.userId}`;
     return {
         id: dto.id,
+        userId: dto.userId,
         author: name,
         color: stringToColor(name),
         sport: (dto.sport as Sport) || 'Fotbal',
@@ -74,6 +75,11 @@ function dtoToPost(dto: PostInfoDto): Post {
         liked: false,
     };
 }
+
+const POSTS_PAGE_SIZE = 10;
+const COMMENTS_PAGE_SIZE = 10;
+
+type PostWithOwner = Post & { userId: number };
 
 function challengeDtoToChallenge(dto: ChallengeDto): Challenge {
     const match = dto.duration.match(/\d+/);
@@ -161,15 +167,18 @@ function NavBtn({ icon, label, active, badge, onClick }: {
 // ── MAIN COMPONENT ───────────────────────────
 export default function CommunityPage() {
     const navigate = useNavigate();
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, isAdmin } = useAuth();
 
     const userName = user ? `${user.firstName} ${user.lastName}` : 'Oaspete';
     const userTag  = user ? `@${user.email.split('@')[0]}` : '';
 
     const [tab,            setTab]            = useState<FeedTab>('feed');
     const [filter,         setFilter]         = useState<Sport | 'all'>('all');
-    const [posts,          setPosts]          = useState<Post[]>([]);
+    const [posts,          setPosts]          = useState<PostWithOwner[]>([]);
     const [postsLoading,   setPostsLoading]   = useState(true);
+    const [postsPage,      setPostsPage]      = useState(1);
+    const [postsHasMore,   setPostsHasMore]   = useState(true);
+    const [postsLoadingMore, setPostsLoadingMore] = useState(false);
     const [challenges,     setChallenges]     = useState<Challenge[]>([]);
     const [challengesLoading, setChallengesLoading] = useState(true);
     const [postInput,      setPostInput]      = useState('');
@@ -178,23 +187,55 @@ export default function CommunityPage() {
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [following,      setFollowing]      = useState<Set<string>>(new Set());
 
+    // Edit post dialog state
+    const [editPost,    setEditPost]    = useState<PostWithOwner | null>(null);
+    const [editContent, setEditContent] = useState('');
+    const [editSport,   setEditSport]   = useState<Sport>('Fotbal');
+    const [editSaving,  setEditSaving]  = useState(false);
+
+    // Confirm-delete dialog state — handles both posts and comments
+    const [confirmDelete, setConfirmDelete] = useState<
+        | { kind: 'post'; id: number }
+        | { kind: 'comment'; id: number; postId: number }
+        | null
+    >(null);
+    const [deleting, setDeleting] = useState(false);
+
     // Comments dialog state
-    const [commentsPostId,  setCommentsPostId]  = useState<number | null>(null);
-    const [commentsData,    setCommentsData]    = useState<PostWithRepliesDto | null>(null);
+    const [commentsPost,    setCommentsPost]    = useState<PostWithOwner | null>(null);
+    const [comments,        setComments]        = useState<ReplyDto[]>([]);
     const [commentsLoading, setCommentsLoading] = useState(false);
+    const [commentsPage,    setCommentsPage]    = useState(1);
+    const [commentsHasMore, setCommentsHasMore] = useState(true);
+    const [commentsLoadingMore, setCommentsLoadingMore] = useState(false);
     const [replyInput,      setReplyInput]      = useState('');
+    const [replySending,    setReplySending]    = useState(false);
 
     const { addProvocare, removeProvocare } = useDashboardData();
     const { completeChallenge }             = useProgress();
 
-    // ── LOAD POSTS FROM API ───────────────────
+    // ── LOAD POSTS FROM API (paginated) ───────
     useEffect(() => {
-        setPostsLoading(true);
-        postApi.getAll()
-            .then((data) => setPosts(data.map(dtoToPost)))
-            .catch(() => setPosts([]))
-            .finally(() => setPostsLoading(false));
-    }, []);
+        const isFirstPage = postsPage === 1;
+        if (isFirstPage) setPostsLoading(true);
+        else             setPostsLoadingMore(true);
+
+        postApi.list({ page: postsPage, pageSize: POSTS_PAGE_SIZE })
+            .then((result) => {
+                const mapped = result.items.map(dtoToPost);
+                setPosts((prev) => isFirstPage ? mapped : [...prev, ...mapped]);
+                const more = result.hasMore ?? (result.items.length === (result.pageSize ?? POSTS_PAGE_SIZE));
+                setPostsHasMore(more);
+            })
+            .catch(() => {
+                if (isFirstPage) setPosts([]);
+                setPostsHasMore(false);
+            })
+            .finally(() => {
+                setPostsLoading(false);
+                setPostsLoadingMore(false);
+            });
+    }, [postsPage]);
 
     // ── LOAD CHALLENGES FROM API ──────────────
     useEffect(() => {
@@ -205,15 +246,33 @@ export default function CommunityPage() {
             .finally(() => setChallengesLoading(false));
     }, []);
 
-    // ── LOAD COMMENTS WHEN DIALOG OPENS ──────
+    // ── LOAD COMMENTS WHEN DIALOG OPENS / pagination changes ──
     useEffect(() => {
-        if (commentsPostId === null) { setCommentsData(null); return; }
-        setCommentsLoading(true);
-        postApi.getById(commentsPostId)
-            .then(setCommentsData)
-            .catch(() => setCommentsData(null))
-            .finally(() => setCommentsLoading(false));
-    }, [commentsPostId]);
+        if (commentsPost === null) {
+            setComments([]);
+            setCommentsPage(1);
+            setCommentsHasMore(true);
+            return;
+        }
+        const isFirstPage = commentsPage === 1;
+        if (isFirstPage) setCommentsLoading(true);
+        else             setCommentsLoadingMore(true);
+
+        postApi.getComments(commentsPost.id, { page: commentsPage, pageSize: COMMENTS_PAGE_SIZE })
+            .then((result) => {
+                setComments((prev) => isFirstPage ? result.items : [...prev, ...result.items]);
+                const more = result.hasMore ?? (result.items.length === (result.pageSize ?? COMMENTS_PAGE_SIZE));
+                setCommentsHasMore(more);
+            })
+            .catch(() => {
+                if (isFirstPage) setComments([]);
+                setCommentsHasMore(false);
+            })
+            .finally(() => {
+                setCommentsLoading(false);
+                setCommentsLoadingMore(false);
+            });
+    }, [commentsPost?.id, commentsPage]);
 
     const showToast = useCallback((icon: string, msg: string) => {
         setToast({ icon, msg, visible: true });
@@ -226,8 +285,9 @@ export default function CommunityPage() {
         if (!postInput.trim()) { showToast('⚠️', 'Scrie ceva înainte de a publica!'); return; }
         try {
             const newId = await postApi.create({ userId: user.id, content: postInput.trim(), sport: postSport });
-            const newPost: Post = {
+            const newPost: PostWithOwner = {
                 id: newId,
+                userId: user.id,
                 author: userName,
                 color: stringToColor(userName),
                 sport: postSport,
@@ -244,6 +304,81 @@ export default function CommunityPage() {
             showToast('❌', 'Eroare la publicare. Încearcă din nou.');
         }
     }, [postInput, postSport, showToast, user, userName, isAuthenticated, navigate]);
+
+    // ── EDIT POST ────────────────────────────
+    const openEditPost = useCallback((post: PostWithOwner) => {
+        setEditPost(post);
+        setEditContent(post.content);
+        setEditSport(post.sport);
+    }, []);
+
+    const handleSaveEdit = useCallback(async () => {
+        if (!editPost) return;
+        const trimmed = editContent.trim();
+        if (!trimmed) { showToast('⚠️', 'Conținutul nu poate fi gol.'); return; }
+        setEditSaving(true);
+        try {
+            await postApi.update(editPost.id, { content: trimmed, sport: editSport });
+            setPosts((prev) => prev.map((p) =>
+                p.id === editPost.id ? { ...p, content: trimmed, sport: editSport } : p
+            ));
+            setEditPost(null);
+            showToast('✏️', 'Postare actualizată.');
+        } catch {
+            showToast('❌', 'Eroare la actualizare.');
+        } finally {
+            setEditSaving(false);
+        }
+    }, [editPost, editContent, editSport, showToast]);
+
+    // ── DELETE POST / COMMENT (shared confirm dialog) ─────────
+    const handleConfirmDelete = useCallback(async () => {
+        if (!confirmDelete) return;
+        setDeleting(true);
+        try {
+            if (confirmDelete.kind === 'post') {
+                await postApi.delete(confirmDelete.id);
+                setPosts((prev) => prev.filter((p) => p.id !== confirmDelete.id));
+                if (commentsPost?.id === confirmDelete.id) setCommentsPost(null);
+                showToast('🗑️', 'Postare ștearsă.');
+            } else {
+                await postApi.deleteComment(confirmDelete.id);
+                setComments((prev) => prev.filter((c) => c.id !== confirmDelete.id));
+                setPosts((prev) => prev.map((p) =>
+                    p.id === confirmDelete.postId ? { ...p, comments: Math.max(0, p.comments - 1) } : p
+                ));
+                showToast('🗑️', 'Comentariu șters.');
+            }
+            setConfirmDelete(null);
+        } catch {
+            showToast('❌', 'Eroare la ștergere.');
+        } finally {
+            setDeleting(false);
+        }
+    }, [confirmDelete, commentsPost, showToast]);
+
+    // ── LOAD MORE ────────────────────────────
+    const handleLoadMorePosts = useCallback(() => {
+        if (!postsHasMore || postsLoadingMore) return;
+        setPostsPage((p) => p + 1);
+    }, [postsHasMore, postsLoadingMore]);
+
+    const handleLoadMoreComments = useCallback(() => {
+        if (!commentsHasMore || commentsLoadingMore) return;
+        setCommentsPage((p) => p + 1);
+    }, [commentsHasMore, commentsLoadingMore]);
+
+    const openComments = useCallback((post: PostWithOwner) => {
+        setCommentsPost(post);
+        setComments([]);
+        setCommentsPage(1);
+        setCommentsHasMore(true);
+    }, []);
+
+    const closeComments = useCallback(() => {
+        setCommentsPost(null);
+        setReplyInput('');
+    }, []);
 
     // ── LIKE POST ────────────────────────────
     const handleLike = useCallback((id: number) => {
@@ -312,21 +447,34 @@ export default function CommunityPage() {
             isFollowing ? `Ai încetat să urmărești pe ${member.name}` : `Urmărești acum pe ${member.name}!`);
     }, [following, showToast]);
 
-    // ── ADD REPLY ────────────────────────────
-    const handleAddReply = useCallback(async () => {
-        if (!isAuthenticated || !user || commentsPostId === null) return;
-        if (!replyInput.trim()) return;
+    // ── ADD COMMENT ──────────────────────────
+    const handleAddComment = useCallback(async () => {
+        if (!isAuthenticated || !user || commentsPost === null) return;
+        const content = replyInput.trim();
+        if (!content) return;
+        setReplySending(true);
         try {
-            await postApi.addReply({ postId: commentsPostId, userId: user.id, content: replyInput.trim() });
+            const newId = await postApi.addComment(commentsPost.id, content);
+            const newComment: ReplyDto = {
+                id: newId,
+                postId: commentsPost.id,
+                userId: user.id,
+                authorName: userName,
+                authorUsername: user.username,
+                content,
+                likes: 0,
+                createdAt: new Date().toISOString(),
+            };
+            setComments((prev) => [...prev, newComment]);
             setReplyInput('');
-            const updated = await postApi.getById(commentsPostId);
-            setCommentsData(updated);
             setPosts((prev) => prev.map((p) =>
-                p.id === commentsPostId ? { ...p, comments: p.comments + 1 } : p));
+                p.id === commentsPost.id ? { ...p, comments: p.comments + 1 } : p));
         } catch {
             showToast('❌', 'Eroare la trimiterea comentariului.');
+        } finally {
+            setReplySending(false);
         }
-    }, [isAuthenticated, user, commentsPostId, replyInput, showToast]);
+    }, [isAuthenticated, user, userName, commentsPost, replyInput, showToast]);
 
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.sport === filter);
 
@@ -544,7 +692,10 @@ export default function CommunityPage() {
                                             <Typography sx={{ color: T.muted, fontSize: '0.85rem' }}>Fii primul care distribuie ceva cu comunitatea!</Typography>
                                         </DarkCard>
                                     ) : (
-                                        filteredPosts.map((p) => (
+                                        <>
+                                        {filteredPosts.map((p) => {
+                                            const canModify = isAuthenticated && (user?.id === p.userId || isAdmin);
+                                            return (
                                             <DarkCard key={p.id}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
                                                     <Avatar sx={{ width: 42, height: 42, bgcolor: p.color, fontSize: '0.9rem', fontWeight: 900, flexShrink: 0 }}>
@@ -555,8 +706,24 @@ export default function CommunityPage() {
                                                         <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>{p.time}</Typography>
                                                     </Box>
                                                     <Chip label={p.sport} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.7rem', fontWeight: 600, height: 22 }} />
+                                                    {canModify && (
+                                                        <Box sx={{ display: 'flex', gap: 0.25 }}>
+                                                            <Tooltip title="Editează">
+                                                                <IconButton size="small" onClick={() => openEditPost(p)}
+                                                                            sx={{ color: T.muted, '&:hover': { color: T.cyan, bgcolor: T.cdim } }}>
+                                                                    <Edit sx={{ fontSize: 16 }} />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title="Șterge">
+                                                                <IconButton size="small" onClick={() => setConfirmDelete({ kind: 'post', id: p.id })}
+                                                                            sx={{ color: T.muted, '&:hover': { color: '#ff4d6d', bgcolor: 'rgba(255,77,109,.1)' } }}>
+                                                                    <Delete sx={{ fontSize: 16 }} />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </Box>
+                                                    )}
                                                 </Box>
-                                                <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75 }}>
+                                                <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75, whiteSpace: 'pre-wrap' }}>
                                                     {p.content}
                                                 </Typography>
                                                 <Box sx={{ display: 'flex', gap: 0.5, borderTop: `1px solid ${T.border}`, pt: 1.5 }}>
@@ -565,14 +732,25 @@ export default function CommunityPage() {
                                                         {p.liked ? <Favorite sx={{ fontSize: 15 }} /> : <FavoriteBorder sx={{ fontSize: 15 }} />}
                                                         {p.likes}
                                                     </Box>
-                                                    <Box component="button" onClick={() => setCommentsPostId(p.id)}
+                                                    <Box component="button" onClick={() => openComments(p)}
                                                          sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: T.cdim, color: T.cyan } }}>
                                                         <ChatBubbleOutline sx={{ fontSize: 15 }} />
                                                         {p.comments}
                                                     </Box>
                                                 </Box>
                                             </DarkCard>
-                                        ))
+                                            );
+                                        })}
+
+                                        {postsHasMore && (
+                                            <Box sx={{ textAlign: 'center', mt: 1 }}>
+                                                <Button onClick={handleLoadMorePosts} disabled={postsLoadingMore}
+                                                        sx={{ borderRadius: '8px', color: T.cyan, border: `1px solid ${T.border}`, px: 3, py: 0.875, fontSize: '0.8rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', '&:hover': { bgcolor: T.cdim, borderColor: T.cyan } }}>
+                                                    {postsLoadingMore ? <CircularProgress size={18} sx={{ color: T.cyan }} /> : 'Încarcă mai multe'}
+                                                </Button>
+                                            </Box>
+                                        )}
+                                        </>
                                     )}
                                 </Box>
                             </>
@@ -768,80 +946,93 @@ export default function CommunityPage() {
             </Dialog>
 
             {/* ── COMMENTS DIALOG ── */}
-            <Dialog open={commentsPostId !== null} onClose={() => { setCommentsPostId(null); setReplyInput(''); }}
+            <Dialog open={commentsPost !== null} onClose={closeComments}
                     maxWidth="sm" fullWidth
                     slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 1.75, borderBottom: `1px solid ${T.border}` }}>
                     <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
-                        💬 Comentarii
+                        💬 Comentarii {commentsPost ? `(${commentsPost.comments})` : ''}
                     </Typography>
-                    <IconButton onClick={() => { setCommentsPostId(null); setReplyInput(''); }} size="small"
+                    <IconButton onClick={closeComments} size="small"
                                 sx={{ color: T.muted, '&:hover': { color: '#fff' } }}>
                         <Close fontSize="small" />
                     </IconButton>
                 </Box>
 
                 <DialogContent sx={{ p: 0, maxHeight: '60vh', overflowY: 'auto' }}>
+                    {commentsPost && (
+                        <Box sx={{ px: 2.5, py: 2, bgcolor: T.card2, borderBottom: `1px solid ${T.border}` }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1 }}>
+                                <Avatar sx={{ width: 34, height: 34, bgcolor: commentsPost.color, fontSize: '0.8rem', fontWeight: 900 }}>
+                                    {getInitials(commentsPost.author)}
+                                </Avatar>
+                                <Box>
+                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>
+                                        {commentsPost.author}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', color: T.muted }}>{commentsPost.time}</Typography>
+                                </Box>
+                            </Box>
+                            <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                                {commentsPost.content}
+                            </Typography>
+                        </Box>
+                    )}
+
                     {commentsLoading ? (
                         <Box sx={{ textAlign: 'center', py: 5 }}>
                             <CircularProgress size={28} sx={{ color: T.cyan }} />
                         </Box>
-                    ) : !commentsData ? (
-                        <Box sx={{ textAlign: 'center', py: 5 }}>
-                            <Typography sx={{ color: T.muted, fontSize: '0.85rem' }}>Nu s-au putut încărca comentariile.</Typography>
+                    ) : comments.length === 0 ? (
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                            <Typography sx={{ fontSize: '1.8rem', opacity: 0.3, mb: 1 }}>💬</Typography>
+                            <Typography sx={{ color: T.muted, fontSize: '0.82rem' }}>Niciun comentariu încă. Fii primul!</Typography>
                         </Box>
                     ) : (
-                        <>
-                            {/* Original post */}
-                            <Box sx={{ px: 2.5, py: 2, bgcolor: T.card2, borderBottom: `1px solid ${T.border}` }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1 }}>
-                                    <Avatar sx={{ width: 34, height: 34, bgcolor: stringToColor(commentsData.authorName || ''), fontSize: '0.8rem', fontWeight: 900 }}>
-                                        {getInitials(commentsData.authorName || `U${commentsData.userId}`)}
-                                    </Avatar>
-                                    <Box>
-                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>
-                                            {commentsData.authorName || `Utilizator #${commentsData.userId}`}
-                                        </Typography>
-                                        <Typography sx={{ fontSize: '0.7rem', color: T.muted }}>{timeAgo(commentsData.createdAt)}</Typography>
-                                    </Box>
-                                </Box>
-                                <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.6 }}>
-                                    {commentsData.content}
-                                </Typography>
-                            </Box>
-
-                            {/* Replies */}
-                            {(commentsData.replies ?? []).length === 0 ? (
-                                <Box sx={{ textAlign: 'center', py: 4 }}>
-                                    <Typography sx={{ fontSize: '1.8rem', opacity: 0.3, mb: 1 }}>💬</Typography>
-                                    <Typography sx={{ color: T.muted, fontSize: '0.82rem' }}>Niciun comentariu încă. Fii primul!</Typography>
-                                </Box>
-                            ) : (
-                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                    {(commentsData.replies ?? []).map((reply, i) => (
-                                        <Box key={reply.id}>
-                                            {i > 0 && <Divider sx={{ borderColor: T.border }} />}
-                                            <Box sx={{ px: 2.5, py: 1.75 }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.75 }}>
-                                                    <Avatar sx={{ width: 30, height: 30, bgcolor: stringToColor(reply.authorName || ''), fontSize: '0.72rem', fontWeight: 900 }}>
-                                                        {getInitials(reply.authorName || `U${reply.userId}`)}
-                                                    </Avatar>
-                                                    <Box>
-                                                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: T.text }}>
-                                                            {reply.authorName || `Utilizator #${reply.userId}`}
-                                                        </Typography>
-                                                        <Typography sx={{ fontSize: '0.68rem', color: T.muted }}>{timeAgo(reply.createdAt)}</Typography>
-                                                    </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            {comments.map((reply, i) => {
+                                const canDelete = isAuthenticated && (user?.id === reply.userId || isAdmin);
+                                return (
+                                    <Box key={reply.id}>
+                                        {i > 0 && <Divider sx={{ borderColor: T.border }} />}
+                                        <Box sx={{ px: 2.5, py: 1.75, position: 'relative' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.75 }}>
+                                                <Avatar sx={{ width: 30, height: 30, bgcolor: stringToColor(reply.authorName || ''), fontSize: '0.72rem', fontWeight: 900 }}>
+                                                    {getInitials(reply.authorName || `U${reply.userId}`)}
+                                                </Avatar>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: T.text }}>
+                                                        {reply.authorName || `Utilizator #${reply.userId}`}
+                                                    </Typography>
+                                                    <Typography sx={{ fontSize: '0.68rem', color: T.muted }}>{timeAgo(reply.createdAt)}</Typography>
                                                 </Box>
-                                                <Typography sx={{ fontSize: '0.84rem', color: '#c8d8f0', lineHeight: 1.6, pl: '42px' }}>
-                                                    {reply.content}
-                                                </Typography>
+                                                {canDelete && commentsPost && (
+                                                    <Tooltip title="Șterge comentariu">
+                                                        <IconButton size="small"
+                                                                    onClick={() => setConfirmDelete({ kind: 'comment', id: reply.id, postId: commentsPost.id })}
+                                                                    sx={{ color: T.muted, '&:hover': { color: '#ff4d6d', bgcolor: 'rgba(255,77,109,.1)' } }}>
+                                                            <Delete sx={{ fontSize: 14 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
                                             </Box>
+                                            <Typography sx={{ fontSize: '0.84rem', color: '#c8d8f0', lineHeight: 1.6, pl: '42px', whiteSpace: 'pre-wrap' }}>
+                                                {reply.content}
+                                            </Typography>
                                         </Box>
-                                    ))}
+                                    </Box>
+                                );
+                            })}
+
+                            {commentsHasMore && (
+                                <Box sx={{ textAlign: 'center', py: 1.5, borderTop: `1px solid ${T.border}` }}>
+                                    <Button onClick={handleLoadMoreComments} disabled={commentsLoadingMore}
+                                            sx={{ color: T.cyan, fontSize: '0.78rem', fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: T.cdim } }}>
+                                        {commentsLoadingMore ? <CircularProgress size={16} sx={{ color: T.cyan }} /> : 'Încarcă mai multe comentarii'}
+                                    </Button>
                                 </Box>
                             )}
-                        </>
+                        </Box>
                     )}
                 </DialogContent>
 
@@ -857,7 +1048,8 @@ export default function CommunityPage() {
                                 placeholder="Scrie un comentariu…"
                                 value={replyInput}
                                 onChange={(e) => setReplyInput(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddReply(); } }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+                                disabled={replySending}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         bgcolor: T.bg, borderRadius: '10px', color: T.text, fontSize: '0.85rem',
@@ -868,9 +1060,9 @@ export default function CommunityPage() {
                                     '& .MuiInputBase-input::placeholder': { color: T.muted, opacity: 1 },
                                 }}
                             />
-                            <IconButton onClick={handleAddReply} disabled={!replyInput.trim()}
+                            <IconButton onClick={handleAddComment} disabled={!replyInput.trim() || replySending}
                                         sx={{ color: replyInput.trim() ? T.cyan : T.muted, transition: 'color .2s', flexShrink: 0 }}>
-                                <Send sx={{ fontSize: 18 }} />
+                                {replySending ? <CircularProgress size={18} sx={{ color: T.cyan }} /> : <Send sx={{ fontSize: 18 }} />}
                             </IconButton>
                         </Box>
                     ) : (
@@ -882,6 +1074,79 @@ export default function CommunityPage() {
                         </Typography>
                     )}
                 </Box>
+            </Dialog>
+
+            {/* ── EDIT POST DIALOG ── */}
+            <Dialog open={!!editPost} onClose={() => !editSaving && setEditPost(null)}
+                    maxWidth="sm" fullWidth
+                    slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
+                <DialogTitle sx={{ borderBottom: `1px solid ${T.border}`, fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
+                    ✏️ Editează postarea
+                </DialogTitle>
+                <DialogContent sx={{ pt: 2.5 }}>
+                    <TextField
+                        autoFocus multiline minRows={3} fullWidth
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: T.bg, borderRadius: '10px', color: T.text,
+                                '& fieldset': { borderColor: T.border },
+                                '&:hover fieldset': { borderColor: 'rgba(0,200,255,.3)' },
+                                '&.Mui-focused fieldset': { borderColor: 'rgba(0,200,255,.5)' },
+                            },
+                        }}
+                    />
+                    <Box
+                        component="select"
+                        value={editSport}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEditSport(e.target.value as Sport)}
+                        sx={{
+                            bgcolor: T.bg, border: `1px solid ${T.border}`, color: T.text,
+                            borderRadius: '7px', px: 1.25, py: 0.75, fontSize: '0.82rem',
+                            outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                        }}
+                    >
+                        {SPORTS.map((s) => <option key={s}>{s}</option>)}
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2, borderTop: `1px solid ${T.border}` }}>
+                    <Button onClick={() => setEditPost(null)} disabled={editSaving}
+                            sx={{ color: T.muted, textTransform: 'none' }}>
+                        Anulează
+                    </Button>
+                    <Button onClick={handleSaveEdit} disabled={editSaving || !editContent.trim()} variant="contained"
+                            sx={{ bgcolor: T.blue, borderRadius: '8px', fontWeight: 700, boxShadow: 'none', textTransform: 'uppercase', letterSpacing: 0.5, '&:hover': { bgcolor: '#2a7fff' } }}>
+                        {editSaving ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : 'Salvează'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ── CONFIRM DELETE DIALOG ── */}
+            <Dialog open={!!confirmDelete} onClose={() => !deleting && setConfirmDelete(null)}
+                    maxWidth="xs" fullWidth
+                    slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
+                <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
+                    {confirmDelete?.kind === 'post' ? 'Șterge postarea?' : 'Șterge comentariul?'}
+                </DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ color: T.muted, fontSize: '0.88rem', lineHeight: 1.6 }}>
+                        {confirmDelete?.kind === 'post'
+                            ? 'Această acțiune nu poate fi anulată. Postarea și toate comentariile vor fi șterse definitiv.'
+                            : 'Comentariul va fi șters definitiv.'}
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setConfirmDelete(null)} disabled={deleting}
+                            sx={{ color: T.muted, textTransform: 'none' }}>
+                        Anulează
+                    </Button>
+                    <Button onClick={handleConfirmDelete} disabled={deleting} variant="contained"
+                            sx={{ bgcolor: '#ff4d6d', borderRadius: '8px', fontWeight: 700, boxShadow: 'none', textTransform: 'uppercase', letterSpacing: 0.5, '&:hover': { bgcolor: '#e63956' } }}>
+                        {deleting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : 'Șterge'}
+                    </Button>
+                </DialogActions>
             </Dialog>
 
             {/* ── TOAST ── */}

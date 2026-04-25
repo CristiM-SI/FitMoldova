@@ -10,11 +10,13 @@ public class UserController : ControllerBase
 {
     private readonly IUserLogic _userLogic;
     private readonly JwtService _jwtService;
+    private readonly RefreshTokenService _refreshTokenService;
 
-    public UserController(IUserLogic userLogic, JwtService jwtService)
+    public UserController(IUserLogic userLogic, JwtService jwtService, RefreshTokenService refreshTokenService)
     {
         _userLogic = userLogic;
         _jwtService = jwtService;
+        _refreshTokenService = refreshTokenService;
     }
 
     [HttpPost("register")]
@@ -37,10 +39,14 @@ public class UserController : ControllerBase
         var (token, expiresAt) = _jwtService.GenerateToken(
             data.Id, data.Email, data.Username, data.Role);
 
+        var refreshToken = _refreshTokenService.Generate(data.Id);
+
         return Ok(new
         {
             token,
             expiresAt,
+            refreshToken          = refreshToken.Token,
+            refreshTokenExpiresAt = refreshToken.ExpiresAt,
             userId    = data.Id,
             username  = data.Username,
             firstName = data.FirstName,

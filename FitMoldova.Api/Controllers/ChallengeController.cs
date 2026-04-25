@@ -32,11 +32,12 @@ public class ChallengeController : ControllerBase
           return Ok(result);
      }
 
-     [HttpPost]
-     [Authorize(Roles = "Admin")]
-     public IActionResult Create([FromBody] ChallengeCreateDto dto)
+     [HttpPost("{id}/join")]
+     [Authorize]
+     public IActionResult Join(int id)
      {
-          var result = _challengeLogic.CreateChallenge(dto);
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
+          var result = _challengeLogic.JoinChallenge(id, userId);
           if (!result.isSuccess) return BadRequest(result);
           return Ok(result);
      }
@@ -49,19 +50,12 @@ public class ChallengeController : ControllerBase
           if (!result.isSuccess) return NotFound(result);
           return Ok(result);
      }
-
-     [HttpPost("{id}/join/{userId}")]
-     public IActionResult Join(int id, int userId)
-     {
-          var result = _challengeLogic.JoinChallenge(id, userId);
-          if (!result.isSuccess) return BadRequest(result);
-          return Ok(result);
-     }
      
-     [HttpDelete("{id}/leave/{userId}")]
+     [HttpDelete("{id}/leave")]
      [Authorize]
-     public IActionResult Leave(int id, int userId)
+     public IActionResult Leave(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _challengeLogic.LeaveChallenge(id, userId);
           if (!result.isSuccess) return BadRequest(result);
           return Ok(result);

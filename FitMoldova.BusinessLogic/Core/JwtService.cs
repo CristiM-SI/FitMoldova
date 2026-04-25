@@ -29,7 +29,7 @@ namespace FitMoldova.BusinessLogic.Core
                     new Claim("userId", userId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, email),
                     new Claim(ClaimTypes.Name, username),
-                    new Claim(ClaimTypes.Role, role.ToString()),
+                    new Claim("role", role.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                };
 

@@ -171,5 +171,47 @@ namespace FitMoldova.BusinessLogic.Core
                 .ToList();
             return new ServiceResponse { isSuccess = true, Data = participants };
         }
+        
+        // ─── ADAUGĂ aceste două metode în clasa ActivityAction, după GetParticipantsExecution ───
+
+        public ServiceResponse GetJoinedByUserExecution(int userId)
+        {
+             using var ctx = _dbSession.FitMoldovaContext();
+             var joined = ctx.ActivityParticipants
+                  .Where(ap => ap.UserId == userId)
+                  .Include(ap => ap.Activity)
+                  .Select(ap => new ActivityInfoDto
+                  {
+                       Id               = ap.Activity.Id,
+                       Name             = ap.Activity.Name,
+                       Type             = ap.Activity.Type,
+                       Distance         = ap.Activity.Distance,
+                       Duration         = ap.Activity.Duration,
+                       Calories         = ap.Activity.Calories,
+                       Date             = ap.Activity.Date,
+                       Description      = ap.Activity.Description ?? string.Empty,
+                       ImageUrl         = ap.Activity.ImageUrl ?? string.Empty,
+                       CreatedBy        = string.Empty,
+                       ParticipantsCount = ctx.ActivityParticipants.Count(x => x.ActivityId == ap.ActivityId)
+                  })
+                  .ToList();
+
+             return new ServiceResponse { isSuccess = true, Data = joined };
+        }
+
+        public ServiceResponse LeaveActivityExecution(int activityId, int userId)
+        {
+             using var ctx = _dbSession.FitMoldovaContext();
+             var participant = ctx.ActivityParticipants
+                  .FirstOrDefault(ap => ap.ActivityId == activityId && ap.UserId == userId);
+
+             if (participant == null)
+                  return new ServiceResponse { isSuccess = false, Message = "Nu ești înscris la această activitate." };
+
+             ctx.ActivityParticipants.Remove(participant);
+             ctx.SaveChanges();
+             return new ServiceResponse { isSuccess = true, Message = "Ai ieșit din activitate." };
+        }
+
     }
 }

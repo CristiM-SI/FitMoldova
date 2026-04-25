@@ -2,6 +2,7 @@
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Post;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -57,12 +58,13 @@ public class PostController : ControllerBase
 
      // POST api/post/42/like/5
      // User cu ID 5 dă like la postul cu ID 42
-     [HttpPost("{id}/like/{userId}")]
-     public IActionResult Like(int id, int userId)
+     [HttpPost("{id}/like")]
+     [Authorize]
+     public IActionResult Like(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _postLogic.LikePost(id, userId);
-          if (!result.isSuccess)
-               return NotFound(result);
+          if (!result.isSuccess) return NotFound(result);
           return Ok(result);
      }
 

@@ -8,7 +8,6 @@ namespace FitMoldova.BusinessLogic.Structure
 {
      public class ActivityLogic : ActivityAction, IActivityLogic
      {
-          // Constructor care primește IMapper prin DI și îl pasează la clasa de bază.
           public ActivityLogic(IMapper mapper) : base(mapper) { }
 
           public ServiceResponse GetAll()                                      => GetAllExecution();
@@ -17,6 +16,8 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse UpdateActivity(int id, ActivityUpdateDto dto) => UpdateActivityExecution(id, dto);
           public ServiceResponse Delete(int id)                                => DeleteExecution(id);
           public ServiceResponse JoinActivity(int activityId, int userId)      => JoinActivityExecution(activityId, userId);
+          public ServiceResponse LeaveActivity(int activityId, int userId)     => LeaveActivityExecution(activityId, userId);
           public ServiceResponse GetParticipants(int activityId)               => GetParticipantsExecution(activityId);
+          public ServiceResponse GetJoinedByUser(int userId)                   => GetJoinedByUserExecution(userId);
      }
 }

@@ -11,6 +11,8 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse UpdateActivity(int id, ActivityUpdateDto dto);
           ServiceResponse Delete(int id);
           ServiceResponse JoinActivity(int activityId, int userId);
+          ServiceResponse LeaveActivity(int activityId, int userId);
           ServiceResponse GetParticipants(int activityId);
+          ServiceResponse GetJoinedByUser(int userId);
      }
 }

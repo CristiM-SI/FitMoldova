@@ -72,7 +72,7 @@ const Provocari: React.FC = () => {
         if (!user?.id || joining !== null) return;
         setJoining(ch.id);
         try {
-            await challengeApi.joinChallenge(ch.id, user.id);
+            await challengeApi.joinChallenge(ch.id);
             const newIds = [...joinedIds, ch.id];
             setJoinedIds(newIds);
             saveJoinedIds(newIds);
@@ -88,7 +88,7 @@ const Provocari: React.FC = () => {
         if (!user?.id || joining !== null) return;
         setJoining(id);
         try {
-            await challengeApi.leaveChallenge(id, user.id);
+            await challengeApi.leaveChallenge(id);
             const newIds = joinedIds.filter(x => x !== id);
             setJoinedIds(newIds);
             saveJoinedIds(newIds);

@@ -77,7 +77,7 @@ const getGradient = (category: string) =>
     CATEGORY_GRADIENTS[category] ?? CATEGORY_GRADIENTS['default'];
 
 const EvenimentePublic: React.FC = () => {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated} = useAuth();
     const { evenimenteInscrise: inscrise, addEveniment, removeEveniment } = useDashboardData();
     const navigate = useNavigate();
 
@@ -119,7 +119,7 @@ const EvenimentePublic: React.FC = () => {
         }
         try {
             if (isJoined(ev.id)) {
-                await eventApi.leave(ev.id, user!.id);
+                await eventApi.leave(ev.id);
                 removeEveniment(ev.id);
                 setEvents((prev) =>
                     prev.map((item) =>
@@ -127,7 +127,7 @@ const EvenimentePublic: React.FC = () => {
                     )
                 );
             } else {
-                await eventApi.join(ev.id, user!.id);
+                await eventApi.join(ev.id);
                 addEveniment(ev);
                 setEvents((prev) =>
                     prev.map((item) =>

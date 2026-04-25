@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { userApi } from '../services/api/userApi';
 
 export interface User {
@@ -9,7 +10,13 @@ export interface User {
     email: string;
     avatar: string;
     registeredAt: string;
-    isAdmin?: boolean;
+}
+
+interface JwtPayload {
+    userId: string;
+    email: string;
+    'http://schemas.microsoft.com/2008/06/identity/claims/role': string;
+    exp: number;
 }
 
 interface AuthResult {
@@ -27,7 +34,42 @@ interface AuthContextType {
     logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({
+function decodeAdminFromToken(token: string): boolean {
+    try {
+        const payload = jwtDecode<any>(token);
+        // Cauta rolul in oricare cheie care contine "role"
+        const roleKey = Object.keys(payload).find(k => k.toLowerCase().includes('role'));
+        const role = roleKey ? payload[roleKey] : undefined;
+        return role === 'Admin';
+    } catch (e) {
+        console.error('[AuthContext] JWT decode error:', e);
+        return false;
+    }
+}
+
+function readStoredAuth(): { user: User | null; isAuthenticated: boolean; isAdmin: boolean } {
+    try {
+        const token = localStorage.getItem('fitmoldova_token');
+        const saved = localStorage.getItem('fitmoldova_user');
+        if (token && saved) {
+            const payload = jwtDecode<JwtPayload>(token);
+            if (payload.exp * 1000 < Date.now()) {
+                localStorage.removeItem('fitmoldova_user');
+                localStorage.removeItem('fitmoldova_token');
+                return { user: null, isAuthenticated: false, isAdmin: false };
+            }
+            const parsed = JSON.parse(saved) as User;
+            const isAdmin = decodeAdminFromToken(token);
+            return { user: parsed, isAuthenticated: true, isAdmin };
+        }
+    } catch {
+        localStorage.removeItem('fitmoldova_user');
+        localStorage.removeItem('fitmoldova_token');
+    }
+    return { user: null, isAuthenticated: false, isAdmin: false };
+}
+
+export const AuthContext = createContext<AuthContextType>({
     user: null,
     isAuthenticated: false,
     isAdmin: false,
@@ -36,31 +78,6 @@ const AuthContext = createContext<AuthContextType>({
     login: async () => ({ success: false }),
     logout: () => {},
 });
-
-function readStoredAuth(): { user: User | null; isAuthenticated: boolean; isAdmin: boolean } {
-    try {
-        const saved = localStorage.getItem('fitmoldova_user');
-        if (saved) {
-            const parsed = JSON.parse(saved) as User;
-            return { user: parsed, isAuthenticated: true, isAdmin: parsed.isAdmin === true };
-        }
-    } catch {
-        localStorage.removeItem('fitmoldova_user');
-    }
-    return { user: null, isAuthenticated: false, isAdmin: false };
-}
-
-function applyAuth(
-    loggedUser: User,
-    setUser: React.Dispatch<React.SetStateAction<User | null>>,
-    setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>,
-    setIsAdmin: React.Dispatch<React.SetStateAction<boolean>>,
-) {
-    setUser(loggedUser);
-    setIsAuthenticated(true);
-    setIsAdmin(loggedUser.isAdmin === true);
-    localStorage.setItem('fitmoldova_user', JSON.stringify(loggedUser));
-}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const initial = readStoredAuth();
@@ -81,24 +98,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 email: res.email,
                 avatar: `${res.firstName[0]}${res.lastName[0]}`.toUpperCase(),
                 registeredAt: res.expiresAt,
-                isAdmin: res.role === 'Admin',
             };
-            applyAuth(loggedUser, setUser, setIsAuthenticated, setIsAdmin);
+            const adminFlag = decodeAdminFromToken(res.token);
+            setUser(loggedUser);
+            setIsAuthenticated(true);
+            setIsAdmin(adminFlag);
+            localStorage.setItem('fitmoldova_user', JSON.stringify(loggedUser));
             return { success: true };
-        } catch (err: any) {
-            return { success: false, error: err.message ?? 'Eroare de conexiune.' };
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Eroare de conexiune.';
+            return { success: false, error: message };
         }
     };
 
-    const register = async (data: { username: string; firstName: string; lastName: string; email: string; password: string }): Promise<AuthResult> => {
+    const register = async (data: {
+        username: string; firstName: string; lastName: string; email: string; password: string;
+    }): Promise<AuthResult> => {
         try {
             const res = await userApi.register(data.username, data.firstName, data.lastName, data.email, data.password);
-            if (res.isSuccess) {
-                return { success: true };
-            }
+            if (res.isSuccess) return { success: true };
             return { success: false, error: res.message ?? 'Eroare la inregistrare.' };
-        } catch (err: any) {
-            return { success: false, error: err.message ?? 'Eroare de conexiune.' };
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Eroare de conexiune.';
+            return { success: false, error: message };
         }
     };
 
@@ -117,8 +139,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
-export const useAuth = (): AuthContextType => {
-    return useContext(AuthContext);
-};
-
-export default AuthContext;
+export const useAuth = (): AuthContextType => useContext(AuthContext);

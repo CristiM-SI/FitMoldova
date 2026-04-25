@@ -251,7 +251,7 @@ export default function CommunityPage() {
         // Optimistic toggle
         setPosts((prev) => prev.map((p) =>
             p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
-        postApi.like(id, user.id)
+        postApi.like(id)
             .then((newCount) => {
                 setPosts((prev) => prev.map((p) => p.id === id ? { ...p, likes: newCount } : p));
             })
@@ -284,7 +284,7 @@ export default function CommunityPage() {
                 progress: 0,
             });
             completeChallenge();
-            challengeApi.joinChallenge(id, user.id).catch(() => {
+            challengeApi.joinChallenge(id).catch(() => {
                 setChallenges((prev) => prev.map((c) =>
                     c.id !== id ? c : { ...c, joined: false, participants: c.participants - 1 }));
                 removeProvocare(10000 + id);
@@ -292,7 +292,7 @@ export default function CommunityPage() {
             });
         } else {
             removeProvocare(10000 + id);
-            challengeApi.leaveChallenge(id, user.id).catch(() => {
+            challengeApi.leaveChallenge(id).catch(() => {
                 setChallenges((prev) => prev.map((c) =>
                     c.id !== id ? c : { ...c, joined: true, participants: c.participants + 1 }));
                 showToast('❌', 'Eroare la server. Încearcă din nou.');

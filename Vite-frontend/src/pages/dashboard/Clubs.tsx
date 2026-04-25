@@ -110,7 +110,7 @@ const ClubsPage: React.FC = () => {
         if (isJoined(club.id)) return;
         setProcessing(true);
         try {
-            await clubApi.joinClub(club.id, user.id);
+            await clubApi.joinClub(club.id);
             // Reîncarcă pentru a avea MembersCount actualizat din backend
             await Promise.all([fetchClubs(), fetchUserClubs()]);
             completeJoinClub();
@@ -134,7 +134,7 @@ const ClubsPage: React.FC = () => {
         if (!user?.id) return;
         setProcessing(true);
         try {
-            await clubApi.leaveClub(clubId, user.id);
+            await clubApi.leaveClub(clubId);
             await Promise.all([fetchClubs(), fetchUserClubs()]);
             setDetailClub(null);
         } catch (err: unknown) {

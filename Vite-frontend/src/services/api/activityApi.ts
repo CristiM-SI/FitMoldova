@@ -48,11 +48,6 @@ function unwrap<T>(res: { data: ApiResponse<T> | T }): T {
     return body as unknown as T;
 }
 
-/**
- * Normalizează payload-ul înainte de trimitere:
- * - asigură format ISO 8601 complet pentru `date` (cu secunde), altfel
- *   System.Text.Json din .NET poate refuza "2026-04-17T10:00" fără secunde.
- */
 function normalizePayload<T extends { date?: string }>(payload: T): T {
     if (!payload.date) return payload;
     const d = payload.date;
@@ -69,6 +64,10 @@ export const activityApi = {
     getById: (id: number) =>
         axiosInstance.get<ApiResponse<ActivityDto>>(`/activity/${id}`).then(unwrap),
 
+    // Activitățile la care userul curent e înscris (necesită token)
+    getJoined: () =>
+        axiosInstance.get<ApiResponse<ActivityDto[]>>('/activity/joined').then(unwrap),
+
     create: (payload: ActivityCreatePayload) =>
         axiosInstance.post<ApiResponse<number>>('/activity', normalizePayload(payload)).then(unwrap),
 
@@ -78,8 +77,13 @@ export const activityApi = {
     delete: (id: number) =>
         axiosInstance.delete(`/activity/${id}`).then(() => {}),
 
-    join: (activityId: number, userId: number) =>
-        axiosInstance.post(`/activity/${activityId}/join/${userId}`).then(() => {}),
+    // Join — userId din token, nu din URL
+    join: (activityId: number) =>
+        axiosInstance.post(`/activity/${activityId}/join`).then(() => {}),
+
+    // Leave — userId din token, nu din URL
+    leave: (activityId: number) =>
+        axiosInstance.delete(`/activity/${activityId}/leave`).then(() => {}),
 
     getParticipants: (activityId: number) =>
         axiosInstance

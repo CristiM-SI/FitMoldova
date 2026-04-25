@@ -32,7 +32,6 @@ export interface EventCreatePayload {
 
 export interface EventUpdatePayload extends EventCreatePayload {}
 
-// Unwrap { isSuccess, data } envelope returned by the backend
 function unwrap<T>(data: unknown): T {
     if (data && typeof data === 'object' && 'isSuccess' in data) {
         const env = data as { isSuccess: boolean; data: T; message?: string };
@@ -55,11 +54,18 @@ export const eventApi = {
     update: (id: number, payload: EventUpdatePayload) =>
         axiosInstance.put(`/event/${id}`, payload).then((r) => unwrap<EventDto>(r.data)),
 
-    join: (id: number, userId: number) =>
-        axiosInstance.post(`/event/${id}/join/${userId}`).then(() => {}),
+    // CRITICA NOUA 1 FIX: userId eliminat din URL — backend il extrage din JWT
+    join: (id: number) =>
+        axiosInstance.post(`/event/${id}/join`).then(() => {}),
 
-    leave: (id: number, userId: number) =>
-        axiosInstance.delete(`/event/${id}/leave/${userId}`).then(() => {}),
+    // CRITICA NOUA 1 FIX: userId eliminat din URL
+    leave: (id: number) =>
+        axiosInstance.delete(`/event/${id}/leave`).then(() => {}),
+
+    // isParticipant — backend extrage userId din token, fara parametru in URL
+    isParticipant: (id: number) =>
+        axiosInstance.get<{ isSuccess: boolean; data: boolean }>(`/event/${id}/isParticipant`)
+            .then(r => r.data.data),
 
     delete: (id: number) =>
         axiosInstance.delete(`/event/${id}`).then(() => {}),

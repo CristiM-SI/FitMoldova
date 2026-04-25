@@ -167,7 +167,7 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         );
         // Sync with API
         if (user?.id) {
-            postApi.like(threadId, user.id).catch(() => {
+            postApi.like(threadId).catch(() => {
                 // Revert on failure
                 setThreads((prev) =>
                     prev.map((t) =>

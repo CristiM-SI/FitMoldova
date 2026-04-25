@@ -55,8 +55,10 @@ const postApi = {
     create: (dto: PostCreateDto) =>
         axiosInstance.post<ApiResponse<number>>('/post', dto).then(unwrap),
 
-    like: (postId: number, userId: number) =>
-        axiosInstance.post<ApiResponse<number>>(`/post/${postId}/like/${userId}`).then(unwrap),
+    // CRITICA NOUA 2 FIX: userId eliminat din URL — backend il extrage din JWT
+    // Ruta noua: POST /api/post/{id}/like (fara /{userId})
+    like: (postId: number) =>
+        axiosInstance.post<ApiResponse<number>>(`/post/${postId}/like`).then(unwrap),
 
     addReply: (dto: PostReplyCreateDto) =>
         axiosInstance.post<ApiResponse<number>>('/post/reply', dto).then(unwrap),

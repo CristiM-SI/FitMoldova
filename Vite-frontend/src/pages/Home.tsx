@@ -1,8 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../services/api/axiosInstance';
+
+// ─── Tipuri ────────────────────────────────────────────────────────────────────
 
 interface Feature {
   icon: string;
@@ -11,10 +14,31 @@ interface Feature {
   link: string;
 }
 
+// IMPORTANTA 4 FIX: tip pentru datele reale de la /api/stats
+interface SiteStats {
+  totalUsers: number;
+  totalKm: number;
+  totalEvents: number;
+  totalClubs: number;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────────
+
+function formatStat(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M+`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K+`;
+  return `${value}+`;
+}
+
+// ─── Componenta ────────────────────────────────────────────────────────────────
+
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const featuresRef = useRef<HTMLElement>(null);
+
+  // IMPORTANTA 4 FIX: statistici din API, nu hardcodate
+  const [stats, setStats] = useState<SiteStats | null>(null);
 
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -25,6 +49,16 @@ const Home: React.FC = () => {
       featuresRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [location.hash]);
+
+  // IMPORTANTA 4 FIX: fetch statistici reale de la /api/stats
+  useEffect(() => {
+    axiosInstance.get<SiteStats>('/stats')
+      .then(r => setStats(r.data))
+      .catch(() => {
+        // Nu afisam date fictive daca API-ul nu raspunde — section ramane ascunsa
+        setStats(null);
+      });
+  }, []);
 
   const features: Feature[] = [
     {
@@ -115,24 +149,27 @@ const Home: React.FC = () => {
               <button onClick={() => scrollToFeatures()} className="btn btn-outline">Descoperă Mai Mult</button>
             </div>
 
-            <div className="stats">
-              <div className="stat-item">
-                <div className="stat-number">50K+</div>
-                <div className="stat-label">Utilizatori Activi</div>
+            {/* IMPORTANTA 4 FIX: afisam statistici NUMAI daca vin de la API */}
+            {stats && (
+              <div className="stats">
+                <div className="stat-item">
+                  <div className="stat-number">{formatStat(stats.totalUsers)}</div>
+                  <div className="stat-label">Utilizatori Activi</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-number">{formatStat(stats.totalKm)}</div>
+                  <div className="stat-label">Km Parcurși</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-number">{formatStat(stats.totalEvents)}</div>
+                  <div className="stat-label">Evenimente</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-number">{formatStat(stats.totalClubs)}</div>
+                  <div className="stat-label">Cluburi Locale</div>
+                </div>
               </div>
-              <div className="stat-item">
-                <div className="stat-number">2.5M+</div>
-                <div className="stat-label">Km Parcurși</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">1.2K+</div>
-                <div className="stat-label">Evenimente</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">300+</div>
-                <div className="stat-label">Cluburi Locale</div>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -143,16 +180,13 @@ const Home: React.FC = () => {
               O platformă completă care te ajută să-ți atingi obiectivele de fitness
             </p>
           </div>
-
           <div className="features-grid">
             {features.map((feature) => (
-                <Link key={feature.link} to={feature.link} className="feature-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
+                <Link key={feature.title} to={feature.link} className="feature-card">
                   <div className="feature-icon">{feature.icon}</div>
                   <h3 className="feature-title">{feature.title}</h3>
                   <p className="feature-description">{feature.description}</p>
-                  <div style={{ marginTop: 'auto', paddingTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,102,255,0.1)', border: '1px solid rgba(0,102,255,0.25)', color: '#3385FF', fontSize: '1.1rem', transition: 'all 0.3s' }}>→</span>
-                  </div>
+                  <div className="feature-arrow">→</div>
                 </Link>
             ))}
           </div>
@@ -164,28 +198,14 @@ const Home: React.FC = () => {
               <div className="home-feedback-badge">Comunitate</div>
               <h2>Ce spun membrii noștri?</h2>
               <p>
-                Alătură-te celor 3.200+ utilizatori care și-au împărtășit
-                experiența. Citește recenziile sau lasă propriul tău feedback.
+                Citește recenziile sau lasă propriul tău feedback.
               </p>
               <Link to={ROUTES.FEEDBACK} className="btn btn-primary">
                 Vezi Recenziile
               </Link>
             </div>
-            <div className="home-feedback-ratings">
-              {[
-                { score: '4.7', label: 'Rating general', stars: 5 },
-                { score: '94%', label: 'Utilizatori mulțumiți', stars: 5 },
-                { score: '3.2K+', label: 'Recenzii scrise', stars: 4 },
-              ].map((item) => (
-                  <div key={item.label} className="home-feedback-rating-card">
-                    <div className="home-feedback-score">{item.score}</div>
-                    <div className="home-feedback-stars">
-                      {'★'.repeat(item.stars)}
-                    </div>
-                    <div className="home-feedback-rating-label">{item.label}</div>
-                  </div>
-              ))}
-            </div>
+            {/* IMPORTANTA 4 FIX: cardurile cu rating sunt gestionate de pagina /feedback
+                Nu mai afisam 4.7, 94%, 3.2K+ hardcoded aici */}
           </div>
         </section>
 

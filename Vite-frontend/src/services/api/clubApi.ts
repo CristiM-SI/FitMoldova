@@ -10,7 +10,6 @@ export interface ClubDto {
     level: string;
     rating: number;
     imageUrl: string;
-    /** Număr membri calculat pe server din COUNT(*) pe ClubMembers. */
     membersCount: number;
 }
 
@@ -58,19 +57,17 @@ export const clubApi = {
     update: (id: number, payload: ClubUpdatePayload) =>
         axiosInstance.put<ApiResponse<ClubDto>>(`/club/${id}`, payload).then(unwrap),
 
-    /** POST /api/club/{clubId}/join/{userId} — inserează membership. */
-    joinClub: (clubId: number, userId: number) =>
-        axiosInstance.post(`/club/${clubId}/join/${userId}`).then(() => {}),
+    /** POST /api/club/{clubId}/join — CRITICA NOUA 1 FIX: userId din token, nu din URL */
+    joinClub: (clubId: number) =>
+        axiosInstance.post(`/club/${clubId}/join`).then(() => {}),
 
-    /** DELETE /api/club/{clubId}/leave/{userId} — șterge membership. */
-    leaveClub: (clubId: number, userId: number) =>
-        axiosInstance.delete(`/club/${clubId}/leave/${userId}`).then(() => {}),
+    /** DELETE /api/club/{clubId}/leave — CRITICA NOUA 1 FIX: userId din token, nu din URL */
+    leaveClub: (clubId: number) =>
+        axiosInstance.delete(`/club/${clubId}/leave`).then(() => {}),
 
-    /** GET /api/club/{clubId}/members — listă membri. */
     getMembers: (clubId: number) =>
         axiosInstance.get<ApiResponse<ClubMemberDto[]>>(`/club/${clubId}/members`).then(unwrap),
 
-    /** GET /api/club/user/{userId} — cluburile în care userul e membru. */
     getUserClubs: (userId: number) =>
         axiosInstance.get<ApiResponse<ClubDto[]>>(`/club/user/${userId}`).then(unwrap),
 

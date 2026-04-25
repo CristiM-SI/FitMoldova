@@ -26,18 +26,17 @@ export interface LegacyEvent {
 }
 
 export interface DashboardApiState {
-    // Date globale din API
     activities: ActivityDto[];
     challenges: ChallengeDto[];
     events: EventDto[];
     clubs: ClubDto[];
 
-    // Date personale din API
     userClubs: ClubDto[];
     joinedChallengeIds: number[];
     joinedEventIds: number[];
+    joinedActivityIds: number[];        // NOU
+    joinedActivities: ActivityDto[];    // NOU — activitatile complete la care e inscris
 
-    // Câmpuri legacy (localStorage) — folosite de Activitati.tsx, Profile.tsx etc.
     activitatiCurente: LegacyActivity[];
     provocariInscrise: LegacyChallenge[];
     evenimenteInscrise: LegacyEvent[];
@@ -46,16 +45,16 @@ export interface DashboardApiState {
     loading: boolean;
     error: string | null;
 
-    // Acțiuni API
     joinChallenge: (id: number) => Promise<void>;
     leaveChallenge: (id: number) => Promise<void>;
     joinEvent: (id: number) => Promise<void>;
     leaveEvent: (id: number) => Promise<void>;
     joinClub: (id: number) => Promise<void>;
     leaveClub: (id: number) => Promise<void>;
+    joinActivity: (id: number) => Promise<void>;    // NOU
+    leaveActivity: (id: number) => Promise<void>;   // NOU
     refetch: () => void;
 
-    // Acțiuni legacy (localStorage)
     addActivitate: (item: LegacyActivity) => void;
     removeActivitate: (id: number) => void;
     addProvocare: (item: LegacyChallenge) => void;
@@ -64,14 +63,11 @@ export interface DashboardApiState {
     removeEveniment: (id: number) => void;
     addTraseu: (item: Traseu) => void;
     removeTraseu: (id: number) => void;
-    // alias folosit în unele pagini vechi
     addRecomandare: (item: LegacyActivity) => void;
     resetAll: () => void;
 }
 
 export const DashboardDataContext = createContext<DashboardApiState | undefined>(undefined);
-
-// ─── localStorage helpers ────────────────────────────────────────────────────
 
 const LS = {
     activities: 'fm_user_activities',
@@ -88,12 +84,9 @@ function saveLS<T>(key: string, val: T[]) {
     try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* ignore */ }
 }
 
-// ─── Provider ────────────────────────────────────────────────────────────────
-
 export const DashboardDataProvider = ({ children }: { children: ReactNode }) => {
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
 
-    // Date din API
     const [activities, setActivities] = useState<ActivityDto[]>([]);
     const [challenges, setChallenges] = useState<ChallengeDto[]>([]);
     const [events, setEvents]         = useState<EventDto[]>([]);
@@ -101,17 +94,17 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     const [userClubs, setUserClubs]   = useState<ClubDto[]>([]);
     const [joinedChallengeIds, setJoinedChallengeIds] = useState<number[]>([]);
     const [joinedEventIds, setJoinedEventIds]         = useState<number[]>([]);
+    const [joinedActivityIds, setJoinedActivityIds]   = useState<number[]>([]);   // NOU
+    const [joinedActivities, setJoinedActivities]     = useState<ActivityDto[]>([]); // NOU
     const [loading, setLoading] = useState(true);
     const [error, setError]     = useState<string | null>(null);
     const [tick, setTick]       = useState(0);
 
-    // Date localStorage (pagini vechi)
     const [activitatiCurente, setActivitatiCurente]   = useState<LegacyActivity[]>(() => loadLS(LS.activities));
     const [provocariInscrise, setProvocariInscrise]   = useState<LegacyChallenge[]>(() => loadLS(LS.challenges));
     const [evenimenteInscrise, setEvenimenteInscrise] = useState<LegacyEvent[]>(() => loadLS(LS.events));
     const [traseeSalvate, setTrseeSalvate]            = useState<Traseu[]>(() => loadLS(LS.routes));
 
-    // Persistă localStorage
     useEffect(() => { saveLS(LS.activities, activitatiCurente); }, [activitatiCurente]);
     useEffect(() => { saveLS(LS.challenges, provocariInscrise); }, [provocariInscrise]);
     useEffect(() => { saveLS(LS.events, evenimenteInscrise); },    [evenimenteInscrise]);
@@ -119,28 +112,37 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
 
     const refetch = useCallback(() => setTick(t => t + 1), []);
 
-    // Fetch API
     useEffect(() => {
         let cancelled = false;
         setLoading(true);
         setError(null);
 
-        const fetches = [
+        const fetches: Promise<unknown>[] = [
             activityApi.getAll(),
             challengeApi.getAll(),
             eventApi.getAll(),
             clubApi.getAll(),
             ...(user?.id ? [clubApi.getUserClubs(user.id)] : []),
+            // NOU: fetch activitati joined doar daca e autentificat
+            ...(isAuthenticated ? [activityApi.getJoined()] : []),
         ];
 
         Promise.allSettled(fetches).then(results => {
             if (cancelled) return;
-            const [acts, chals, evs, clbs, uClubs] = results;
-            if (acts.status  === 'fulfilled') setActivities((acts.value  as ActivityDto[]) ?? []);
-            if (chals.status === 'fulfilled') setChallenges((chals.value as ChallengeDto[]) ?? []);
-            if (evs.status   === 'fulfilled') setEvents((evs.value       as EventDto[]) ?? []);
-            if (clbs.status  === 'fulfilled') setClubs((clbs.value       as ClubDto[]) ?? []);
-            if (uClubs?.status === 'fulfilled') setUserClubs((uClubs.value as ClubDto[]) ?? []);
+            const [acts, chals, evs, clbs, uClubs, joinedActs] = results;
+            if (acts.status    === 'fulfilled') setActivities((acts.value    as ActivityDto[]) ?? []);
+            if (chals.status   === 'fulfilled') setChallenges((chals.value   as ChallengeDto[]) ?? []);
+            if (evs.status     === 'fulfilled') setEvents((evs.value         as EventDto[]) ?? []);
+            if (clbs.status    === 'fulfilled') setClubs((clbs.value         as ClubDto[]) ?? []);
+            if (uClubs?.status === 'fulfilled') setUserClubs((uClubs.value   as ClubDto[]) ?? []);
+
+            // NOU: seteaza activitatile joined
+            if (joinedActs?.status === 'fulfilled') {
+                const ja = (joinedActs.value as ActivityDto[]) ?? [];
+                setJoinedActivities(ja);
+                setJoinedActivityIds(ja.map(a => a.id));
+            }
+
             if (acts.status === 'rejected' && chals.status === 'rejected' && evs.status === 'rejected') {
                 setError('Nu s-a putut contacta serverul.');
             }
@@ -148,45 +150,63 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         });
 
         return () => { cancelled = true; };
-    }, [user?.id, tick]);
+    }, [user?.id, isAuthenticated, tick]);
 
     // ─── Acțiuni API ──────────────────────────────────────────────────────────
 
     const joinChallenge = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await challengeApi.joinChallenge(id, user.id);
+        await challengeApi.joinChallenge(id);
         setJoinedChallengeIds(p => p.includes(id) ? p : [...p, id]);
     }, [user?.id]);
 
     const leaveChallenge = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await challengeApi.leaveChallenge(id, user.id);
+        await challengeApi.leaveChallenge(id);
         setJoinedChallengeIds(p => p.filter(x => x !== id));
     }, [user?.id]);
 
     const joinEvent = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await eventApi.join(id, user.id);
+        await eventApi.join(id);
         setJoinedEventIds(p => p.includes(id) ? p : [...p, id]);
     }, [user?.id]);
 
     const leaveEvent = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await eventApi.leave(id, user.id);
+        await eventApi.leave(id);
         setJoinedEventIds(p => p.filter(x => x !== id));
     }, [user?.id]);
 
     const joinClub = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await clubApi.joinClub(id, user.id);
+        await clubApi.joinClub(id);
         const club = clubs.find(c => c.id === id);
         if (club) setUserClubs(p => p.some(c => c.id === id) ? p : [...p, club]);
     }, [user?.id, clubs]);
 
     const leaveClub = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await clubApi.leaveClub(id, user.id);
+        await clubApi.leaveClub(id);
         setUserClubs(p => p.filter(c => c.id !== id));
+    }, [user?.id]);
+
+    // NOU: join/leave activitate
+    const joinActivity = useCallback(async (id: number) => {
+        if (!user?.id) return;
+        await activityApi.join(id);
+        const activity = activities.find(a => a.id === id);
+        if (activity) {
+            setJoinedActivities(p => p.some(a => a.id === id) ? p : [...p, activity]);
+            setJoinedActivityIds(p => p.includes(id) ? p : [...p, id]);
+        }
+    }, [user?.id, activities]);
+
+    const leaveActivity = useCallback(async (id: number) => {
+        if (!user?.id) return;
+        await activityApi.leave(id);
+        setJoinedActivities(p => p.filter(a => a.id !== id));
+        setJoinedActivityIds(p => p.filter(x => x !== id));
     }, [user?.id]);
 
     // ─── Acțiuni legacy ───────────────────────────────────────────────────────
@@ -199,11 +219,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         setActivitatiCurente(p => p.filter(a => a.id !== id));
     }, []);
 
-    const addRecomandare = useCallback((item: LegacyActivity) => {
-        // alias pentru compatibilitate — nu face nimic cu starea locală
-        // recomandările vin din API (activityApi.getAll)
-        void item;
-    }, []);
+    const addRecomandare = useCallback((_item: LegacyActivity) => { void _item; }, []);
 
     const addProvocare = useCallback((item: LegacyChallenge) => {
         setProvocariInscrise(p => p.some(x => x.id === item.id) ? p : [...p, { ...item, progress: 0 }]);
@@ -232,17 +248,18 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     const resetAll = useCallback(() => {
         setActivitatiCurente([]); setProvocariInscrise([]);
         setEvenimenteInscrise([]); setTrseeSalvate([]);
+        setJoinedActivities([]); setJoinedActivityIds([]);
         Object.values(LS).forEach(k => localStorage.removeItem(k));
     }, []);
-
-    // ─── Value ────────────────────────────────────────────────────────────────
 
     const value = useMemo<DashboardApiState>(() => ({
         activities, challenges, events, clubs,
         userClubs, joinedChallengeIds, joinedEventIds,
+        joinedActivityIds, joinedActivities,
         activitatiCurente, provocariInscrise, evenimenteInscrise, traseeSalvate,
         loading, error,
         joinChallenge, leaveChallenge, joinEvent, leaveEvent, joinClub, leaveClub,
+        joinActivity, leaveActivity,
         refetch,
         addActivitate, removeActivitate, addRecomandare,
         addProvocare, removeProvocare,
@@ -252,9 +269,11 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     }), [
         activities, challenges, events, clubs,
         userClubs, joinedChallengeIds, joinedEventIds,
+        joinedActivityIds, joinedActivities,
         activitatiCurente, provocariInscrise, evenimenteInscrise, traseeSalvate,
         loading, error,
         joinChallenge, leaveChallenge, joinEvent, leaveEvent, joinClub, leaveClub,
+        joinActivity, leaveActivity,
         refetch,
         addActivitate, removeActivitate, addRecomandare,
         addProvocare, removeProvocare,

@@ -25,6 +25,11 @@ namespace FitMoldova.Domain.Entities.Post
           public int Likes { get; set; } = 0;
           public int CommentsCount { get; set; } = 0;
           public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+          public DateTime? UpdatedAt { get; set; }
+
+          public int? ClubId { get; set; }
+
+          public bool IsDeleted { get; set; } = false;
 
           public ICollection<PostReplyEntity> Replies { get; set; } = new List<PostReplyEntity>();
      }

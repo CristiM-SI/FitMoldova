@@ -17,5 +17,7 @@ namespace FitMoldova.Domain.Entities.Post
 
           public int Likes { get; set; } = 0;
           public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+          public bool IsDeleted { get; set; } = false;
      }
 }

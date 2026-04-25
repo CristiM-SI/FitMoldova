@@ -71,14 +71,14 @@ namespace FitMoldova.BusinessLogic.Core
                {
                     isSuccess = true,
                     Message = "Login reușit.",
-                    Data = new
+                    Data = new UserLoginResultDto
                     {
-                         user.Id,
-                         user.Username,
-                         user.FirstName,
-                         user.LastName,
-                         user.Email,
-                         Role = user.Role.ToString(),
+                         Id          = user.Id,
+                         Username    = user.Username,
+                         FirstName   = user.FirstName,
+                         LastName    = user.LastName,
+                         Email       = user.Email,
+                         Role        = user.Role.ToString(),
                          RegisteredAt = user.CreatedAt.ToString("o")
                     }
                };

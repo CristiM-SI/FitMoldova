@@ -57,14 +57,16 @@ public class EventController : ControllerBase
           return Ok(result);
      }
 
-     [HttpPost("{id}/join/{userId}")]
-     public IActionResult Join(int id, int userId)
+     [HttpPost("{id}/join")]
+     [Authorize]
+     public IActionResult Join(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _eventLogic.JoinEvent(id, userId);
-          if (!result.isSuccess)
-               return BadRequest(result);
+          if (!result.isSuccess) return BadRequest(result);
           return Ok(result);
      }
+
 
     
      [HttpDelete("{id}")]
@@ -77,18 +79,21 @@ public class EventController : ControllerBase
           return NoContent();
      }
      
-     [HttpDelete("{id}/leave/{userId}")]
-     public IActionResult Leave(int id, int userId)
+     [HttpDelete("{id}/leave")]
+     [Authorize]
+     public IActionResult Leave(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _eventLogic.LeaveEvent(id, userId);
-          if (!result.isSuccess)
-               return BadRequest(result);
+          if (!result.isSuccess) return BadRequest(result);
           return Ok(result);
      }
 
-     [HttpGet("{id}/isParticipant/{userId}")]
-     public IActionResult IsParticipant(int id, int userId)
+     [HttpGet("{id}/isParticipant")]
+     [Authorize]
+     public IActionResult IsParticipant(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _eventLogic.IsParticipant(id, userId);
           return Ok(result);
      }

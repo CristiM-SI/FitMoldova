@@ -2,6 +2,7 @@ using AutoMapper;
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Club;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -33,6 +34,7 @@ public class ClubController : ControllerBase
      }
 
      [HttpPost]
+     [Authorize]
      public IActionResult Create([FromBody] ClubCreateDto dto)
      {
           var result = _clubLogic.CreateClub(dto);
@@ -50,21 +52,23 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     [HttpPost("{id}/join/{userId}")]
-     public IActionResult Join(int id, int userId)
+     [HttpPost("{id}/join")]
+     [Authorize]
+     public IActionResult Join(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _clubLogic.JoinClub(id, userId);
-          if (!result.isSuccess)
-               return BadRequest(result);
+          if (!result.isSuccess) return BadRequest(result);
           return Ok(result);
      }
 
-     [HttpDelete("{id}/leave/{userId}")]
-     public IActionResult Leave(int id, int userId)
+     [HttpDelete("{id}/leave")]
+     [Authorize]
+     public IActionResult Leave(int id)
      {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
           var result = _clubLogic.LeaveClub(id, userId);
-          if (!result.isSuccess)
-               return BadRequest(result);
+          if (!result.isSuccess) return BadRequest(result);
           return Ok(result);
      }
 
@@ -87,6 +91,7 @@ public class ClubController : ControllerBase
      }
 
      [HttpDelete("{id}")]
+     [Authorize(Roles = "Admin")]
      public IActionResult Delete(int id)
      {
           var result = _clubLogic.Delete(id);

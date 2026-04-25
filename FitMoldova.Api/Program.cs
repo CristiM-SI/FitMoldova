@@ -90,6 +90,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddSingleton<DbSession>();
 
 builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.UserAction>();

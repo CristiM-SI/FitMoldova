@@ -55,6 +55,7 @@ public class FitMoldovaContext : DbContext
     public DbSet<GalleryEntity> Galleries { get; set; }
     public DbSet<NotificationEntity> Notifications { get; set; }
     public DbSet<UserFollowEntity> UserFollows { get; set; }
+    public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -169,6 +170,11 @@ public class FitMoldovaContext : DbContext
             .WithMany(u => u.Posts)
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PostEntity>()
+            .HasIndex(p => new { p.ClubId, p.CreatedAt });
+        modelBuilder.Entity<PostEntity>()
+            .HasIndex(p => p.IsDeleted);
         //ChallengeParticipantEntity
         modelBuilder.Entity<ChallengeParticipantEntity>()
              .HasIndex(cp => new { cp.ChallengeId, cp.UserId }).IsUnique();
@@ -193,5 +199,14 @@ public class FitMoldovaContext : DbContext
              .HasIndex(g => g.Category);
         modelBuilder.Entity<GalleryEntity>()
              .HasIndex(g => g.CreatedAt);
+
+        // ── RefreshToken → User ───────────────────────────────────────────────
+        modelBuilder.Entity<RefreshTokenEntity>()
+             .HasIndex(rt => rt.Token).IsUnique();
+        modelBuilder.Entity<RefreshTokenEntity>()
+             .HasOne(rt => rt.User)
+             .WithMany()
+             .HasForeignKey(rt => rt.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
     }
 }

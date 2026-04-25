@@ -3,6 +3,7 @@ using System;
 using FitMoldova.DataAccesLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FitMoldova.DataAccesLayer.Migrations
 {
     [DbContext(typeof(FitMoldovaContext))]
-    partial class FitMoldovaContextModelSnapshot : ModelSnapshot
+    [Migration("20260425130842_AddRefreshTokens")]
+    partial class AddRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -531,9 +534,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ClubId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("CommentsCount")
                         .HasColumnType("integer");
 
@@ -544,9 +544,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
@@ -555,19 +552,12 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IsDeleted");
-
                     b.HasIndex("UserId");
-
-                    b.HasIndex("ClubId", "CreatedAt");
 
                     b.ToTable("Posts");
                 });
@@ -586,9 +576,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("Likes")
                         .HasColumnType("integer");

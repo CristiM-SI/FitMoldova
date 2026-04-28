@@ -1,8 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
+using FitMoldova.Api.Filters;
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Challenge;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -17,6 +17,7 @@ public class ChallengeController : ControllerBase
           _challengeLogic = bl.ChallengeLogic();
      }
 
+     // GET api/challenge — public
      [HttpGet]
      public IActionResult GetAll()
      {
@@ -24,6 +25,7 @@ public class ChallengeController : ControllerBase
           return Ok(result);
      }
 
+     // GET api/challenge/42 — public
      [HttpGet("{id}")]
      public IActionResult GetById(int id)
      {
@@ -32,8 +34,9 @@ public class ChallengeController : ControllerBase
           return Ok(result);
      }
 
+     // POST api/challenge/42/join — utilizator autentificat
      [HttpPost("{id}/join")]
-     [Authorize]
+     [UserMod]
      public IActionResult Join(int id)
      {
           var userId = int.Parse(User.FindFirst("userId")!.Value);
@@ -42,17 +45,9 @@ public class ChallengeController : ControllerBase
           return Ok(result);
      }
 
-     [HttpPut("{id}")]
-     [Authorize(Roles = "Admin")]
-     public IActionResult Update(int id, [FromBody] ChallengeUpdateDto dto)
-     {
-          var result = _challengeLogic.UpdateChallenge(id, dto);
-          if (!result.isSuccess) return NotFound(result);
-          return Ok(result);
-     }
-     
+     // DELETE api/challenge/42/leave — utilizator autentificat
      [HttpDelete("{id}/leave")]
-     [Authorize]
+     [UserMod]
      public IActionResult Leave(int id)
      {
           var userId = int.Parse(User.FindFirst("userId")!.Value);
@@ -61,8 +56,19 @@ public class ChallengeController : ControllerBase
           return Ok(result);
      }
 
+     // PUT api/challenge/42 — doar Admin
+     [HttpPut("{id}")]
+     [AdminMod]
+     public IActionResult Update(int id, [FromBody] ChallengeUpdateDto dto)
+     {
+          var result = _challengeLogic.UpdateChallenge(id, dto);
+          if (!result.isSuccess) return NotFound(result);
+          return Ok(result);
+     }
+
+     // DELETE api/challenge/42 — doar Admin
      [HttpDelete("{id}")]
-     [Authorize(Roles = "Admin")]
+     [AdminMod]
      public IActionResult Delete(int id)
      {
           var result = _challengeLogic.Delete(id);

@@ -1,8 +1,8 @@
 using AutoMapper;
+using FitMoldova.Api.Filters;
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Club;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -17,6 +17,7 @@ public class ClubController : ControllerBase
           _clubLogic = bl.ClubLogic();
      }
 
+     // GET api/club — public, orice vizitator
      [HttpGet]
      public IActionResult GetAll()
      {
@@ -24,6 +25,7 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
+     // GET api/club/42 — public
      [HttpGet("{id}")]
      public IActionResult GetById(int id)
      {
@@ -33,8 +35,9 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
+     // POST api/club — doar Admin poate crea cluburi
      [HttpPost]
-     [Authorize]
+     [AdminMod]
      public IActionResult Create([FromBody] ClubCreateDto dto)
      {
           var result = _clubLogic.CreateClub(dto);
@@ -43,7 +46,9 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
+     // PUT api/club/42 — doar Admin poate modifica
      [HttpPut("{id}")]
+     [AdminMod]
      public IActionResult Update(int id, [FromBody] ClubUpdateDto dto)
      {
           var result = _clubLogic.UpdateClub(id, dto);
@@ -52,8 +57,9 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
+     // POST api/club/42/join — orice utilizator autentificat
      [HttpPost("{id}/join")]
-     [Authorize]
+     [UserMod]
      public IActionResult Join(int id)
      {
           var userId = int.Parse(User.FindFirst("userId")!.Value);
@@ -62,8 +68,9 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     [HttpDelete("{id}/leave")]
-     [Authorize]
+     // POST api/club/42/leave — orice utilizator autentificat
+     [HttpPost("{id}/leave")]
+     [UserMod]
      public IActionResult Leave(int id)
      {
           var userId = int.Parse(User.FindFirst("userId")!.Value);
@@ -72,26 +79,9 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
-     [HttpGet("{id}/members")]
-     public IActionResult GetMembers(int id)
-     {
-          var result = _clubLogic.GetMembers(id);
-          if (!result.isSuccess)
-               return NotFound(result);
-          return Ok(result);
-     }
-
-     [HttpGet("user/{userId}")]
-     public IActionResult GetUserClubs(int userId)
-     {
-          var result = _clubLogic.GetUserClubs(userId);
-          if (!result.isSuccess)
-               return NotFound(result);
-          return Ok(result);
-     }
-
+     // DELETE api/club/42 — doar Admin
      [HttpDelete("{id}")]
-     [Authorize(Roles = "Admin")]
+     [AdminMod]
      public IActionResult Delete(int id)
      {
           var result = _clubLogic.Delete(id);

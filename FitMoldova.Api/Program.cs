@@ -124,6 +124,18 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowFrontend");
 
+// ── Security headers — protecție împotriva clickjacking și sniffing ──────────
+app.Use(async (context, next) =>
+{
+    // Interzice includerea site-ului în iframe-uri (anti-clickjacking)
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    // Împiedică browserul să ghicească tipul fișierului (anti-sniffing)
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    // Activează filtrul XSS din browser
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    await next();
+});
+
 app.UseStaticFiles(new StaticFileOptions
 {
      FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(

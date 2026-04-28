@@ -44,6 +44,7 @@ const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
 const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
+const AccessDenied   = lazy(() => import('./pages/AccessDenied'))
 
 // Redirect logged-in users away from public-only pages (login / register)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,9 +54,20 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 }
 
 // Admin-only guard — used only for the /admin subtree
+// Afișează AccessDenied cu motiv specific în loc de redirect silențios
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated, isAdmin } = useAuth()
-    if (!isAuthenticated || !isAdmin) return <Navigate to={ROUTES.HOME} />
+
+    if (!isAuthenticated) {
+        console.warn('[AdminRoute] Acces blocat: utilizator neautentificat.')
+        return <AccessDenied reason="unauthenticated" />
+    }
+
+    if (!isAdmin) {
+        console.warn('[AdminRoute] Acces blocat: utilizatorul nu are rol de Admin.')
+        return <AccessDenied reason="unauthorized" />
+    }
+
     return <>{children}</>
 }
 
@@ -169,6 +181,11 @@ const registerRoute = createRoute({
     getParentRoute: () => rootRoute, path: '/register',
     component: () => <PublicRoute><SignUp /></PublicRoute>,
 })
+const accessDeniedRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/access-denied',
+    component: () => <AccessDenied />,
+})
 const adminGalleryRoute = createRoute({
     getParentRoute: () => adminRoute,
     path: '/gallery',
@@ -211,6 +228,7 @@ const routeTree = rootRoute.addChildren([
     activitiesPublicRoute,
     loginRoute,
     registerRoute,
+    accessDeniedRoute,
     protectedLayoutRoute.addChildren([
         dashboardRoute,
         profileRoute,

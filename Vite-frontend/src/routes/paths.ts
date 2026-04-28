@@ -2,6 +2,7 @@ export const ROUTES = {
     HOME: '/',
     LOGIN: '/login',
     REGISTER: '/register',
+    ACCESS_DENIED: '/access-denied',
     CONTACT: '/contact',
     ACTIVITIES_PUBLIC: '/activitati',
 

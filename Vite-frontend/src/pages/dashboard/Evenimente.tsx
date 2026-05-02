@@ -70,15 +70,24 @@ const EvenimenteDashboard: React.FC = () => {
 
     const handleJoin = async (ev: EventDto) => {
         if (!user?.id) return;
+        const wasJoined = isJoined(ev.id);
         setActionLoading(ev.id);
         setActionError(null);
         try {
-            if (isJoined(ev.id)) {
+            if (wasJoined) {
                 await leaveEvent(ev.id);
             } else {
                 await joinEvent(ev.id);
             }
-            setDetail(null);
+            // Actualizeaza dialogul fara sa il inchida
+            if (detail?.id === ev.id) {
+                setDetail(prev => prev ? {
+                    ...prev,
+                    participants: wasJoined
+                        ? Math.max(0, (prev.participants ?? 1) - 1)
+                        : (prev.participants ?? 0) + 1,
+                } : prev);
+            }
         } catch (err) {
             setActionError((err as Error).message);
         } finally {

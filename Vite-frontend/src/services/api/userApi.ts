@@ -8,7 +8,7 @@ export interface LoginResponse {
     firstName: string;
     lastName: string;
     email: string;
-    role: string; // "User" | "Moderator" | "Admin"
+    role: string;
 }
 
 export interface RegisterResponse {
@@ -50,6 +50,29 @@ export interface ServiceResponse<T = unknown> {
     isSuccess: boolean;
     message?: string;
     data?: T;
+}
+
+export interface CommunityUserDto {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    location: string | null;
+    bio: string | null;
+    profileImageUrl: string | null;
+    createdAt: string;
+}
+
+export interface FollowingUserDto {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl: string | null;
+    location: string | null;
+    bio: string | null;
+    createdAt: string;
+    followedAt: string;
 }
 
 export const userApi = {
@@ -96,5 +119,25 @@ export const userApi = {
     changeStatus: (id: number, isActive: boolean) =>
         axiosInstance
             .patch<ServiceResponse<void>>(`/user/${id}/status`, { isActive })
+            .then((r) => r.data),
+
+    getCommunity: () =>
+        axiosInstance
+            .get<ServiceResponse<CommunityUserDto[]>>('/user/community')
+            .then((r) => r.data.data ?? []),
+
+    getFollowing: () =>
+        axiosInstance
+            .get<ServiceResponse<FollowingUserDto[]>>('/user/following')
+            .then((r) => r.data.data ?? []),
+
+    follow: (targetId: number) =>
+        axiosInstance
+            .post<ServiceResponse<void>>(`/user/${targetId}/follow`)
+            .then((r) => r.data),
+
+    unfollow: (targetId: number) =>
+        axiosInstance
+            .delete<ServiceResponse<void>>(`/user/${targetId}/unfollow`)
             .then((r) => r.data),
 };

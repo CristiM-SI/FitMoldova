@@ -62,6 +62,12 @@ export const eventApi = {
     leave: (id: number) =>
         axiosInstance.delete(`/event/${id}/leave`).then(() => {}),
 
+    // getJoined — returneaza lista de ID-uri ale evenimentelor la care e inscris userul curent
+    getJoined: (): Promise<number[]> =>
+        axiosInstance
+            .get<{ isSuccess: boolean; data: number[] }>('/event/joined')
+            .then((r) => r.data.data ?? []),
+
     // isParticipant — backend extrage userId din token, fara parametru in URL
     isParticipant: (id: number) =>
         axiosInstance.get<{ isSuccess: boolean; data: boolean }>(`/event/${id}/isParticipant`)

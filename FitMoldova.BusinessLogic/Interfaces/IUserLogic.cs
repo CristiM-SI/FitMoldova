@@ -18,5 +18,6 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse GetCommunity();
           ServiceResponse Follow(int followerId, int followedId);
           ServiceResponse Unfollow(int followerId, int followedId);
+          ServiceResponse GetFollowing(int userId);
      }
 }

@@ -152,4 +152,13 @@ public class UserController : ControllerBase
         if (!result.isSuccess) return BadRequest(result);
         return Ok(result);
     }
+
+    [HttpGet("following")]
+    [Authorize]
+    public IActionResult GetFollowing()
+    {
+        var userId = int.Parse(User.FindFirst("userId")!.Value);
+        var result = _userLogic.GetFollowing(userId);
+        return Ok(result);
+    }
 }

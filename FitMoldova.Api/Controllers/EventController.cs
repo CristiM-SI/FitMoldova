@@ -19,6 +19,17 @@ public class EventController : ControllerBase
      }
 
  
+
+     // GET api/event/joined — returneaza ID-urile evenimentelor la care e inscris userul curent
+     [HttpGet("joined")]
+     [Authorize]
+     public IActionResult GetJoined()
+     {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
+          var result = _eventLogic.GetUserJoined(userId);
+          return Ok(result);
+     }
+
      [HttpGet]
      public IActionResult GetAll()
      {

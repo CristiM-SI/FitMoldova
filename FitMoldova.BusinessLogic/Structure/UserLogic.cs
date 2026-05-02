@@ -26,5 +26,6 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse GetCommunity() => GetCommunityExecution();
           public ServiceResponse Follow(int followerId, int followedId) => FollowExecution(followerId, followedId);
           public ServiceResponse Unfollow(int followerId, int followedId) => UnfollowExecution(followerId, followedId);
+          public ServiceResponse GetFollowing(int userId) => GetFollowingExecution(userId);
      }
 }

@@ -15,5 +15,6 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse Delete(int id) => DeleteExecution(id);
           public ServiceResponse LeaveEvent(int eId, int uId) => LeaveEventExecution(eId, uId);
           public ServiceResponse IsParticipant(int eId, int uId) => IsParticipantExecution(eId, uId);
+          public ServiceResponse GetUserJoined(int userId) => GetUserJoinedExecution(userId);
      }
 }

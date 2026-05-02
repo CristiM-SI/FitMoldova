@@ -123,24 +123,28 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             eventApi.getAll(),
             clubApi.getAll(),
             ...(user?.id ? [clubApi.getUserClubs(user.id)] : []),
-            // NOU: fetch activitati joined doar daca e autentificat
             ...(isAuthenticated ? [activityApi.getJoined()] : []),
+            ...(isAuthenticated ? [eventApi.getJoined()]   : []),
         ];
 
         Promise.allSettled(fetches).then(results => {
             if (cancelled) return;
-            const [acts, chals, evs, clbs, uClubs, joinedActs] = results;
+            const [acts, chals, evs, clbs, uClubs, joinedActs, joinedEvs] = results;
             if (acts.status    === 'fulfilled') setActivities((acts.value    as ActivityDto[]) ?? []);
             if (chals.status   === 'fulfilled') setChallenges((chals.value   as ChallengeDto[]) ?? []);
             if (evs.status     === 'fulfilled') setEvents((evs.value         as EventDto[]) ?? []);
             if (clbs.status    === 'fulfilled') setClubs((clbs.value         as ClubDto[]) ?? []);
             if (uClubs?.status === 'fulfilled') setUserClubs((uClubs.value   as ClubDto[]) ?? []);
 
-            // NOU: seteaza activitatile joined
             if (joinedActs?.status === 'fulfilled') {
                 const ja = (joinedActs.value as ActivityDto[]) ?? [];
                 setJoinedActivities(ja);
                 setJoinedActivityIds(ja.map(a => a.id));
+            }
+
+            // Seteaza evenimentele joined din API (sursa de adevar)
+            if (joinedEvs?.status === 'fulfilled') {
+                setJoinedEventIds((joinedEvs.value as number[]) ?? []);
             }
 
             if (acts.status === 'rejected' && chals.status === 'rejected' && evs.status === 'rejected') {
@@ -168,14 +172,28 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
 
     const joinEvent = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await eventApi.join(id);
+        setEvents(prev => prev.map(e => e.id === id ? { ...e, participants: (e.participants ?? 0) + 1 } : e));
         setJoinedEventIds(p => p.includes(id) ? p : [...p, id]);
+        try {
+            await eventApi.join(id);
+        } catch (err) {
+            setEvents(prev => prev.map(e => e.id === id ? { ...e, participants: Math.max(0, (e.participants ?? 1) - 1) } : e));
+            setJoinedEventIds(p => p.filter(x => x !== id));
+            throw err;
+        }
     }, [user?.id]);
 
     const leaveEvent = useCallback(async (id: number) => {
         if (!user?.id) return;
-        await eventApi.leave(id);
+        setEvents(prev => prev.map(e => e.id === id ? { ...e, participants: Math.max(0, (e.participants ?? 1) - 1) } : e));
         setJoinedEventIds(p => p.filter(x => x !== id));
+        try {
+            await eventApi.leave(id);
+        } catch (err) {
+            setEvents(prev => prev.map(e => e.id === id ? { ...e, participants: (e.participants ?? 0) + 1 } : e));
+            setJoinedEventIds(p => [...p, id]);
+            throw err;
+        }
     }, [user?.id]);
 
     const joinClub = useCallback(async (id: number) => {

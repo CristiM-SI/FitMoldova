@@ -38,7 +38,7 @@ public class StatsController : ControllerBase
         return Ok(new
         {
             totalUsers,
-            totalKm =0,
+            totalKm =(int)Math.Round(totalKm),
             totalEvents,
             totalClubs,
         });

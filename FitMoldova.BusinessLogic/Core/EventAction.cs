@@ -144,6 +144,25 @@ namespace FitMoldova.BusinessLogic.Core
                return new ServiceResponse { isSuccess = true, Data = joined };
           }
 
+          public ServiceResponse GetJoinedEventIdsExecution(int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var ids = ctx.EventParticipants
+                    .Where(ep => ep.UserId == userId)
+                    .Select(ep => ep.EventId)
+                    .ToList();
+               return new ServiceResponse { isSuccess = true, Data = ids };
+          }
+
+          public ServiceResponse GetUserJoinedExecution(int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var eventIds = ctx.EventParticipants
+                    .Where(ep => ep.UserId == userId)
+                    .Select(ep => ep.EventId)
+                    .ToList();
+               return new ServiceResponse { isSuccess = true, Data = eventIds };
+          }
           public ServiceResponse DeleteExecution(int id)
           {
                using var ctx = _dbSession.FitMoldovaContext();

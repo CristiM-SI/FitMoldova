@@ -114,5 +114,26 @@ namespace FitMoldova.Api.Controllers
             }
             return StatusCode(201, result);
         }
+        
+          // GET /api/posts/user/{userId}
+          // Toate postarile unui user — folosit pe pagina de profil.
+        [HttpGet("user/{userId}")]
+        public IActionResult GetByUser(int userId)
+        {
+             var result = _postLogic.GetByUser(userId);
+             return Ok(result);
+        }
+
+          // POST /api/posts/{id}/like
+          // Toggle like pe un post. userId se ia din JWT.
+        [HttpPost("{id}/like")]
+        [Authorize]
+        public IActionResult Like(int id)
+        {
+             var userId = int.Parse(User.FindFirst("userId")!.Value);
+             var result = _postLogic.LikePost(id, userId);
+             if (!result.isSuccess) return NotFound(result);
+             return Ok(result);
+        }
     }
 }

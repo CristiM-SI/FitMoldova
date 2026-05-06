@@ -10,21 +10,21 @@ namespace FitMoldova.Api.Filters
     /// </summary>
     public class AdminModAttribute : ActionFilterAttribute
     {
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var user = context.HttpContext.User;
+         public override void OnActionExecuting(ActionExecutingContext context)
+         {
+              var user = context.HttpContext.User;
 
-            // 1. Verifică dacă utilizatorul este autentificat
-            if (!user.Identity?.IsAuthenticated ?? true)
-            {
-                Console.WriteLine("[AdminMod] Acces respins: utilizator neautentificat.");
-                context.Result = new UnauthorizedObjectResult(new
-                {
-                    isSuccess = false,
-                    message = "Trebuie să fii autentificat pentru a accesa această resursă."
-                });
-                return;
-            }
+              // 1. Verifică dacă utilizatorul este autentificat
+              if (user.Identity == null || !user.Identity.IsAuthenticated)
+              {
+                   Console.WriteLine("[AdminMod] Acces respins: utilizator neautentificat.");
+                   context.Result = new UnauthorizedObjectResult(new
+                   {
+                        isSuccess = false,
+                        message = "Trebuie să fii autentificat pentru a accesa această resursă."
+                   });
+                   return;
+              }
 
             // 2. Verifică dacă utilizatorul are rolul Admin
             var roleClaim = user.Claims

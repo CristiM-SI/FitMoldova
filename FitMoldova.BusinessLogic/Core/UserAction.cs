@@ -231,5 +231,25 @@ namespace FitMoldova.BusinessLogic.Core
                _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Nu mai urmărești acest utilizator." };
           }
+
+          public ServiceResponse GetFollowingExecution(int userId)
+          {
+               var following = _ctx.UserFollows
+                    .Where(f => f.FollowerId == userId)
+                    .Select(f => new
+                    {
+                         f.Followed.Id,
+                         f.Followed.Username,
+                         f.Followed.FirstName,
+                         f.Followed.LastName,
+                         f.Followed.ProfileImageUrl,
+                         f.Followed.Location,
+                         f.Followed.Bio,
+                         f.Followed.CreatedAt,
+                         FollowedAt = f.FollowedAt
+                    })
+                    .ToList();
+               return new ServiceResponse { isSuccess = true, Data = following };
+          }
      }
 }

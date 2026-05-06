@@ -18,10 +18,68 @@ import postApi from '../../services/api/postApi';
 import type { PostInfoDto, ReplyDto } from '../../services/api/postApi';
 import { challengeApi } from '../../services/api/challengeApi';
 import type { ChallengeDto } from '../../services/api/challengeApi';
-import {
-    SPORTS, SPORT_CHIPS, INITIAL_CHALLENGES, MEMBERS,
-} from '../../services/mock/community';
-import type { Sport, FeedTab, Post, Challenge, ToastState, Member } from '../../services/mock/community';
+// ── Tipuri locale (nu mai vin din mock) ──────────────────────────────────────
+type Sport =
+    | 'Fotbal' | 'Trântă' | 'Lupte' | 'Box' | 'Judo'
+    | 'Baschet' | 'Rugby' | 'Caiac-Canoe' | 'Haltere' | 'Volei'
+    | 'Atletism' | 'Tenis de Masă' | 'Ciclism' | 'Înot' | 'Handbal';
+
+type FeedTab = 'feed' | 'challenges' | 'members';
+
+interface Post {
+    id:       number;
+    author:   string;
+    color:    string;
+    sport:    Sport;
+    time:     string;
+    content:  string;
+    likes:    number;
+    comments: number;
+    liked:    boolean;
+}
+
+interface Challenge {
+    id:           number;
+    sport:        string;
+    title:        string;
+    desc:         string;
+    participants: number;
+    days:         number;
+    progress:     number;
+    joined:       boolean;
+}
+
+interface ToastState {
+    icon:    string;
+    msg:     string;
+    visible: boolean;
+}
+
+const SPORTS: Sport[] = [
+    'Fotbal', 'Trântă', 'Lupte', 'Box', 'Judo',
+    'Baschet', 'Rugby', 'Caiac-Canoe', 'Haltere', 'Volei',
+    'Atletism', 'Tenis de Masă', 'Ciclism', 'Înot', 'Handbal',
+];
+
+const SPORT_CHIPS: { emoji: string; label: string; value: Sport | 'all' }[] = [
+    { emoji: '',    label: 'Toate',         value: 'all' },
+    { emoji: '⚽',  label: 'Fotbal',        value: 'Fotbal' },
+    { emoji: '🤼',  label: 'Trântă',        value: 'Trântă' },
+    { emoji: '🤼',  label: 'Lupte',         value: 'Lupte' },
+    { emoji: '🥊',  label: 'Box',           value: 'Box' },
+    { emoji: '🥋',  label: 'Judo',          value: 'Judo' },
+    { emoji: '🏀',  label: 'Baschet',       value: 'Baschet' },
+    { emoji: '🏉',  label: 'Rugby',         value: 'Rugby' },
+    { emoji: '🛶',  label: 'Caiac-Canoe',   value: 'Caiac-Canoe' },
+    { emoji: '🏋️',  label: 'Haltere',       value: 'Haltere' },
+    { emoji: '🏐',  label: 'Volei',         value: 'Volei' },
+    { emoji: '🏃',  label: 'Atletism',      value: 'Atletism' },
+    { emoji: '🏓',  label: 'Tenis de Masă', value: 'Tenis de Masă' },
+    { emoji: '🚴',  label: 'Ciclism',       value: 'Ciclism' },
+    { emoji: '🏊',  label: 'Înot',          value: 'Înot' },
+    { emoji: '🤾',  label: 'Handbal',       value: 'Handbal' },
+];
+import { userApi, type CommunityUserDto } from '../../services/api/userApi';
 
 // ── THEME TOKENS ─────────────────────────────
 const T = {
@@ -172,20 +230,22 @@ export default function CommunityPage() {
     const userName = user ? `${user.firstName} ${user.lastName}` : 'Oaspete';
     const userTag  = user ? `@${user.email.split('@')[0]}` : '';
 
-    const [tab,            setTab]            = useState<FeedTab>('feed');
-    const [filter,         setFilter]         = useState<Sport | 'all'>('all');
-    const [posts,          setPosts]          = useState<PostWithOwner[]>([]);
-    const [postsLoading,   setPostsLoading]   = useState(true);
-    const [postsPage,      setPostsPage]      = useState(1);
-    const [postsHasMore,   setPostsHasMore]   = useState(true);
-    const [postsLoadingMore, setPostsLoadingMore] = useState(false);
-    const [challenges,     setChallenges]     = useState<Challenge[]>([]);
-    const [challengesLoading, setChallengesLoading] = useState(true);
-    const [postInput,      setPostInput]      = useState('');
-    const [postSport,      setPostSport]      = useState<Sport>('Fotbal');
-    const [toast,          setToast]          = useState<ToastState>({ icon: '', msg: '', visible: false });
-    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-    const [following,      setFollowing]      = useState<Set<string>>(new Set());
+    const [tab,                 setTab]                 = useState<FeedTab>('feed');
+    const [filter,              setFilter]              = useState<Sport | 'all'>('all');
+    const [posts,               setPosts]               = useState<PostWithOwner[]>([]);
+    const [postsLoading,        setPostsLoading]        = useState(true);
+    const [postsPage,           setPostsPage]           = useState(1);
+    const [postsHasMore,        setPostsHasMore]        = useState(true);
+    const [postsLoadingMore,    setPostsLoadingMore]    = useState(false);
+    const [challenges,          setChallenges]          = useState<Challenge[]>([]);
+    const [challengesLoading,   setChallengesLoading]   = useState(true);
+    const [postInput,           setPostInput]           = useState('');
+    const [postSport,           setPostSport]           = useState<Sport>('Fotbal');
+    const [toast,               setToast]               = useState<ToastState>({ icon: '', msg: '', visible: false });
+    const [following,           setFollowing]           = useState<Set<string>>(new Set());
+    const [members,             setMembers]             = useState<CommunityUserDto[]>([]);
+    const [membersLoading,      setMembersLoading]      = useState(false);
+    const [selectedMember,      setSelectedMember]      = useState<CommunityUserDto | null>(null);
 
     // Edit post dialog state
     const [editPost,    setEditPost]    = useState<PostWithOwner | null>(null);
@@ -193,7 +253,7 @@ export default function CommunityPage() {
     const [editSport,   setEditSport]   = useState<Sport>('Fotbal');
     const [editSaving,  setEditSaving]  = useState(false);
 
-    // Confirm-delete dialog state — handles both posts and comments
+    // Confirm-delete dialog state
     const [confirmDelete, setConfirmDelete] = useState<
         | { kind: 'post'; id: number }
         | { kind: 'comment'; id: number; postId: number }
@@ -202,19 +262,19 @@ export default function CommunityPage() {
     const [deleting, setDeleting] = useState(false);
 
     // Comments dialog state
-    const [commentsPost,    setCommentsPost]    = useState<PostWithOwner | null>(null);
-    const [comments,        setComments]        = useState<ReplyDto[]>([]);
-    const [commentsLoading, setCommentsLoading] = useState(false);
-    const [commentsPage,    setCommentsPage]    = useState(1);
-    const [commentsHasMore, setCommentsHasMore] = useState(true);
+    const [commentsPost,        setCommentsPost]        = useState<PostWithOwner | null>(null);
+    const [comments,            setComments]            = useState<ReplyDto[]>([]);
+    const [commentsLoading,     setCommentsLoading]     = useState(false);
+    const [commentsPage,        setCommentsPage]        = useState(1);
+    const [commentsHasMore,     setCommentsHasMore]     = useState(true);
     const [commentsLoadingMore, setCommentsLoadingMore] = useState(false);
-    const [replyInput,      setReplyInput]      = useState('');
-    const [replySending,    setReplySending]    = useState(false);
+    const [replyInput,          setReplyInput]          = useState('');
+    const [replySending,        setReplySending]        = useState(false);
 
     const { addProvocare, removeProvocare } = useDashboardData();
     const { completeChallenge }             = useProgress();
 
-    // ── LOAD POSTS FROM API (paginated) ───────
+    // ── LOAD POSTS ────────────────────────────
     useEffect(() => {
         const isFirstPage = postsPage === 1;
         if (isFirstPage) setPostsLoading(true);
@@ -237,16 +297,16 @@ export default function CommunityPage() {
             });
     }, [postsPage]);
 
-    // ── LOAD CHALLENGES FROM API ──────────────
+    // ── LOAD CHALLENGES ───────────────────────
     useEffect(() => {
         setChallengesLoading(true);
         challengeApi.getAll()
             .then((data) => setChallenges(data.map(challengeDtoToChallenge)))
-            .catch(() => setChallenges(INITIAL_CHALLENGES))
+            .catch(() => setChallenges([]))
             .finally(() => setChallengesLoading(false));
     }, []);
 
-    // ── LOAD COMMENTS WHEN DIALOG OPENS / pagination changes ──
+    // ── LOAD COMMENTS ─────────────────────────
     useEffect(() => {
         if (commentsPost === null) {
             setComments([]);
@@ -273,6 +333,26 @@ export default function CommunityPage() {
                 setCommentsLoadingMore(false);
             });
     }, [commentsPost?.id, commentsPage]);
+
+    // ── LOAD MEMBERS ──────────────────────────
+    useEffect(() => {
+        if (tab !== 'members') return;
+        setMembersLoading(true);
+        userApi.getCommunity()
+            .then(setMembers)
+            .catch(() => setMembers([]))
+            .finally(() => setMembersLoading(false));
+    }, [tab]);
+
+    // ── LOAD FOLLOWING (la mount, daca e autentificat) ────────────────────
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        userApi.getFollowing()
+            .then((list) => {
+                setFollowing(new Set(list.map((f) => `${f.firstName} ${f.lastName}`)));
+            })
+            .catch(() => {});
+    }, [isAuthenticated]);
 
     const showToast = useCallback((icon: string, msg: string) => {
         setToast({ icon, msg, visible: true });
@@ -331,7 +411,7 @@ export default function CommunityPage() {
         }
     }, [editPost, editContent, editSport, showToast]);
 
-    // ── DELETE POST / COMMENT (shared confirm dialog) ─────────
+    // ── DELETE POST / COMMENT ─────────────────
     const handleConfirmDelete = useCallback(async () => {
         if (!confirmDelete) return;
         setDeleting(true);
@@ -383,7 +463,6 @@ export default function CommunityPage() {
     // ── LIKE POST ────────────────────────────
     const handleLike = useCallback((id: number) => {
         if (!isAuthenticated || !user) { navigate({ to: ROUTES.LOGIN }); return; }
-        // Optimistic toggle
         setPosts((prev) => prev.map((p) =>
             p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
         postApi.like(id)
@@ -391,7 +470,6 @@ export default function CommunityPage() {
                 setPosts((prev) => prev.map((p) => p.id === id ? { ...p, likes: newCount } : p));
             })
             .catch(() => {
-                // Revert on error
                 setPosts((prev) => prev.map((p) =>
                     p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
             });
@@ -435,16 +513,30 @@ export default function CommunityPage() {
         }
     }, [isAuthenticated, user, navigate, challenges, showToast, addProvocare, removeProvocare, completeChallenge]);
 
-    // ── FOLLOW / UNFOLLOW MEMBER ─────────────
-    const handleFollow = useCallback((member: Member) => {
-        const isFollowing = following.has(member.name);
+    // ── FOLLOW / UNFOLLOW ────────────────────
+    const handleFollow = useCallback(async (memberId: number, memberName: string) => {
+        const isFollowing = following.has(memberName);
         setFollowing((prev) => {
             const next = new Set(prev);
-            if (isFollowing) next.delete(member.name); else next.add(member.name);
+            if (isFollowing) next.delete(memberName); else next.add(memberName);
             return next;
         });
-        showToast(isFollowing ? '👋' : '👤',
-            isFollowing ? `Ai încetat să urmărești pe ${member.name}` : `Urmărești acum pe ${member.name}!`);
+        try {
+            if (isFollowing) {
+                await userApi.unfollow(memberId);
+            } else {
+                await userApi.follow(memberId);
+            }
+            showToast(isFollowing ? '👋' : '👤',
+                isFollowing ? `Ai încetat să urmărești pe ${memberName}` : `Urmărești acum pe ${memberName}!`);
+        } catch {
+            setFollowing((prev) => {
+                const next = new Set(prev);
+                if (isFollowing) next.add(memberName); else next.delete(memberName);
+                return next;
+            });
+            showToast('❌', 'Eroare la server.');
+        }
     }, [following, showToast]);
 
     // ── ADD COMMENT ──────────────────────────
@@ -509,7 +601,6 @@ export default function CommunityPage() {
 
                     {/* ── LEFT SIDEBAR ── */}
                     <Box component="aside" sx={{ width: 220, flexShrink: 0, display: { xs: 'none', md: 'flex' }, flexDirection: 'column', gap: 0.75 }}>
-
                         <Box onClick={() => navigate({ to: ROUTES.PROFILE })} sx={{
                             display: 'flex', alignItems: 'center', gap: 1.25,
                             p: '12px 14px', bgcolor: T.card2, borderRadius: '10px',
@@ -588,7 +679,6 @@ export default function CommunityPage() {
                         {/* ════ FEED ════ */}
                         {tab === 'feed' && (
                             <>
-                                {/* Create Post */}
                                 {isAuthenticated ? (
                                     <DarkCard>
                                         <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -658,7 +748,6 @@ export default function CommunityPage() {
                                     </DarkCard>
                                 )}
 
-                                {/* Sport filter chips */}
                                 <DarkCard sx={{ py: 1.5 }}>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.875 }}>
                                         {SPORT_CHIPS.map((c) => (
@@ -678,7 +767,6 @@ export default function CommunityPage() {
                                     </Box>
                                 </DarkCard>
 
-                                {/* Posts */}
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
                                     {postsLoading ? (
                                         <DarkCard sx={{ textAlign: 'center', py: 6 }}>
@@ -693,63 +781,62 @@ export default function CommunityPage() {
                                         </DarkCard>
                                     ) : (
                                         <>
-                                        {filteredPosts.map((p) => {
-                                            const canModify = isAuthenticated && (user?.id === p.userId || isAdmin);
-                                            return (
-                                            <DarkCard key={p.id}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
-                                                    <Avatar sx={{ width: 42, height: 42, bgcolor: p.color, fontSize: '0.9rem', fontWeight: 900, flexShrink: 0 }}>
-                                                        {getInitials(p.author)}
-                                                    </Avatar>
-                                                    <Box sx={{ flex: 1 }}>
-                                                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: T.text }}>{p.author}</Typography>
-                                                        <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>{p.time}</Typography>
-                                                    </Box>
-                                                    <Chip label={p.sport} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.7rem', fontWeight: 600, height: 22 }} />
-                                                    {canModify && (
-                                                        <Box sx={{ display: 'flex', gap: 0.25 }}>
-                                                            <Tooltip title="Editează">
-                                                                <IconButton size="small" onClick={() => openEditPost(p)}
-                                                                            sx={{ color: T.muted, '&:hover': { color: T.cyan, bgcolor: T.cdim } }}>
-                                                                    <Edit sx={{ fontSize: 16 }} />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                            <Tooltip title="Șterge">
-                                                                <IconButton size="small" onClick={() => setConfirmDelete({ kind: 'post', id: p.id })}
-                                                                            sx={{ color: T.muted, '&:hover': { color: '#ff4d6d', bgcolor: 'rgba(255,77,109,.1)' } }}>
-                                                                    <Delete sx={{ fontSize: 16 }} />
-                                                                </IconButton>
-                                                            </Tooltip>
+                                            {filteredPosts.map((p) => {
+                                                const canModify = isAuthenticated && (user?.id === p.userId || isAdmin);
+                                                return (
+                                                    <DarkCard key={p.id}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
+                                                            <Avatar sx={{ width: 42, height: 42, bgcolor: p.color, fontSize: '0.9rem', fontWeight: 900, flexShrink: 0 }}>
+                                                                {getInitials(p.author)}
+                                                            </Avatar>
+                                                            <Box sx={{ flex: 1 }}>
+                                                                <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: T.text }}>{p.author}</Typography>
+                                                                <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>{p.time}</Typography>
+                                                            </Box>
+                                                            <Chip label={p.sport} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.7rem', fontWeight: 600, height: 22 }} />
+                                                            {canModify && (
+                                                                <Box sx={{ display: 'flex', gap: 0.25 }}>
+                                                                    <Tooltip title="Editează">
+                                                                        <IconButton size="small" onClick={() => openEditPost(p)}
+                                                                                    sx={{ color: T.muted, '&:hover': { color: T.cyan, bgcolor: T.cdim } }}>
+                                                                            <Edit sx={{ fontSize: 16 }} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Șterge">
+                                                                        <IconButton size="small" onClick={() => setConfirmDelete({ kind: 'post', id: p.id })}
+                                                                                    sx={{ color: T.muted, '&:hover': { color: '#ff4d6d', bgcolor: 'rgba(255,77,109,.1)' } }}>
+                                                                            <Delete sx={{ fontSize: 16 }} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            )}
                                                         </Box>
-                                                    )}
+                                                        <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75, whiteSpace: 'pre-wrap' }}>
+                                                            {p.content}
+                                                        </Typography>
+                                                        <Box sx={{ display: 'flex', gap: 0.5, borderTop: `1px solid ${T.border}`, pt: 1.5 }}>
+                                                            <Box component="button" onClick={() => handleLike(p.id)}
+                                                                 sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: p.liked ? '#ff4d6d' : T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: p.liked ? 'rgba(255,77,109,.1)' : T.cdim, color: p.liked ? '#ff4d6d' : T.cyan } }}>
+                                                                {p.liked ? <Favorite sx={{ fontSize: 15 }} /> : <FavoriteBorder sx={{ fontSize: 15 }} />}
+                                                                {p.likes}
+                                                            </Box>
+                                                            <Box component="button" onClick={() => openComments(p)}
+                                                                 sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: T.cdim, color: T.cyan } }}>
+                                                                <ChatBubbleOutline sx={{ fontSize: 15 }} />
+                                                                {p.comments}
+                                                            </Box>
+                                                        </Box>
+                                                    </DarkCard>
+                                                );
+                                            })}
+                                            {postsHasMore && (
+                                                <Box sx={{ textAlign: 'center', mt: 1 }}>
+                                                    <Button onClick={handleLoadMorePosts} disabled={postsLoadingMore}
+                                                            sx={{ borderRadius: '8px', color: T.cyan, border: `1px solid ${T.border}`, px: 3, py: 0.875, fontSize: '0.8rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', '&:hover': { bgcolor: T.cdim, borderColor: T.cyan } }}>
+                                                        {postsLoadingMore ? <CircularProgress size={18} sx={{ color: T.cyan }} /> : 'Încarcă mai multe'}
+                                                    </Button>
                                                 </Box>
-                                                <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75, whiteSpace: 'pre-wrap' }}>
-                                                    {p.content}
-                                                </Typography>
-                                                <Box sx={{ display: 'flex', gap: 0.5, borderTop: `1px solid ${T.border}`, pt: 1.5 }}>
-                                                    <Box component="button" onClick={() => handleLike(p.id)}
-                                                         sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: p.liked ? '#ff4d6d' : T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: p.liked ? 'rgba(255,77,109,.1)' : T.cdim, color: p.liked ? '#ff4d6d' : T.cyan } }}>
-                                                        {p.liked ? <Favorite sx={{ fontSize: 15 }} /> : <FavoriteBorder sx={{ fontSize: 15 }} />}
-                                                        {p.likes}
-                                                    </Box>
-                                                    <Box component="button" onClick={() => openComments(p)}
-                                                         sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: T.cdim, color: T.cyan } }}>
-                                                        <ChatBubbleOutline sx={{ fontSize: 15 }} />
-                                                        {p.comments}
-                                                    </Box>
-                                                </Box>
-                                            </DarkCard>
-                                            );
-                                        })}
-
-                                        {postsHasMore && (
-                                            <Box sx={{ textAlign: 'center', mt: 1 }}>
-                                                <Button onClick={handleLoadMorePosts} disabled={postsLoadingMore}
-                                                        sx={{ borderRadius: '8px', color: T.cyan, border: `1px solid ${T.border}`, px: 3, py: 0.875, fontSize: '0.8rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', '&:hover': { bgcolor: T.cdim, borderColor: T.cyan } }}>
-                                                    {postsLoadingMore ? <CircularProgress size={18} sx={{ color: T.cyan }} /> : 'Încarcă mai multe'}
-                                                </Button>
-                                            </Box>
-                                        )}
+                                            )}
                                         </>
                                     )}
                                 </Box>
@@ -765,7 +852,6 @@ export default function CommunityPage() {
                                 <Typography sx={{ fontSize: '0.84rem', color: T.muted, mb: 2.5 }}>
                                     Alătură-te și câștigă puncte în clasament
                                 </Typography>
-
                                 {challengesLoading ? (
                                     <Box sx={{ textAlign: 'center', py: 5 }}>
                                         <CircularProgress size={32} sx={{ color: T.cyan }} />
@@ -779,17 +865,11 @@ export default function CommunityPage() {
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
                                                     <CircleProgress pct={c.progress} uid={String(c.id)} />
                                                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: T.text, mb: 0.25 }}>
-                                                            {c.title}
-                                                        </Typography>
+                                                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: T.text, mb: 0.25 }}>{c.title}</Typography>
                                                         <Typography sx={{ fontSize: '0.8rem', color: T.muted, mb: 0.75, lineHeight: 1.5 }}>{c.desc}</Typography>
                                                         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
-                                                                👥 {c.participants.toLocaleString()} participanți
-                                                            </Typography>
-                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
-                                                                ⏱ {c.days} zile rămase
-                                                            </Typography>
+                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>👥 {c.participants.toLocaleString()} participanți</Typography>
+                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>⏱ {c.days} zile rămase</Typography>
                                                         </Box>
                                                         <Box sx={{ mt: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                                                             <Box sx={{ height: '100%', borderRadius: 2, width: `${c.progress}%`, background: `linear-gradient(90deg, ${T.blue}, ${T.cyan})`, transition: 'width .5s ease' }} />
@@ -823,42 +903,70 @@ export default function CommunityPage() {
                                 <Typography sx={{ fontSize: '0.84rem', color: T.muted, mb: 2.5 }}>
                                     Sportivi activi din Moldova
                                 </Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                                    {MEMBERS.map((m, i) => (
-                                        <Box key={m.name}>
-                                            {i > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.75 }}>
-                                                <Avatar onClick={() => setSelectedMember(m)}
-                                                        sx={{ width: 44, height: 44, bgcolor: m.color, fontWeight: 900, fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0, boxShadow: `0 0 12px ${m.color}55`, transition: 'transform .2s', '&:hover': { transform: 'scale(1.08)' } }}>
-                                                    {getInitials(m.name)}
-                                                </Avatar>
-                                                <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setSelectedMember(m)}>
-                                                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: T.text }}>{m.name}</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
-                                                        <Chip label={m.rank} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, height: 18, fontSize: '0.62rem', fontWeight: 700 }} />
-                                                        <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>📍 {m.city}</Typography>
-                                                        <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>{m.sport}</Typography>
-                                                        <Typography sx={{ fontSize: '0.72rem', color: T.blue, fontWeight: 700 }}>{m.points.toLocaleString()} pts</Typography>
+                                {membersLoading ? (
+                                    <Box sx={{ textAlign: 'center', py: 5 }}>
+                                        <CircularProgress size={32} sx={{ color: T.cyan }} />
+                                        <Typography sx={{ color: T.muted, mt: 2, fontSize: '0.85rem' }}>Se încarcă membrii…</Typography>
+                                    </Box>
+                                ) : members.length === 0 ? (
+                                    <Box sx={{ textAlign: 'center', py: 5 }}>
+                                        <Typography sx={{ fontSize: '2rem', opacity: 0.3, mb: 1 }}>👥</Typography>
+                                        <Typography sx={{ color: T.muted, fontSize: '0.85rem' }}>Niciun membru găsit.</Typography>
+                                    </Box>
+                                ) : (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                                        {members.map((m, i) => {
+                                            const fullName = `${m.firstName} ${m.lastName}`;
+                                            const isFollowingMember = following.has(fullName);
+                                            if (m.id === user?.id) return null;
+                                            return (
+                                                <Box key={m.id}>
+                                                    {i > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.75 }}>
+                                                        <Avatar
+                                                            onClick={() => setSelectedMember(m)}
+                                                            sx={{
+                                                                width: 44, height: 44,
+                                                                bgcolor: stringToColor(fullName),
+                                                                fontWeight: 900, fontSize: '0.9rem',
+                                                                flexShrink: 0, cursor: 'pointer',
+                                                                transition: 'transform .2s',
+                                                                '&:hover': { transform: 'scale(1.08)' },
+                                                            }}>
+                                                            {getInitials(fullName)}
+                                                        </Avatar>
+                                                        <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setSelectedMember(m)}>
+                                                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: T.text }}>{fullName}</Typography>
+                                                            <Box sx={{ display: 'flex', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
+                                                                <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>@{m.username}</Typography>
+                                                                {m.location && (
+                                                                    <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>📍 {m.location}</Typography>
+                                                                )}
+                                                            </Box>
+                                                        </Box>
+                                                        <Box component="button"
+                                                             onClick={() => handleFollow(m.id, fullName)}
+                                                             sx={{
+                                                                 px: 1.75, py: 0.75, borderRadius: '8px',
+                                                                 cursor: 'pointer', fontFamily: 'inherit',
+                                                                 fontSize: '0.78rem', fontWeight: 700,
+                                                                 letterSpacing: 0.5, flexShrink: 0, transition: 'all .2s',
+                                                                 display: 'flex', alignItems: 'center', gap: 0.75,
+                                                                 ...(isFollowingMember
+                                                                     ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: T.cdim, color: '#c8d8f0', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d', color: '#ff4d6d' } }
+                                                                     : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
+                                                             }}>
+                                                            {isFollowingMember
+                                                                ? <><Check sx={{ fontSize: 14 }} /> Urmărești</>
+                                                                : <><PersonAdd sx={{ fontSize: 14 }} /> Urmărește</>
+                                                            }
+                                                        </Box>
                                                     </Box>
                                                 </Box>
-                                                <Box component="button" onClick={() => handleFollow(m)}
-                                                     sx={{
-                                                         px: 1.75, py: 0.75, borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
-                                                         fontSize: '0.78rem', fontWeight: 700, letterSpacing: 0.5, flexShrink: 0, transition: 'all .2s',
-                                                         display: 'flex', alignItems: 'center', gap: 0.75,
-                                                         ...(following.has(m.name)
-                                                             ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: T.cdim, color: '#c8d8f0', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d', color: '#ff4d6d' } }
-                                                             : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
-                                                     }}>
-                                                    {following.has(m.name)
-                                                        ? <><Check sx={{ fontSize: 14 }} /> Urmărești</>
-                                                        : <><PersonAdd sx={{ fontSize: 14 }} /> Urmărește</>
-                                                    }
-                                                </Box>
-                                            </Box>
-                                        </Box>
-                                    ))}
-                                </Box>
+                                            );
+                                        })}
+                                    </Box>
+                                )}
                             </DarkCard>
                         )}
                     </Box>
@@ -868,97 +976,77 @@ export default function CommunityPage() {
             {/* ── MEMBER PROFILE DIALOG ── */}
             <Dialog open={!!selectedMember} onClose={() => setSelectedMember(null)} maxWidth="xs" fullWidth
                     slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text, overflow: 'hidden' } } }}>
-                {selectedMember && (
-                    <>
-                        <IconButton onClick={() => setSelectedMember(null)} size="small"
-                                    sx={{ position: 'absolute', top: 10, right: 10, color: T.muted, zIndex: 1, bgcolor: 'rgba(0,0,0,.3)', '&:hover': { color: '#fff' } }}>
-                            <Close fontSize="small" />
-                        </IconButton>
-                        <Box sx={{ textAlign: 'center', px: 3, pt: 4.5, pb: 2.5, borderBottom: `1px solid ${T.border}` }}>
-                            <Avatar sx={{ width: 82, height: 82, bgcolor: selectedMember.color, fontSize: '1.9rem', fontWeight: 900, mx: 'auto', mb: 1.75, boxShadow: `0 0 24px ${selectedMember.color}66` }}>
-                                {getInitials(selectedMember.name)}
-                            </Avatar>
-                            <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.5px', color: '#fff' }}>
-                                {selectedMember.name}
-                            </Typography>
-                            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 0.5, mb: 1.25, flexWrap: 'wrap' }}>
-                                <Chip label={selectedMember.rank} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.72rem', fontWeight: 700 }} />
-                                <Typography sx={{ fontSize: '0.82rem', color: T.muted }}>📍 {selectedMember.city}</Typography>
-                                <Typography sx={{ fontSize: '0.82rem', color: T.muted }}>{selectedMember.sport}</Typography>
-                            </Box>
-                            <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: T.cyan, mb: 1.75 }}>
-                                {selectedMember.points.toLocaleString()} pts
-                            </Typography>
-                        </Box>
-                        <DialogContent sx={{ p: 0 }}>
-                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: `1px solid ${T.border}`, py: 2.25 }}>
-                                {[
-                                    { val: selectedMember.activities, lbl: 'Activități' },
-                                    { val: selectedMember.daysActive, lbl: 'Zile Active' },
-                                    { val: selectedMember.challenges, lbl: 'Provocări' },
-                                    { val: selectedMember.achievements.length, lbl: 'Realizări' },
-                                ].map((s) => (
-                                    <Box key={s.lbl} sx={{ textAlign: 'center' }}>
-                                        <Typography sx={{ fontWeight: 900, fontSize: '1.3rem', color: T.cyan }}>{s.val}</Typography>
-                                        <Typography sx={{ fontSize: '0.62rem', color: T.muted, textTransform: 'uppercase', letterSpacing: 0.5, mt: 0.25 }}>{s.lbl}</Typography>
-                                    </Box>
-                                ))}
-                            </Box>
-                            <Box sx={{ px: 2.75, py: 2, borderBottom: `1px solid ${T.border}` }}>
-                                <Typography sx={{ fontSize: '0.85rem', lineHeight: 1.7, color: '#c8d8f0' }}>{selectedMember.bio}</Typography>
-                            </Box>
-                            <Box sx={{ px: 2.75, py: 2, borderBottom: `1px solid ${T.border}` }}>
-                                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: T.muted, mb: 1.25 }}>
-                                    🏅 Realizări
+                {selectedMember && (() => {
+                    const fullName = `${selectedMember.firstName} ${selectedMember.lastName}`;
+                    const isFollowingSelected = following.has(fullName);
+                    return (
+                        <>
+                            <IconButton onClick={() => setSelectedMember(null)} size="small"
+                                        sx={{ position: 'absolute', top: 10, right: 10, color: T.muted, zIndex: 1, bgcolor: 'rgba(0,0,0,.3)', '&:hover': { color: '#fff' } }}>
+                                <Close fontSize="small" />
+                            </IconButton>
+                            <Box sx={{ textAlign: 'center', px: 3, pt: 4.5, pb: 2.5, borderBottom: `1px solid ${T.border}` }}>
+                                <Avatar sx={{ width: 82, height: 82, bgcolor: stringToColor(fullName), fontSize: '1.9rem', fontWeight: 900, mx: 'auto', mb: 1.75 }}>
+                                    {getInitials(fullName)}
+                                </Avatar>
+                                <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.5px', color: '#fff' }}>
+                                    {fullName}
                                 </Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    {selectedMember.achievements.map((a, i) => (
-                                        <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: '10px 14px', borderRadius: '10px', bgcolor: T.card2, border: `1px solid ${T.border}` }}>
-                                            <Typography sx={{ fontSize: '1.35rem', flexShrink: 0 }}>{a.icon}</Typography>
-                                            <Box>
-                                                <Typography sx={{ fontWeight: 700, fontSize: '0.84rem', color: T.text }}>{a.title}</Typography>
-                                                <Typography sx={{ fontSize: '0.7rem', color: T.muted, mt: '1px' }}>{a.date}</Typography>
-                                            </Box>
-                                        </Box>
-                                    ))}
-                                </Box>
+                                <Typography sx={{ fontSize: '0.82rem', color: T.muted, mt: 0.5 }}>
+                                    @{selectedMember.username}
+                                </Typography>
+                                {selectedMember.location && (
+                                    <Typography sx={{ fontSize: '0.82rem', color: T.muted, mt: 0.25 }}>
+                                        📍 {selectedMember.location}
+                                    </Typography>
+                                )}
                             </Box>
-                            <Box sx={{ px: 2.75, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>Membru din {selectedMember.joinedDate}</Typography>
-                                <Box component="button" onClick={() => handleFollow(selectedMember)}
+                            <DialogContent>
+                                {selectedMember.bio && (
+                                    <Typography sx={{ fontSize: '0.85rem', lineHeight: 1.7, color: '#c8d8f0', mb: 1 }}>
+                                        {selectedMember.bio}
+                                    </Typography>
+                                )}
+                                <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>
+                                    Membru din {new Date(selectedMember.createdAt).toLocaleDateString('ro-RO', { year: 'numeric', month: 'long' })}
+                                </Typography>
+                            </DialogContent>
+                            <DialogActions sx={{ px: 3, pb: 2.5, justifyContent: 'space-between' }}>
+                                <Button onClick={() => setSelectedMember(null)} sx={{ color: T.muted, textTransform: 'none' }}>
+                                    Închide
+                                </Button>
+                                <Box component="button"
+                                     onClick={() => handleFollow(selectedMember.id, fullName)}
                                      sx={{
                                          px: 2, py: 0.875, borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit',
                                          fontSize: '0.84rem', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', transition: 'all .2s',
                                          display: 'flex', alignItems: 'center', gap: 0.75,
-                                         ...(following.has(selectedMember.name)
+                                         ...(isFollowingSelected
                                              ? { border: `1px solid rgba(0,200,255,.4)`, bgcolor: T.cdim, color: '#c8d8f0', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d', color: '#ff4d6d' } }
                                              : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
                                      }}>
-                                    {following.has(selectedMember.name)
+                                    {isFollowingSelected
                                         ? <><Check sx={{ fontSize: 15 }} /> Urmărești ✓</>
                                         : <><PersonAdd sx={{ fontSize: 15 }} /> Urmărește</>
                                     }
                                 </Box>
-                            </Box>
-                        </DialogContent>
-                    </>
-                )}
+                            </DialogActions>
+                        </>
+                    );
+                })()}
             </Dialog>
 
             {/* ── COMMENTS DIALOG ── */}
-            <Dialog open={commentsPost !== null} onClose={closeComments}
-                    maxWidth="sm" fullWidth
+            <Dialog open={commentsPost !== null} onClose={closeComments} maxWidth="sm" fullWidth
                     slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 1.75, borderBottom: `1px solid ${T.border}` }}>
                     <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
                         💬 Comentarii {commentsPost ? `(${commentsPost.comments})` : ''}
                     </Typography>
-                    <IconButton onClick={closeComments} size="small"
-                                sx={{ color: T.muted, '&:hover': { color: '#fff' } }}>
+                    <IconButton onClick={closeComments} size="small" sx={{ color: T.muted, '&:hover': { color: '#fff' } }}>
                         <Close fontSize="small" />
                     </IconButton>
                 </Box>
-
                 <DialogContent sx={{ p: 0, maxHeight: '60vh', overflowY: 'auto' }}>
                     {commentsPost && (
                         <Box sx={{ px: 2.5, py: 2, bgcolor: T.card2, borderBottom: `1px solid ${T.border}` }}>
@@ -967,9 +1055,7 @@ export default function CommunityPage() {
                                     {getInitials(commentsPost.author)}
                                 </Avatar>
                                 <Box>
-                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>
-                                        {commentsPost.author}
-                                    </Typography>
+                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>{commentsPost.author}</Typography>
                                     <Typography sx={{ fontSize: '0.7rem', color: T.muted }}>{commentsPost.time}</Typography>
                                 </Box>
                             </Box>
@@ -978,7 +1064,6 @@ export default function CommunityPage() {
                             </Typography>
                         </Box>
                     )}
-
                     {commentsLoading ? (
                         <Box sx={{ textAlign: 'center', py: 5 }}>
                             <CircularProgress size={28} sx={{ color: T.cyan }} />
@@ -1023,7 +1108,6 @@ export default function CommunityPage() {
                                     </Box>
                                 );
                             })}
-
                             {commentsHasMore && (
                                 <Box sx={{ textAlign: 'center', py: 1.5, borderTop: `1px solid ${T.border}` }}>
                                     <Button onClick={handleLoadMoreComments} disabled={commentsLoadingMore}
@@ -1035,8 +1119,6 @@ export default function CommunityPage() {
                         </Box>
                     )}
                 </DialogContent>
-
-                {/* Reply input */}
                 <Box sx={{ px: 2.5, py: 2, borderTop: `1px solid ${T.border}` }}>
                     {isAuthenticated ? (
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
@@ -1077,8 +1159,7 @@ export default function CommunityPage() {
             </Dialog>
 
             {/* ── EDIT POST DIALOG ── */}
-            <Dialog open={!!editPost} onClose={() => !editSaving && setEditPost(null)}
-                    maxWidth="sm" fullWidth
+            <Dialog open={!!editPost} onClose={() => !editSaving && setEditPost(null)} maxWidth="sm" fullWidth
                     slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
                 <DialogTitle sx={{ borderBottom: `1px solid ${T.border}`, fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
                     ✏️ Editează postarea
@@ -1112,8 +1193,7 @@ export default function CommunityPage() {
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2, borderTop: `1px solid ${T.border}` }}>
-                    <Button onClick={() => setEditPost(null)} disabled={editSaving}
-                            sx={{ color: T.muted, textTransform: 'none' }}>
+                    <Button onClick={() => setEditPost(null)} disabled={editSaving} sx={{ color: T.muted, textTransform: 'none' }}>
                         Anulează
                     </Button>
                     <Button onClick={handleSaveEdit} disabled={editSaving || !editContent.trim()} variant="contained"
@@ -1124,8 +1204,7 @@ export default function CommunityPage() {
             </Dialog>
 
             {/* ── CONFIRM DELETE DIALOG ── */}
-            <Dialog open={!!confirmDelete} onClose={() => !deleting && setConfirmDelete(null)}
-                    maxWidth="xs" fullWidth
+            <Dialog open={!!confirmDelete} onClose={() => !deleting && setConfirmDelete(null)} maxWidth="xs" fullWidth
                     slotProps={{ paper: { sx: { bgcolor: T.card, border: `1px solid ${T.border}`, borderRadius: 3, color: T.text } } }}>
                 <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
                     {confirmDelete?.kind === 'post' ? 'Șterge postarea?' : 'Șterge comentariul?'}
@@ -1138,8 +1217,7 @@ export default function CommunityPage() {
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button onClick={() => setConfirmDelete(null)} disabled={deleting}
-                            sx={{ color: T.muted, textTransform: 'none' }}>
+                    <Button onClick={() => setConfirmDelete(null)} disabled={deleting} sx={{ color: T.muted, textTransform: 'none' }}>
                         Anulează
                     </Button>
                     <Button onClick={handleConfirmDelete} disabled={deleting} variant="contained"

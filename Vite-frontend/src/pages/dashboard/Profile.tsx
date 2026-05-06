@@ -1,8 +1,8 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import {
     Box, Typography, Card, CardContent, Button, Avatar, Chip,
-    TextField, Snackbar, Alert, Divider, Paper, LinearProgress,
+    TextField, Snackbar, Alert, Divider, Paper, LinearProgress, CircularProgress,
 } from '@mui/material';
 import { Edit, Save, Cancel, Person, Info } from '@mui/icons-material';
 import DashboardLayout from './DashboardLayout';
@@ -13,6 +13,7 @@ import { useDashboardData } from '../../context/useDashboardData';
 import { ROUTES } from '../../routes/paths';
 import { useUserClubs } from '../../hooks/useUserClubs';
 import axiosInstance from '../../services/api/axiosInstance';
+import { userApi, type FollowingUserDto } from '../../services/api/userApi';
 
 const AVATAR_COLORS = ['#1a6fff', '#00c8a0', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -33,8 +34,11 @@ const Profile: React.FC = () => {
     const { count: cluburiJoinedCount } = useUserClubs();
     const navigate = useNavigate();
 
+    // ── State ─────────────────────────────────────────────────────────────────
     const [isEditing, setIsEditing] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [following, setFollowing] = useState<FollowingUserDto[]>([]);
+    const [followingLoading, setFollowingLoading] = useState(false);
     const [editData, setEditData] = useState({
         firstName: user?.firstName || authUser?.firstName || '',
         lastName: user?.lastName || authUser?.lastName || '',
@@ -43,6 +47,16 @@ const Profile: React.FC = () => {
         bio: user?.bio || '',
     });
 
+    // ── Effects ───────────────────────────────────────────────────────────────
+    useEffect(() => {
+        setFollowingLoading(true);
+        userApi.getFollowing()
+            .then(setFollowing)
+            .catch(() => setFollowing([]))
+            .finally(() => setFollowingLoading(false));
+    }, []);
+
+    // ── Guard ─────────────────────────────────────────────────────────────────
     if (!authUser) {
         return (
             <DashboardLayout>
@@ -59,10 +73,10 @@ const Profile: React.FC = () => {
     }
 
     const displayFirstName = user?.firstName || authUser.firstName;
-    const displayLastName = user?.lastName || authUser.lastName;
-    const displayEmail = user?.email || authUser.email;
-    const avatarColor = getAvatarColor(displayFirstName + displayLastName);
-    const initials = getInitials(displayFirstName, displayLastName);
+    const displayLastName  = user?.lastName  || authUser.lastName;
+    const displayEmail     = user?.email     || authUser.email;
+    const avatarColor      = getAvatarColor(displayFirstName + displayLastName);
+    const initials         = getInitials(displayFirstName, displayLastName);
 
     const completionFields = [editData.firstName, editData.lastName, displayEmail, editData.phone, editData.location, editData.bio];
     const profileCompletion = Math.round((completionFields.filter(Boolean).length / completionFields.length) * 100);
@@ -71,33 +85,34 @@ const Profile: React.FC = () => {
         setEditData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-const handleSave = async () => {
-    try {
-        await axiosInstance.put('/user/profile', {
-            phone: editData.phone,
-            location: editData.location,
-            bio: editData.bio,
-        });
-        updateUser(editData);
-        setIsEditing(false);
-        setSaved(true);
-        if (editData.phone || editData.location || editData.bio) completeProfile();
-    } catch (err) {
-        console.error('Eroare la salvare profil', err);
-    }
-};
+    const handleSave = async () => {
+        try {
+            await axiosInstance.put('/user/profile', {
+                phone: editData.phone,
+                location: editData.location,
+                bio: editData.bio,
+            });
+            updateUser(editData);
+            setIsEditing(false);
+            setSaved(true);
+            if (editData.phone || editData.location || editData.bio) completeProfile();
+        } catch (err) {
+            console.error('Eroare la salvare profil', err);
+        }
+    };
 
     const handleCancel = () => {
         setEditData({
             firstName: user?.firstName || authUser.firstName,
-            lastName: user?.lastName || authUser.lastName,
-            phone: user?.phone || '',
-            location: user?.location || '',
-            bio: user?.bio || '',
+            lastName:  user?.lastName  || authUser.lastName,
+            phone:     user?.phone     || '',
+            location:  user?.location  || '',
+            bio:       user?.bio       || '',
         });
         setIsEditing(false);
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <DashboardLayout>
             {/* Header */}
@@ -116,8 +131,9 @@ const handleSave = async () => {
                 )}
             </Box>
 
-            {/* Profile — centered, half-page width */}
+            {/* Container */}
             <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+
                 {/* Hero Banner */}
                 <Paper elevation={0} sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', border: '1px solid #e8edf3' }}>
                     <Box sx={{ height: 120, background: 'linear-gradient(135deg, #0f172a 0%, #1a6fff 50%, #0ea5e9 100%)', position: 'relative' }}>
@@ -142,7 +158,6 @@ const handleSave = async () => {
                             <Chip label="Membru activ" size="small"
                                   sx={{ height: 22, bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 700, fontSize: '0.7rem' }} />
                         </Box>
-                        {/* Profile completion */}
                         <Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                                 <Typography variant="caption" color="text.secondary">Completare profil</Typography>
@@ -154,9 +169,8 @@ const handleSave = async () => {
                     </Box>
                 </Paper>
 
-                {/* Personal Info + About — side by side */}
+                {/* Personal Info + About */}
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-                    {/* Personal Info */}
                     <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
                         <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', height: '100%' }}>
                             <CardContent sx={{ p: 3 }}>
@@ -165,11 +179,11 @@ const handleSave = async () => {
                                     <Typography variant="subtitle1" fontWeight={800}>Informatii personale</Typography>
                                 </Box>
                                 {[
-                                    { label: 'Prenume', name: 'firstName', value: displayFirstName, editable: true },
-                                    { label: 'Nume', name: 'lastName', value: displayLastName, editable: true },
-                                    { label: 'Email', name: 'email', value: displayEmail, editable: false },
-                                    { label: 'Telefon', name: 'phone', value: user?.phone || '', placeholder: '+373 xxx xxx xxx', editable: true },
-                                    { label: 'Locatie', name: 'location', value: user?.location || '', placeholder: 'ex: Chisinau, Moldova', editable: true },
+                                    { label: 'Prenume',  name: 'firstName', value: displayFirstName,    editable: true },
+                                    { label: 'Nume',     name: 'lastName',  value: displayLastName,     editable: true },
+                                    { label: 'Email',    name: 'email',     value: displayEmail,        editable: false },
+                                    { label: 'Telefon',  name: 'phone',     value: user?.phone || '',   placeholder: '+373 xxx xxx xxx', editable: true },
+                                    { label: 'Locatie',  name: 'location',  value: user?.location || '', placeholder: 'ex: Chisinau, Moldova', editable: true },
                                 ].map((field, i) => (
                                     <React.Fragment key={field.name}>
                                         {i > 0 && <Divider sx={{ my: 1.5 }} />}
@@ -193,7 +207,6 @@ const handleSave = async () => {
                         </Card>
                     </Box>
 
-                    {/* About */}
                     <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
                         <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', height: '100%' }}>
                             <CardContent sx={{ p: 3 }}>
@@ -201,7 +214,6 @@ const handleSave = async () => {
                                     <Info sx={{ color: '#1a6fff', fontSize: 20 }} />
                                     <Typography variant="subtitle1" fontWeight={800}>Despre mine</Typography>
                                 </Box>
-
                                 <Box sx={{ mb: 2 }}>
                                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Bio</Typography>
                                     {isEditing ? (
@@ -214,9 +226,7 @@ const handleSave = async () => {
                                         </Typography>
                                     )}
                                 </Box>
-
                                 <Divider sx={{ mb: 2 }} />
-
                                 <Box>
                                     <Typography variant="caption" color="text.secondary" fontWeight={600}>Membru din</Typography>
                                     <Typography variant="body2" fontWeight={600} sx={{ mt: 0.25 }}>{user?.joinDate || '—'}</Typography>
@@ -226,16 +236,16 @@ const handleSave = async () => {
                     </Box>
                 </Box>
 
-                {/* Achievements / Stats — at the bottom */}
-                <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3' }}>
+                {/* Achievements */}
+                <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3', mb: 3 }}>
                     <CardContent sx={{ p: 3 }}>
                         <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 2.5 }}>🏆 Realizarile mele</Typography>
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                             {[
-                                { label: 'Activitati inregistrate', value: activitatiCurente.length, emoji: '🏃', color: '#1a6fff', bg: '#f0f7ff' },
-                                { label: 'Provocari active', value: joinedChallengeIds.length, emoji: '🏆', color: '#f59e0b', bg: '#fffbeb' },
-                                { label: 'Cluburi inscrise', value: cluburiJoinedCount, emoji: '👥', color: '#10b981', bg: '#ecfdf5' },
-                                { label: 'Completare profil', value: `${profileCompletion}%`, emoji: '⭐', color: '#a855f7', bg: '#fdf4ff' },
+                                { label: 'Activitati inregistrate', value: activitatiCurente.length,  emoji: '🏃', color: '#1a6fff', bg: '#f0f7ff' },
+                                { label: 'Provocari active',        value: joinedChallengeIds.length, emoji: '🏆', color: '#f59e0b', bg: '#fffbeb' },
+                                { label: 'Cluburi inscrise',        value: cluburiJoinedCount,        emoji: '👥', color: '#10b981', bg: '#ecfdf5' },
+                                { label: 'Completare profil',       value: `${profileCompletion}%`,   emoji: '⭐', color: '#a855f7', bg: '#fdf4ff' },
                             ].map((s) => (
                                 <Box key={s.label} sx={{ flex: '1 1 160px', minWidth: 0 }}>
                                     <Box sx={{ p: 2.5, borderRadius: 2, bgcolor: s.bg, border: `1px solid ${s.color}20`, textAlign: 'center' }}>
@@ -248,7 +258,54 @@ const handleSave = async () => {
                         </Box>
                     </CardContent>
                 </Card>
-            </Box>
+
+                {/* Urmărești */}
+                <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e8edf3' }}>
+                    <CardContent sx={{ p: 3 }}>
+                        <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 2 }}>
+                            👥 Urmărești ({following.length})
+                        </Typography>
+                        {followingLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                                <CircularProgress size={24} />
+                            </Box>
+                        ) : following.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                                Nu urmărești pe nimeni încă. Mergi la Comunitate pentru a găsi membri.
+                            </Typography>
+                        ) : (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                                {following.map((f) => {
+                                    const fullName  = `${f.firstName} ${f.lastName}`;
+                                    const initials2 = `${f.firstName[0]}${f.lastName[0]}`.toUpperCase();
+                                    return (
+                                        <Box key={f.id} sx={{
+                                            display: 'flex', alignItems: 'center', gap: 1.5,
+                                            p: '10px 14px', borderRadius: 2,
+                                            border: '1px solid #e8edf3', bgcolor: '#f8faff',
+                                            minWidth: 180, flex: '1 1 180px',
+                                        }}>
+                                            <Avatar sx={{ width: 38, height: 38, bgcolor: '#1a6fff', fontSize: '0.85rem', fontWeight: 900, flexShrink: 0 }}>
+                                                {initials2}
+                                            </Avatar>
+                                            <Box sx={{ minWidth: 0 }}>
+                                                <Typography variant="body2" fontWeight={700} noWrap>{fullName}</Typography>
+                                                <Typography variant="caption" color="text.secondary" noWrap>@{f.username}</Typography>
+                                                {f.location && (
+                                                    <Typography variant="caption" color="text.secondary" display="block" noWrap>
+                                                        📍 {f.location}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        )}
+                    </CardContent>
+                </Card>
+
+            </Box>{/* end maxWidth container */}
 
             <Snackbar open={saved} autoHideDuration={3000} onClose={() => setSaved(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
                 <Alert severity="success" sx={{ borderRadius: 2 }}>Profilul a fost actualizat cu succes!</Alert>

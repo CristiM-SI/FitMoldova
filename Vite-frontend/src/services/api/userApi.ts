@@ -3,6 +3,8 @@ import axiosInstance from './axiosInstance';
 export interface LoginResponse {
     token: string;
     expiresAt: string;
+    refreshToken: string;
+    refreshTokenExpiresAt: string;
     userId: number;
     username: string;
     firstName: string;

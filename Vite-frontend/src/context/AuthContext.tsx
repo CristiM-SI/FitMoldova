@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { userApi } from '../services/api/userApi';
+import axiosInstance from '../services/api/axiosInstance';
 
 export interface User {
     id: number;
@@ -31,13 +32,20 @@ interface AuthContextType {
     loading: boolean;
     register: (data: { username: string; firstName: string; lastName: string; email: string; password: string }) => Promise<AuthResult>;
     login: (username: string, password: string) => Promise<AuthResult>;
-    logout: () => void;
+    logout: () => Promise<void>;
 }
+
+// ─── Constante & helpers la nivel de modul ───────────────────────────────────
+
+const STORAGE = {
+    token:        'fitmoldova_token',
+    refreshToken: 'fitmoldova_refresh_token',
+    user:         'fitmoldova_user',
+};
 
 function decodeAdminFromToken(token: string): boolean {
     try {
         const payload = jwtDecode<any>(token);
-        // Cauta rolul in oricare cheie care contine "role"
         const roleKey = Object.keys(payload).find(k => k.toLowerCase().includes('role'));
         const role = roleKey ? payload[roleKey] : undefined;
         return role === 'Admin';
@@ -49,13 +57,15 @@ function decodeAdminFromToken(token: string): boolean {
 
 function readStoredAuth(): { user: User | null; isAuthenticated: boolean; isAdmin: boolean } {
     try {
-        const token = localStorage.getItem('fitmoldova_token');
-        const saved = localStorage.getItem('fitmoldova_user');
+        const token = localStorage.getItem(STORAGE.token);
+        const saved = localStorage.getItem(STORAGE.user);
         if (token && saved) {
             const payload = jwtDecode<JwtPayload>(token);
             if (payload.exp * 1000 < Date.now()) {
-                localStorage.removeItem('fitmoldova_user');
-                localStorage.removeItem('fitmoldova_token');
+                // Token expirat — sterg, dar NU sterg refresh token-ul.
+                // axiosInstance va incerca refresh la primul request.
+                localStorage.removeItem(STORAGE.user);
+                localStorage.removeItem(STORAGE.token);
                 return { user: null, isAuthenticated: false, isAdmin: false };
             }
             const parsed = JSON.parse(saved) as User;
@@ -63,11 +73,14 @@ function readStoredAuth(): { user: User | null; isAuthenticated: boolean; isAdmi
             return { user: parsed, isAuthenticated: true, isAdmin };
         }
     } catch {
-        localStorage.removeItem('fitmoldova_user');
-        localStorage.removeItem('fitmoldova_token');
+        localStorage.removeItem(STORAGE.user);
+        localStorage.removeItem(STORAGE.token);
+        localStorage.removeItem(STORAGE.refreshToken);
     }
     return { user: null, isAuthenticated: false, isAdmin: false };
 }
+
+// ─── Context ────────────────────────────────────────────────────────────────
 
 export const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -76,8 +89,10 @@ export const AuthContext = createContext<AuthContextType>({
     loading: true,
     register: async () => ({ success: false }),
     login: async () => ({ success: false }),
-    logout: () => {},
+    logout: async () => {},
 });
+
+// ─── Provider ───────────────────────────────────────────────────────────────
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const initial = readStoredAuth();
@@ -89,7 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = async (username: string, password: string): Promise<AuthResult> => {
         try {
             const res = await userApi.login(username, password);
-            localStorage.setItem('fitmoldova_token', res.token);
+            localStorage.setItem(STORAGE.token, res.token);
+            localStorage.setItem(STORAGE.refreshToken, res.refreshToken);
             const loggedUser: User = {
                 id: res.userId,
                 username: res.username,
@@ -103,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(loggedUser);
             setIsAuthenticated(true);
             setIsAdmin(adminFlag);
-            localStorage.setItem('fitmoldova_user', JSON.stringify(loggedUser));
+            localStorage.setItem(STORAGE.user, JSON.stringify(loggedUser));
             return { success: true };
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Eroare de conexiune.';
@@ -124,12 +140,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        // Best-effort revoke pe backend (nu blocheaza logout-ul daca pica).
+        const refreshToken = localStorage.getItem(STORAGE.refreshToken);
+        if (refreshToken) {
+            try {
+                await axiosInstance.post('/auth/logout', { refreshToken });
+            } catch { /* ignore */ }
+        }
         setUser(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
-        localStorage.removeItem('fitmoldova_user');
-        localStorage.removeItem('fitmoldova_token');
+        localStorage.removeItem(STORAGE.user);
+        localStorage.removeItem(STORAGE.token);
+        localStorage.removeItem(STORAGE.refreshToken);
     };
 
     return (

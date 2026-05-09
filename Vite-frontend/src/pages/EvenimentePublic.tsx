@@ -478,6 +478,13 @@ const EvenimentePublic: React.FC = () => {
                                         {joining === detail.id ? '...' : '✓ Înscrie-te la Eveniment →'}
                                     </button>
                                 )}
+                                <button
+                                    className="ep-overlay-btn-leave"
+                                    style={{ marginTop: '0.5rem', opacity: 0.8 }}
+                                    onClick={() => navigate({ to: '/events/$id' as never, params: { id: String(detail.id) } } as never)}
+                                >
+                                    🔗 Pagina completă
+                                </button>
                             </div>
                         </div>
                     </div>

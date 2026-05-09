@@ -4,7 +4,8 @@ import {
     TextField, InputAdornment, Tabs, Tab, Rating, IconButton, Dialog,
     DialogTitle, DialogContent, DialogActions, Divider, CircularProgress, Alert,
 } from '@mui/material';
-import { Search, Group, Add, ExitToApp, Close, LocationOn, Refresh } from '@mui/icons-material';
+import { Search, Group, Add, ExitToApp, Close, LocationOn, Refresh, OpenInNew } from '@mui/icons-material';
+import { Link } from '@tanstack/react-router';
 import DashboardLayout from './DashboardLayout.tsx';
 import { useProgress } from '../../context/ProgressContext.tsx';
 import { useAuth } from '../../context/AuthContext.tsx';
@@ -388,6 +389,11 @@ const ClubsPage: React.FC = () => {
                             <Divider />
                             <DialogActions sx={{ p: 2 }}>
                                 <Button onClick={() => setDetailClub(null)} sx={{ borderRadius: 2 }}>Închide</Button>
+                                <Link to="/clubs/$id" params={{ id: String(detailClub.id) }} style={{ textDecoration: 'none' }}>
+                                    <Button startIcon={<OpenInNew />} sx={{ borderRadius: 2 }} onClick={() => setDetailClub(null)}>
+                                        Pagina completă
+                                    </Button>
+                                </Link>
                                 {!isAuthenticated ? (
                                     <Button variant="contained" disabled sx={{ borderRadius: 2 }}>
                                         Autentifică-te pentru a te alătura

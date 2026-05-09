@@ -1,16 +1,20 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using FitMoldova.BusinessLogic.Core;
-using Microsoft.EntityFrameworkCore;
-using FitMoldova.DataAccesLayer;
+using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.BusinessLogic.Mappings;
-
+using FitMoldova.BusinessLogic.Structure;
+using FitMoldova.DataAccesLayer;
+using FitMoldova.DataAccesLayer.Seeders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-FitMoldova.DataAccesLayer.DbSession.ConnectionString = 
+DbSession.ConnectionString =
      builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
@@ -42,8 +46,20 @@ builder.Services.AddSwaggerGen(c =>
      });
 });
 
+// ── Rate limiting — maxim 5 cereri/minut pe /login și /register ───────────
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("auth-limit", opt =>
+    {
+        opt.Window               = TimeSpan.FromMinutes(1);
+        opt.PermitLimit          = 5;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit           = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 // ── Encryption service (SINGLETON — cheia se citește o dată) ──────────────
-// Înregistrat ÎNAINTE de AddDbContext pentru că DbContext depinde de el.
 builder.Services.AddSingleton<IEncryptionService, AesGcmEncryptionService>();
 
 builder.Services.AddDbContext<FitMoldovaContext>(options =>
@@ -93,55 +109,54 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddSingleton<DbSession>();
 
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.UserAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ActivityAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ClubAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.EventAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.PostAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.RouteAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ChallengeAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.ContactAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.FeedbackAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Core.GalleryAction>();
-builder.Services.AddScoped<FitMoldova.BusinessLogic.Interfaces.IUserLogic, FitMoldova.BusinessLogic.Structure.UserLogic>();
-     
+builder.Services.AddScoped<UserAction>();
+builder.Services.AddScoped<ActivityAction>();
+builder.Services.AddScoped<ClubAction>();
+builder.Services.AddScoped<EventAction>();
+builder.Services.AddScoped<PostAction>();
+builder.Services.AddScoped<RouteAction>();
+builder.Services.AddScoped<ChallengeAction>();
+builder.Services.AddScoped<ContactAction>();
+builder.Services.AddScoped<FeedbackAction>();
+builder.Services.AddScoped<GalleryAction>();
+builder.Services.AddScoped<IUserLogic, UserLogic>();
+
 var app = builder.Build();
 
 var uploadsDir = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads", "gallery");
 Directory.CreateDirectory(Path.Combine(uploadsDir, "thumbs"));
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads", "avatars"));
+
+// ── Seed date inițiale (rulează o singură dată când baza de date e goală) ──
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<FitMoldovaContext>();
+    if (!context.Users.Any())
+        InitialSeeder.Seed(context);
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Adaugă coloane noi fără migrații EF — idempotent (IF NOT EXISTS)
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<FitMoldovaContext>();
-    db.Database.ExecuteSqlRaw(@"
-        ALTER TABLE ""Events"" ADD COLUMN IF NOT EXISTS ""ImageUrl"" VARCHAR(500) NOT NULL DEFAULT '';
-    ");
-}
-
 app.UseCors("AllowFrontend");
 
-// ── Security headers — protecție împotriva clickjacking și sniffing ──────────
+// ── Security headers ──────────────────────────────────────────────────────
 app.Use(async (context, next) =>
 {
-    // Interzice includerea site-ului în iframe-uri (anti-clickjacking)
     context.Response.Headers.Append("X-Frame-Options", "DENY");
-    // Împiedică browserul să ghicească tipul fișierului (anti-sniffing)
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-    // Activează filtrul XSS din browser
     context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
     await next();
 });
 
 app.UseStaticFiles(new StaticFileOptions
 {
-     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+     FileProvider = new PhysicalFileProvider(
           Path.Combine(app.Environment.ContentRootPath, "wwwroot")),
      RequestPath = ""
 });
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

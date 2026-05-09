@@ -6,6 +6,7 @@ namespace FitMoldova.BusinessLogic.Interfaces
     {
         ServiceResponse GetForUser(int userId);
         ServiceResponse GetUnreadCount(int userId);
+        ServiceResponse GetUnread(int userId);
         ServiceResponse MarkAsRead(int notificationId, int userId);
         ServiceResponse MarkAllAsRead(int userId);
         ServiceResponse Delete(int notificationId, int userId);

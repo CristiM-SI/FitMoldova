@@ -37,6 +37,16 @@ public class NotificationController : ControllerBase
         return Ok(result);
     }
 
+    // GET api/notification/unread
+    // Returnează numărul + lista notificărilor necitite pentru utilizatorul curent
+    [HttpGet("unread")]
+    public IActionResult GetUnread()
+    {
+        var userId = int.Parse(User.FindFirst("userId")!.Value);
+        var result = _notificationLogic.GetUnread(userId);
+        return Ok(result);
+    }
+
     // PATCH api/notification/42/read
     // Marchează o notificare ca citită
     [HttpPatch("{id}/read")]

@@ -1,16 +1,21 @@
-﻿using FitMoldova.DataAccesLayer;
+using FitMoldova.DataAccesLayer;
+using FitMoldova.Domain.Entities.Notification;
 using FitMoldova.Domain.Entities.User;
 using FitMoldova.Domain.Enums;
 using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 using BC = BCrypt.Net.BCrypt;
-using Microsoft.EntityFrameworkCore;
 
 namespace FitMoldova.BusinessLogic.Core
 {
      public class UserAction
      {
           private readonly FitMoldovaContext _ctx;
+
           public UserAction(FitMoldovaContext ctx)
           {
                _ctx = ctx;
@@ -37,7 +42,6 @@ namespace FitMoldova.BusinessLogic.Core
                     CreatedAt = DateTime.UtcNow,
                     Role = UserRole.User,
 
-                    // Câmpuri PII criptate la rest (AES-256-GCM via EF ValueConverter)
                     Phone = dto.Phone,
                     Location = dto.Location,
                     Bio = dto.Bio
@@ -218,6 +222,22 @@ namespace FitMoldova.BusinessLogic.Core
                     return new ServiceResponse { isSuccess = false, Message = "Deja urmărești acest utilizator." };
 
                _ctx.UserFollows.Add(new UserFollowEntity { FollowerId = followerId, FollowedId = followedId });
+
+               var follower = _ctx.Users.FirstOrDefault(u => u.Id == followerId);
+               var followerName = follower != null
+                    ? $"{follower.FirstName} {follower.LastName}".Trim()
+                    : "Cineva";
+
+               _ctx.Notifications.Add(new NotificationEntity
+               {
+                    UserId     = followedId,
+                    FromUserId = followerId,
+                    Type       = "follow",
+                    Content    = $"{followerName} te urmărește acum",
+                    IsRead     = false,
+                    CreatedAt  = DateTime.UtcNow,
+               });
+
                _ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Urmărești acum acest utilizator." };
           }
@@ -250,6 +270,71 @@ namespace FitMoldova.BusinessLogic.Core
                     })
                     .ToList();
                return new ServiceResponse { isSuccess = true, Data = following };
+          }
+
+          // ── Upload avatar ──────────────────────────────────────────────────────
+
+          private static readonly HashSet<string> AllowedAvatarExtensions =
+               new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp" };
+
+          public ServiceResponse UploadAvatarExecution(int userId, IFormFile file, string webRootPath)
+          {
+               const long maxSize = 5 * 1024 * 1024;
+
+               if (file == null || file.Length == 0)
+                    return new ServiceResponse { isSuccess = false, Message = "Fișierul lipsește." };
+               if (file.Length > maxSize)
+                    return new ServiceResponse { isSuccess = false, Message = "Fișierul depășește limita de 5 MB." };
+
+               var ext = Path.GetExtension(file.FileName);
+               if (string.IsNullOrEmpty(ext) || !AllowedAvatarExtensions.Contains(ext))
+                    return new ServiceResponse { isSuccess = false, Message = "Extensie nepermisă. Acceptate: .jpg, .jpeg, .png, .webp." };
+
+               var avatarsDir = Path.Combine(webRootPath, "uploads", "avatars");
+               Directory.CreateDirectory(avatarsDir);
+
+               var guid = Guid.NewGuid().ToString("N");
+               var fileName = $"{guid}.webp";
+               var filePath = Path.Combine(avatarsDir, fileName);
+
+               try
+               {
+                    using var stream = file.OpenReadStream();
+                    using var image = Image.Load(stream);
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                         Size = new Size(300, 300),
+                         Mode = ResizeMode.Crop
+                    }));
+                    image.Save(filePath, new WebpEncoder { Quality = 82 });
+               }
+               catch (UnknownImageFormatException)
+               {
+                    return new ServiceResponse { isSuccess = false, Message = "Fișierul nu este o imagine validă." };
+               }
+               catch (Exception ex)
+               {
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                    return new ServiceResponse { isSuccess = false, Message = $"Eroare la procesarea imaginii: {ex.Message}" };
+               }
+
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == userId);
+               if (user == null)
+               {
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                    return new ServiceResponse { isSuccess = false, Message = "Utilizatorul nu a fost găsit." };
+               }
+
+               var imageUrl = $"/uploads/avatars/{fileName}";
+               user.ProfileImageUrl = imageUrl;
+               _ctx.SaveChanges();
+
+               return new ServiceResponse
+               {
+                    isSuccess = true,
+                    Message = "Avatar actualizat cu succes.",
+                    Data = new { imageUrl }
+               };
           }
      }
 }

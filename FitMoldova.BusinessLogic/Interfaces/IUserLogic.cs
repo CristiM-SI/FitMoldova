@@ -1,5 +1,6 @@
 ﻿using FitMoldova.Domain.Models.Services;
 using FitMoldova.Domain.Models.User;
+using Microsoft.AspNetCore.Http;
 
 namespace FitMoldova.BusinessLogic.Interfaces
 {
@@ -19,5 +20,6 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse Follow(int followerId, int followedId);
           ServiceResponse Unfollow(int followerId, int followedId);
           ServiceResponse GetFollowing(int userId);
+          ServiceResponse UploadAvatar(int userId, IFormFile file, string webRootPath);
      }
 }

@@ -1,8 +1,14 @@
-﻿namespace FitMoldova.Domain.Models.User
+using System.ComponentModel.DataAnnotations;
+
+namespace FitMoldova.Domain.Models.User
 {
-     public class UserLoginDto
-     {
-          public string Username { get; set; } = string.Empty;
-          public string Password { get; set; } = string.Empty;
-     }
+    public class UserLoginDto
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+    }
 }

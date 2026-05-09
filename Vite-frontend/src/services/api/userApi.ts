@@ -142,4 +142,19 @@ export const userApi = {
         axiosInstance
             .delete<ServiceResponse<void>>(`/user/${targetId}/unfollow`)
             .then((r) => r.data),
+
+    uploadAvatar: (file: File) => {
+        const form = new FormData();
+        form.append('file', file);
+        return axiosInstance
+            .post<ServiceResponse<string>>('/user/avatar', form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then((r) => r.data);
+    },
+
+    getProfile: () =>
+        axiosInstance
+            .get<ServiceResponse<UserProfile>>('/user/profile')
+            .then((r) => r.data),
 };

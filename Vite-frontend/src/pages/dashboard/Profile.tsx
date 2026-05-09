@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import {
     Box, Typography, Card, CardContent, Button, Avatar, Chip,
@@ -39,6 +39,9 @@ const Profile: React.FC = () => {
     const [saved, setSaved] = useState(false);
     const [following, setFollowing] = useState<FollowingUserDto[]>([]);
     const [followingLoading, setFollowingLoading] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [editData, setEditData] = useState({
         firstName: user?.firstName || authUser?.firstName || '',
         lastName: user?.lastName || authUser?.lastName || '',
@@ -55,6 +58,30 @@ const Profile: React.FC = () => {
             .catch(() => setFollowing([]))
             .finally(() => setFollowingLoading(false));
     }, []);
+
+    useEffect(() => {
+        if (!authUser?.id) return;
+        userApi.getById(authUser.id)
+            .then(r => { if (r.data?.profileImageUrl) setAvatarUrl(r.data.profileImageUrl); })
+            .catch(() => {});
+    }, [authUser?.id]);
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        // Previzualizare optimistă imediată
+        const localUrl = URL.createObjectURL(file);
+        setAvatarUrl(localUrl);
+        setUploadingAvatar(true);
+        try {
+            const res = await userApi.uploadAvatar(file);
+            if (res.data) setAvatarUrl(res.data);
+        } catch {
+            // Păstrăm previzualizarea locală chiar dacă API-ul nu răspunde
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
 
     // ── Guard ─────────────────────────────────────────────────────────────────
     if (!authUser) {
@@ -140,9 +167,41 @@ const Profile: React.FC = () => {
                         <Box sx={{ position: 'absolute', right: -20, top: -20, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
                     </Box>
                     <Box sx={{ px: 3, pb: 3, position: 'relative' }}>
-                        <Avatar sx={{ width: 80, height: 80, bgcolor: avatarColor, fontSize: '1.5rem', fontWeight: 900, border: '4px solid #fff', mt: -5, mb: 1.5, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                            {initials}
-                        </Avatar>
+                        {/* Input ascuns pentru upload */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleAvatarUpload}
+                        />
+                        <Box sx={{ position: 'relative', display: 'inline-block', mt: -5, mb: 1.5 }}>
+                            <Avatar
+                                src={avatarUrl || undefined}
+                                onClick={() => fileInputRef.current?.click()}
+                                sx={{
+                                    width: 80, height: 80, bgcolor: avatarUrl ? 'transparent' : avatarColor,
+                                    fontSize: '1.5rem', fontWeight: 900, border: '4px solid #fff',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    cursor: 'pointer',
+                                    '&:hover': { opacity: 0.85 },
+                                }}
+                            >
+                                {!avatarUrl && initials}
+                            </Avatar>
+                            <Box sx={{
+                                position: 'absolute', bottom: 0, right: 0,
+                                width: 24, height: 24, borderRadius: '50%',
+                                bgcolor: '#1a6fff', border: '2px solid #fff',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', pointerEvents: 'none',
+                            }}>
+                                {uploadingAvatar
+                                    ? <CircularProgress size={12} sx={{ color: '#fff' }} />
+                                    : <span style={{ color: '#fff', fontSize: '0.7rem', fontWeight: 900 }}>+</span>
+                                }
+                            </Box>
+                        </Box>
                         {isEditing ? (
                             <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5, flexWrap: 'wrap' }}>
                                 <TextField name="firstName" size="small" label="Prenume" value={editData.firstName} onChange={handleChange}

@@ -98,12 +98,6 @@ const Home: React.FC = () => {
       link: ROUTES.FORUM
     },
     {
-      icon: '📱',
-      title: 'Mesagerie Privată',
-      description: 'Comunicare directă între utilizatori prin mesaje private sau grupuri de discuție pentru planificarea antrenamentelor și evenimente.',
-      link: ROUTES.COMMUNITY
-    },
-    {
       icon: '📸',
       title: 'Galerii Multimedia',
       description: 'Încarcă și partajează fotografii de la antrenamente, evenimente și competiții. Creează amintiri alături de comunitate.',
@@ -156,10 +150,12 @@ const Home: React.FC = () => {
                   <div className="stat-number">{formatStat(stats.totalUsers)}</div>
                   <div className="stat-label">Utilizatori Activi</div>
                 </div>
-                <div className="stat-item">
-                  <div className="stat-number">{formatStat(stats.totalKm)}</div>
-                  <div className="stat-label">Km Parcurși</div>
-                </div>
+                {stats.totalKm > 0 && (
+                  <div className="stat-item">
+                    <div className="stat-number">{formatStat(stats.totalKm)}</div>
+                    <div className="stat-label">Km Parcurși</div>
+                  </div>
+                )}
                 <div className="stat-item">
                   <div className="stat-number">{formatStat(stats.totalEvents)}</div>
                   <div className="stat-label">Evenimente</div>

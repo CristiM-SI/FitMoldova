@@ -3,6 +3,7 @@ using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
 [Route("api/user")]
@@ -11,15 +12,18 @@ public class UserController : ControllerBase
     private readonly IUserLogic _userLogic;
     private readonly JwtService _jwtService;
     private readonly RefreshTokenService _refreshTokenService;
+    private readonly IWebHostEnvironment _env;
 
-    public UserController(IUserLogic userLogic, JwtService jwtService, RefreshTokenService refreshTokenService)
+    public UserController(IUserLogic userLogic, JwtService jwtService, RefreshTokenService refreshTokenService, IWebHostEnvironment env)
     {
         _userLogic = userLogic;
         _jwtService = jwtService;
         _refreshTokenService = refreshTokenService;
+        _env = env;
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth-limit")]
     public IActionResult Register([FromBody] UserCreateDto dto)
     {
         var result = _userLogic.Register(dto);
@@ -28,6 +32,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth-limit")]
     public IActionResult Login([FromBody] UserLoginDto dto)
     {
         var result = _userLogic.Login(dto);
@@ -159,6 +164,18 @@ public class UserController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst("userId")!.Value);
         var result = _userLogic.GetFollowing(userId);
+        return Ok(result);
+    }
+
+    [HttpPost("avatar")]
+    [Authorize]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public IActionResult UploadAvatar(IFormFile file)
+    {
+        var userId = int.Parse(User.FindFirst("userId")!.Value);
+        var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+        var result = _userLogic.UploadAvatar(userId, file, webRoot);
+        if (!result.isSuccess) return BadRequest(result);
         return Ok(result);
     }
 }

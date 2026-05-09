@@ -88,43 +88,9 @@ function mapPostToThread(dto: PostInfoDto): ForumThread {
     } as ForumThread & { commentsCount: number };
 }
 
-// ─── Mock messages (initial) ──────────────────────────────────────────────────
-
-const INITIAL_MESSAGES: Message[] = [
-    {
-        id: 1,
-        fromHandle: '@ion_fitness',
-        fromName: 'Ion Ceban',
-        fromAvatar: 'IC',
-        fromColor: '#1a6fff',
-        toHandle: '@me',
-        content: 'Salut! Ai văzut programul pentru maratonul din septembrie?',
-        time: '2h',
-        read: false,
-    },
-    {
-        id: 2,
-        fromHandle: '@maria_runs',
-        fromName: 'Maria Lungu',
-        fromAvatar: 'ML',
-        fromColor: '#e91e8c',
-        toHandle: '@me',
-        content: 'Super sesiune ieri! Repetăm săptămâna viitoare? 💪',
-        time: '5h',
-        read: false,
-    },
-    {
-        id: 3,
-        fromHandle: '@pavel_rotaru',
-        fromName: 'Pavel Rotaru',
-        fromAvatar: 'PR',
-        fromColor: '#00b894',
-        toHandle: '@me',
-        content: 'Am postat un nou plan de antrenament pentru începători.',
-        time: '1z',
-        read: true,
-    },
-];
+// TODO: v2 - necesită SignalR
+// Mesageria privată este dezactivată temporar până la implementarea WebSocket/SignalR
+// const INITIAL_MESSAGES: Message[] = [...]
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
@@ -135,7 +101,8 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
     const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
     const [heartAnims, setHeartAnims] = useState<Set<number>>(new Set());
     const [toast, setToast] = useState({ msg: '', visible: false });
-    const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+    // TODO: v2 - necesită SignalR
+    const [messages] = useState<Message[]>([]);
 
     const threadsRef = useRef(threads);
     threadsRef.current = threads;
@@ -362,31 +329,13 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         });
     }, [showToast]);
 
-    const sendMessage = useCallback((
-        toHandle: string, toName: string, _toAvatar: string, _toColor: string,
-        content: string,
-        fromHandle: string, fromName: string, fromAvatar: string, fromColor: string,
-    ) => {
-        const newMsg: Message = {
-            id: Date.now(),
-            fromHandle,
-            fromName,
-            fromAvatar,
-            fromColor,
-            toHandle,
-            content,
-            time: 'acum',
-            read: true,
-        };
-        setMessages((prev) => [newMsg, ...prev]);
-        showToast(`Mesaj trimis către ${toName}! ✉️`);
-    }, [showToast]);
+    // TODO: v2 - necesită SignalR
+    const sendMessage = useCallback((_toHandle: string, _toName: string, _toAvatar: string, _toColor: string,
+        _content: string, _fromHandle: string, _fromName: string, _fromAvatar: string, _fromColor: string,
+    ) => { /* disabled until SignalR */ }, []);
 
-    const markAsRead = useCallback((msgId: number) => {
-        setMessages((prev) =>
-            prev.map((m) => m.id === msgId ? { ...m, read: true } : m)
-        );
-    }, []);
+    // TODO: v2 - necesită SignalR
+    const markAsRead = useCallback((_msgId: number) => { /* disabled until SignalR */ }, []);
 
     const ctxValue = useMemo<ForumContextValue>(() => ({
         threads, setThreads, loading,

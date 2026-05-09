@@ -8,6 +8,7 @@ namespace FitMoldova.BusinessLogic.Structure
     {
         public ServiceResponse GetForUser(int userId)                                                      => GetForUserExecution(userId);
         public ServiceResponse GetUnreadCount(int userId)                                                  => GetUnreadCountExecution(userId);
+        public ServiceResponse GetUnread(int userId)                                                       => GetUnreadExecution(userId);
         public ServiceResponse MarkAsRead(int notificationId, int userId)                                  => MarkAsReadExecution(notificationId, userId);
         public ServiceResponse MarkAllAsRead(int userId)                                                   => MarkAllAsReadExecution(userId);
         public ServiceResponse Delete(int notificationId, int userId)                                      => DeleteExecution(notificationId, userId);

@@ -4,6 +4,7 @@ import {
     LinearProgress, Paper, Tabs, Tab, Skeleton, Alert,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import { Link } from '@tanstack/react-router';
 import DashboardLayout from './DashboardLayout';
 import { useProgress } from '../../context/ProgressContext';
 import { useAuth } from '../../context/AuthContext';
@@ -191,11 +192,18 @@ const Provocari: React.FC = () => {
                                                             <Typography variant="caption" color="text.secondary">👥 {ch.participants}</Typography>
                                                         </Box>
                                                     </Box>
-                                                    <Button size="small" color="error" variant="outlined"
-                                                            onClick={() => handleLeave(ch.id)}
-                                                            sx={{ borderRadius: 2, fontSize: '0.68rem', ml: 1, flexShrink: 0, height: 30 }}>
-                                                        Paraseste
-                                                    </Button>
+                                                    <Box sx={{ display: 'flex', gap: 0.5, ml: 1, flexShrink: 0 }}>
+                                                        <Link to="/challenges/$id" params={{ id: String(ch.id) }} style={{ textDecoration: 'none' }}>
+                                                            <Button size="small" variant="outlined" sx={{ borderRadius: 2, fontSize: '0.68rem', height: 30 }}>
+                                                                Detalii
+                                                            </Button>
+                                                        </Link>
+                                                        <Button size="small" color="error" variant="outlined"
+                                                                onClick={() => handleLeave(ch.id)}
+                                                                sx={{ borderRadius: 2, fontSize: '0.68rem', height: 30 }}>
+                                                            Paraseste
+                                                        </Button>
+                                                    </Box>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                                                     <Typography variant="caption" color="text.secondary">Progres</Typography>
@@ -251,12 +259,19 @@ const Provocari: React.FC = () => {
                                                         <Typography variant="caption" color="text.secondary">⏱ {ch.duration}</Typography>
                                                         <Typography variant="caption" color="text.secondary">👥 {ch.participants}</Typography>
                                                     </Box>
-                                                    <Button fullWidth variant="contained" size="small" startIcon={<Add />}
-                                                            loading={joining === ch.id}
-                                                            onClick={() => handleJoin(ch)}
-                                                            sx={{ borderRadius: 2, boxShadow: 'none', fontWeight: 700, mt: 'auto' }}>
-                                                        Alaturai-te
-                                                    </Button>
+                                                    <Box sx={{ display: 'flex', gap: 1, mt: 'auto' }}>
+                                                        <Button variant="contained" size="small" startIcon={<Add />}
+                                                                loading={joining === ch.id}
+                                                                onClick={() => handleJoin(ch)}
+                                                                sx={{ flex: 1, borderRadius: 2, boxShadow: 'none', fontWeight: 700 }}>
+                                                            Alaturai-te
+                                                        </Button>
+                                                        <Link to="/challenges/$id" params={{ id: String(ch.id) }} style={{ textDecoration: 'none' }}>
+                                                            <Button variant="outlined" size="small" sx={{ borderRadius: 2, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                                                Detalii
+                                                            </Button>
+                                                        </Link>
+                                                    </Box>
                                                 </Box>
                                             </Box>
                                         );

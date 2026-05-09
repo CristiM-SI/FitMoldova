@@ -105,6 +105,40 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Notificare ștearsă." };
         }
 
+        // ── GET unread list + count (un singur apel DB) ───────────────────────
+
+        public ServiceResponse GetUnreadExecution(int userId)
+        {
+            using var ctx = _dbSession.FitMoldovaContext();
+
+            var items = (
+                from n in ctx.Notifications
+                where n.UserId == userId && !n.IsRead
+                join u in ctx.Users on n.FromUserId equals u.Id into fromUsers
+                from fu in fromUsers.DefaultIfEmpty()
+                orderby n.CreatedAt descending
+                select new NotificationInfoDto
+                {
+                    Id             = n.Id,
+                    Type           = n.Type,
+                    FromUserId     = n.FromUserId,
+                    FromUserName   = fu != null ? fu.FirstName + " " + fu.LastName : "FitMoldova",
+                    FromUserHandle = fu != null ? "@" + fu.Username : "@fitmoldova",
+                    FromUserAvatar = fu != null ? GetInitials(fu.FirstName, fu.LastName) : "FM",
+                    FromUserColor  = GetAvatarColor(n.FromUserId),
+                    Content        = n.Content,
+                    CreatedAt      = n.CreatedAt,
+                    IsRead         = n.IsRead,
+                }
+            ).ToList();
+
+            return new ServiceResponse
+            {
+                isSuccess = true,
+                Data = new { count = items.Count, items }
+            };
+        }
+
         // ── CREATE (folosit intern de alte module) ────────────────────────────
 
         public ServiceResponse CreateExecution(int userId, int fromUserId, string type, string content)

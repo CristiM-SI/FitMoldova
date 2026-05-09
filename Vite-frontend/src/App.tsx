@@ -45,6 +45,7 @@ const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
 const AccessDenied   = lazy(() => import('./pages/AccessDenied'))
+const DetailPage     = lazy(() => import('./pages/DetailPage'))
 
 // Redirect logged-in users away from public-only pages (login / register)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -70,12 +71,6 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     return <>{children}</>
 }
-
-const adminActivitiesRoute = createRoute({
-    getParentRoute: () => adminRoute,
-    path: '/activities',
-    component: () => <AdminActivities />
-})
 
 // Inline spinner shown while a lazy chunk is being downloaded.
 // Uses a <style> tag for the keyframe so no .css file is needed.
@@ -186,12 +181,11 @@ const accessDeniedRoute = createRoute({
     path: '/access-denied',
     component: () => <AccessDenied />,
 })
-const adminGalleryRoute = createRoute({
-    getParentRoute: () => adminRoute,
-    path: '/gallery',
-    component: () => <AdminGallery />,
-})
 
+// ── Detail routes ─────────────────────────────────────────────────────────────
+const eventDetailRoute     = createRoute({ getParentRoute: () => rootRoute, path: '/events/$id',     component: () => <DetailPage entity="event" /> })
+const clubDetailRoute      = createRoute({ getParentRoute: () => rootRoute, path: '/clubs/$id',      component: () => <DetailPage entity="club" /> })
+const challengeDetailRoute = createRoute({ getParentRoute: () => rootRoute, path: '/challenges/$id', component: () => <DetailPage entity="challenge" /> })
 // ── Protected routes (auth guard via protectedLayoutRoute) ────────────────────
 const dashboardRoute       = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/dashboard',        component: () => <Dashboard /> })
 const profileRoute         = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/profile',          component: () => <Profile /> })
@@ -217,6 +211,9 @@ const adminClubsRoute      = createRoute({ getParentRoute: () => adminRoute, pat
 const adminChallengesRoute = createRoute({ getParentRoute: () => adminRoute, path: '/challenges', component: () => <AdminChallenges /> })
 const adminRoutesRoute     = createRoute({ getParentRoute: () => adminRoute, path: '/routes',     component: () => <AdminRoutes /> })
 const adminFeedbackRoute   = createRoute({ getParentRoute: () => adminRoute, path: '/feedback',   component: () => <AdminFeedback /> })
+// Definite DUPĂ adminRoute pentru a evita temporal dead zone
+const adminActivitiesRoute = createRoute({ getParentRoute: () => adminRoute, path: '/activities', component: () => <AdminActivities /> })
+const adminGalleryRoute    = createRoute({ getParentRoute: () => adminRoute, path: '/gallery',    component: () => <AdminGallery /> })
 
 const routeTree = rootRoute.addChildren([
     homeRoute,
@@ -229,6 +226,9 @@ const routeTree = rootRoute.addChildren([
     loginRoute,
     registerRoute,
     accessDeniedRoute,
+    eventDetailRoute,
+    clubDetailRoute,
+    challengeDetailRoute,
     protectedLayoutRoute.addChildren([
         dashboardRoute,
         profileRoute,

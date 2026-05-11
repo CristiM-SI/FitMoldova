@@ -12,35 +12,49 @@ import {
     StarOutlined, LikeOutlined, StarFilled,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { INITIAL_THREADS, FORUM_CATEGORIES, type ForumThread, type ForumCategory } from '../../services/mock/forum';
+import { FORUM_CATEGORIES, type ForumCategory } from '../../services/mock/forum';
+import postApi, { type PostInfoDto } from '../../services/api/postApi';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
 const FEEDBACK_CATEGORIES = ['Interfață (UX)', 'Performanță', 'Funcționalități', 'Comunitate', 'Suport', 'Altele'];
 
-/* ─── Admin thread type (adds status) ─── */
-interface AdminThread extends ForumThread {
+/* ─── Admin thread type ─── */
+interface AdminThread extends PostInfoDto {
     hidden: boolean;
+    pinned: boolean;
 }
 
-const seedThreads = (): AdminThread[] =>
-    INITIAL_THREADS.map(t => ({ ...t, hidden: false }));
+const AVATAR_COLORS = ['#1a6fff', '#e84393', '#00b894', '#fdcb6e', '#6c5ce7', '#e17055'];
+const getColor = (id: number) => AVATAR_COLORS[id % AVATAR_COLORS.length];
+const getInitials = (name: string) => name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString('ro-MD', { day: '2-digit', month: 'short', year: 'numeric' });
 
 /* ─── Forum tab ─── */
 const ForumTab: React.FC = () => {
-    const [threads, setThreads] = useState<AdminThread[]>(seedThreads);
+    const [threads, setThreads] = useState<AdminThread[]>([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filterCat, setFilterCat] = useState<ForumCategory | 'Toate'>('Toate');
     const [messageApi, contextHolder] = message.useMessage();
+
+    useEffect(() => {
+        postApi.list({ pageSize: 200 })
+            .then(result => {
+                setThreads(result.items.map(p => ({ ...p, hidden: false, pinned: false })));
+            })
+            .catch(() => messageApi.error('Eroare la încărcarea postărilor.'))
+            .finally(() => setLoading(false));
+    }, []);
 
     const filtered = threads.filter(t => {
         const term = search.toLowerCase();
         const matchSearch =
             t.content.toLowerCase().includes(term) ||
-            t.author.toLowerCase().includes(term) ||
-            t.handle.toLowerCase().includes(term);
-        const matchCat = filterCat === 'Toate' || t.category === filterCat;
+            t.authorName.toLowerCase().includes(term) ||
+            t.authorUsername.toLowerCase().includes(term);
+        const matchCat = filterCat === 'Toate' || t.sport === filterCat;
         return matchSearch && matchCat;
     });
 
@@ -56,24 +70,29 @@ const ForumTab: React.FC = () => {
         messageApi.success(thread?.hidden ? 'Postarea este din nou vizibilă.' : 'Postarea a fost ascunsă.');
     };
 
-    const deleteThread = (id: number) => {
-        setThreads(prev => prev.filter(t => t.id !== id));
-        messageApi.success('Postarea a fost ștearsă.');
+    const deleteThread = async (id: number) => {
+        try {
+            await postApi.delete(id);
+            setThreads(prev => prev.filter(t => t.id !== id));
+            messageApi.success('Postarea a fost ștearsă.');
+        } catch {
+            messageApi.error('Eroare la ștergere. Încearcă din nou.');
+        }
     };
 
     const columns: ColumnsType<AdminThread> = [
         {
             title: 'Autor',
             key: 'author',
-            width: 160,
+            width: 170,
             render: (_, record) => (
                 <Space>
-                    <Avatar style={{ backgroundColor: record.color, flexShrink: 0 }}>
-                        {record.avatar}
+                    <Avatar style={{ backgroundColor: getColor(record.userId), flexShrink: 0 }}>
+                        {getInitials(record.authorName)}
                     </Avatar>
                     <div>
-                        <Text strong style={{ fontSize: 13, display: 'block' }}>{record.author}</Text>
-                        <Text type="secondary" style={{ fontSize: 11 }}>@{record.handle}</Text>
+                        <Text strong style={{ fontSize: 13, display: 'block' }}>{record.authorName}</Text>
+                        <Text type="secondary" style={{ fontSize: 11 }}>@{record.authorUsername}</Text>
                     </div>
                 </Space>
             ),
@@ -93,39 +112,36 @@ const ForumTab: React.FC = () => {
             ),
         },
         {
-            title: 'Categorie',
-            dataIndex: 'category',
-            key: 'category',
+            title: 'Sport',
+            dataIndex: 'sport',
+            key: 'sport',
             width: 120,
-            render: (cat: string) => <Tag color="blue">{cat}</Tag>,
+            render: (sport: string) => <Tag color="blue">{sport}</Tag>,
         },
         {
             title: 'Statistici',
             key: 'stats',
-            width: 140,
+            width: 130,
             render: (_, record) => (
                 <Space direction="vertical" size={2}>
                     <Text style={{ fontSize: 12 }}>
                         <LikeOutlined /> {record.likes} &nbsp;
-                        <MessageOutlined /> {record.replies.length}
-                    </Text>
-                    <Text type="secondary" style={{ fontSize: 11 }}>
-                        👁 {record.views.toLocaleString()} vizualizări
+                        <MessageOutlined /> {record.commentsCount}
                     </Text>
                 </Space>
             ),
         },
         {
             title: 'Data',
-            dataIndex: 'time',
-            key: 'time',
-            width: 100,
-            render: (t: string) => <Text type="secondary" style={{ fontSize: 12 }}>{t}</Text>,
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            width: 110,
+            render: (d: string) => <Text type="secondary" style={{ fontSize: 12 }}>{formatDate(d)}</Text>,
         },
         {
             title: 'Acțiuni',
             key: 'actions',
-            width: 200,
+            width: 160,
             render: (_, record) => (
                 <Space>
                     <Tooltip title={record.pinned ? 'Desprinde' : 'Pinsează'}>
@@ -165,7 +181,7 @@ const ForumTab: React.FC = () => {
                 <Space wrap>
                     <Input
                         prefix={<SearchOutlined />}
-                        placeholder="Caută în postări, autor, handle..."
+                        placeholder="Caută în postări, autor, username..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         style={{ width: 300 }}
@@ -183,7 +199,8 @@ const ForumTab: React.FC = () => {
                     columns={columns}
                     dataSource={filtered}
                     rowKey="id"
-                    pagination={{ pageSize: 6, showSizeChanger: true }}
+                    loading={loading}
+                    pagination={{ pageSize: 10, showSizeChanger: true }}
                     size="middle"
                     rowClassName={record => record.hidden ? 'ant-table-row-hidden' : ''}
                 />

@@ -12,7 +12,6 @@ import { useProgress } from '../../context/ProgressContext';
 import { useDashboardData } from '../../context/useDashboardData';
 import { ROUTES } from '../../routes/paths';
 import { useUserClubs } from '../../hooks/useUserClubs';
-import axiosInstance from '../../services/api/axiosInstance';
 import { userApi, type FollowingUserDto } from '../../services/api/userApi';
 
 const AVATAR_COLORS = ['#1a6fff', '#00c8a0', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -114,7 +113,7 @@ const Profile: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            await axiosInstance.put('/user/profile', {
+            await userApi.updateProfile({
                 phone: editData.phone,
                 location: editData.location,
                 bio: editData.bio,

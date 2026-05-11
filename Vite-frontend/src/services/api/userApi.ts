@@ -157,4 +157,13 @@ export const userApi = {
         axiosInstance
             .get<ServiceResponse<UserProfile>>('/user/profile')
             .then((r) => r.data),
+
+    updateProfile: (data: {
+        phone?: string;
+        location?: string;
+        bio?: string;
+    }) =>
+        axiosInstance
+            .put<ServiceResponse<void>>('/user/profile', data)
+            .then((r) => r.data),
 };

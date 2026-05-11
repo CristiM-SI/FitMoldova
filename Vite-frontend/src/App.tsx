@@ -43,6 +43,7 @@ const AdminActivities = lazy(() => import('./pages/admin/AdminActivities'))
 const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
 const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
+const AdminContact      = lazy(() => import('./pages/admin/AdminContact'))
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
 const AccessDenied   = lazy(() => import('./pages/AccessDenied'))
 const DetailPage     = lazy(() => import('./pages/DetailPage'))
@@ -211,6 +212,7 @@ const adminClubsRoute      = createRoute({ getParentRoute: () => adminRoute, pat
 const adminChallengesRoute = createRoute({ getParentRoute: () => adminRoute, path: '/challenges', component: () => <AdminChallenges /> })
 const adminRoutesRoute     = createRoute({ getParentRoute: () => adminRoute, path: '/routes',     component: () => <AdminRoutes /> })
 const adminFeedbackRoute   = createRoute({ getParentRoute: () => adminRoute, path: '/feedback',   component: () => <AdminFeedback /> })
+const adminContactRoute    = createRoute({ getParentRoute: () => adminRoute, path: '/contact',    component: () => <AdminContact /> })
 // Definite DUPĂ adminRoute pentru a evita temporal dead zone
 const adminActivitiesRoute = createRoute({ getParentRoute: () => adminRoute, path: '/activities', component: () => <AdminActivities /> })
 const adminGalleryRoute    = createRoute({ getParentRoute: () => adminRoute, path: '/gallery',    component: () => <AdminGallery /> })
@@ -254,6 +256,7 @@ const routeTree = rootRoute.addChildren([
         adminActivitiesRoute,
         adminRoutesRoute,
         adminFeedbackRoute,
+        adminContactRoute,
         adminGalleryRoute,
     ]),
 ])

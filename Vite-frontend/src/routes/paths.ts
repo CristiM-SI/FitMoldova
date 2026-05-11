@@ -28,6 +28,7 @@ export const ROUTES = {
     ADMIN_GALLERY: '/admin/gallery',
     ADMIN_ROUTES: '/admin/routes',
     ADMIN_FEEDBACK: '/admin/feedback',
+    ADMIN_CONTACT: '/admin/contact',
 
     FEED: '/feed',
     SAVED: '/saved',

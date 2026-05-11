@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
-import { useForumContext, SUGGESTED_USERS } from '../context/ForumContext';
+import { useForumContext } from '../context/ForumContext';
 import {
   ft, fontImportCSS, keyframesCSS,
   sxPageRoot, sxBody, sxSidebar, sxNavItem, sxNavItemActive,
@@ -25,7 +25,7 @@ export default function FeedPage() {
     const navigate = useNavigate();
     const {
         threads,
-        followedUsers, handleFollow,
+        suggestedUsers, followedUsers, handleFollow,
         handleLike, handleRepost, handleBookmark,
         heartAnims, toast,
     } = useForumContext();
@@ -211,7 +211,7 @@ export default function FeedPage() {
 
                         <Box sx={sxSuggestBox}>
                             <Box sx={sxSuggestHeader}>👥 Urmărește oameni</Box>
-                            {SUGGESTED_USERS.map((su) => {
+                            {suggestedUsers.map((su) => {
                                 const isFollowing = followedUsers.has(su.handle);
                                 return (
                                     <Box key={su.handle} sx={sxSuggestUser}>

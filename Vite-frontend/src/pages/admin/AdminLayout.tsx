@@ -8,6 +8,7 @@ import {
     TrophyOutlined,
     CompassOutlined,
     MessageOutlined,
+    MailOutlined,
     LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -33,6 +34,7 @@ const menuItems = [
     { key: ROUTES.ADMIN_ROUTES, icon: <CompassOutlined />, label: 'Trasee' },
     { key: ROUTES.ADMIN_GALLERY, icon: <PictureOutlined />, label: 'Galerie' },
     { key: ROUTES.ADMIN_FEEDBACK, icon: <MessageOutlined />, label: 'Forum & Feedback' },
+    { key: ROUTES.ADMIN_CONTACT, icon: <MailOutlined />, label: 'Mesaje Contact' },
 ];
 
 const AdminLayout: React.FC = () => {

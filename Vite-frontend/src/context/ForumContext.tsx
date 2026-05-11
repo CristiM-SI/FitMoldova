@@ -1,7 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import {
-    SUGGESTED_USERS,
-} from '../services/mock/forum';
 import type {
     ForumThread,
     ForumReply,
@@ -9,6 +6,7 @@ import type {
     SuggestedUser,
 } from '../services/mock/forum'
 import postApi, { type PostInfoDto } from '../services/api/postApi';
+import { userApi } from '../services/api/userApi';
 import { useAuth } from './AuthContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -29,6 +27,7 @@ interface ForumContextValue {
     threads: ForumThread[];
     setThreads: React.Dispatch<React.SetStateAction<ForumThread[]>>;
     loading: boolean;
+    suggestedUsers: SuggestedUser[];
     followedUsers: Set<string>;
     handleFollow: (user: SuggestedUser) => void;
     handleLike: (threadId: number, e: React.MouseEvent) => void;
@@ -98,6 +97,7 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const [threads, setThreads] = useState<ForumThread[]>([]);
     const [loading, setLoading] = useState(true);
+    const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
     const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
     const [heartAnims, setHeartAnims] = useState<Set<number>>(new Set());
     const [toast, setToast] = useState({ msg: '', visible: false });
@@ -113,6 +113,32 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
             .then((posts) => setThreads(posts.map(mapPostToThread)))
             .catch(() => { /* Keep threads empty on error */ })
             .finally(() => setLoading(false));
+    }, []);
+
+    // Load suggested users and already-followed users from API
+    useEffect(() => {
+        const AVATAR_COLORS = ['#1a6fff', '#e84393', '#00b894', '#fdcb6e', '#6c5ce7', '#e17055'];
+
+        userApi.getCommunity()
+            .then((community) => {
+                const mapped: SuggestedUser[] = community.slice(0, 6).map((u, i) => ({
+                    id: u.id,
+                    name: `${u.firstName} ${u.lastName}`,
+                    handle: `@${u.username}`,
+                    color: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                    bio: u.bio ?? '',
+                    verified: false,
+                    followers: 0,
+                }));
+                setSuggestedUsers(mapped);
+            })
+            .catch(() => { /* rămâne lista goală */ });
+
+        userApi.getFollowing()
+            .then((following) => {
+                setFollowedUsers(new Set(following.map((f) => `@${f.username}`)));
+            })
+            .catch(() => { /* rămâne gol */ });
     }, []);
 
     const showToast = useCallback((msg: string) => {
@@ -315,19 +341,41 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
             });
     }, [user, showToast]);
 
-    const handleFollow = useCallback((user: SuggestedUser) => {
+    const handleFollow = useCallback((targetUser: SuggestedUser) => {
+        const isFollowing = followedUsers.has(targetUser.handle);
+
+        // Optimistic update
         setFollowedUsers((prev) => {
             const next = new Set(prev);
-            if (next.has(user.handle)) {
-                next.delete(user.handle);
-                showToast(`Ai încetat să urmărești pe ${user.name}`);
-            } else {
-                next.add(user.handle);
-                showToast(`Urmărești acum pe ${user.name}! 🎉`);
-            }
+            if (isFollowing) next.delete(targetUser.handle);
+            else next.add(targetUser.handle);
             return next;
         });
-    }, [showToast]);
+
+        // Apel real la API
+        const apiCall = isFollowing
+            ? userApi.unfollow(targetUser.id)
+            : userApi.follow(targetUser.id);
+
+        apiCall
+            .then(() => {
+                showToast(
+                    isFollowing
+                        ? `Ai încetat să urmărești pe ${targetUser.name}`
+                        : `Urmărești acum pe ${targetUser.name}! 🎉`
+                );
+            })
+            .catch(() => {
+                // Rollback dacă API-ul a eșuat
+                setFollowedUsers((prev) => {
+                    const next = new Set(prev);
+                    if (isFollowing) next.add(targetUser.handle);
+                    else next.delete(targetUser.handle);
+                    return next;
+                });
+                showToast('Eroare la urmărire. Încearcă din nou.');
+            });
+    }, [followedUsers, showToast]);
 
     // TODO: v2 - necesită SignalR
     const sendMessage = useCallback((_toHandle: string, _toName: string, _toAvatar: string, _toColor: string,
@@ -339,14 +387,14 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
 
     const ctxValue = useMemo<ForumContextValue>(() => ({
         threads, setThreads, loading,
-        followedUsers, handleFollow,
+        suggestedUsers, followedUsers, handleFollow,
         handleLike, handleRepost, handleBookmark,
         handleReplyLike, handlePollVote,
         handlePublish, handleReplySubmit,
         heartAnims, toast, showToast,
         messages, sendMessage, markAsRead,
     }), [
-        threads, loading, followedUsers, handleFollow,
+        threads, loading, suggestedUsers, followedUsers, handleFollow,
         handleLike, handleRepost, handleBookmark,
         handleReplyLike, handlePollVote,
         handlePublish, handleReplySubmit,

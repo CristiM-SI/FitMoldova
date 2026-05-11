@@ -8,7 +8,6 @@ import { useForumContext } from '../context/ForumContext';
 import {
     FORUM_CATEGORIES,
     TRENDING_TOPICS,
-    SUGGESTED_USERS,
 } from '../services/mock/forum';
 import type {
     ForumCategory,
@@ -136,7 +135,7 @@ export default function ForumPage() {
     const [msgInput, setMsgInput]                 = useState('');
 
     // Thread state and actions come from ForumContext (API-backed)
-    const { threads, loading: threadsLoading, heartAnims, followedUsers } = forum;
+    const { threads, loading: threadsLoading, heartAnims, suggestedUsers, followedUsers } = forum;
 
     const userAvatar = user ? (user.firstName[0] + user.lastName[0]).toUpperCase() : 'FM';
     const userName   = user ? `${user.firstName} ${user.lastName}` : 'FitMoldova User';
@@ -715,7 +714,7 @@ export default function ForumPage() {
 
                         <Box sx={sxSuggestBox}>
                             <Box sx={sxSuggestHeader}>Sugestii de urmărit</Box>
-                            {SUGGESTED_USERS.map((su) => {
+                            {suggestedUsers.map((su) => {
                                 const isFollowing = followedUsers.has(su.handle);
                                 return (
                                     <Box key={su.handle} sx={sxSuggestUser}>

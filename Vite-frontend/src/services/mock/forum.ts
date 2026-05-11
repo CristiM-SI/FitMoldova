@@ -52,6 +52,7 @@ export interface TrendingTopic {
 }
 
 export interface SuggestedUser {
+    id: number;
     name: string;
     handle: string;
     color: string;

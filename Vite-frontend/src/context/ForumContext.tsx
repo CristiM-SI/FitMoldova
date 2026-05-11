@@ -68,10 +68,10 @@ function formatRelativeTime(isoDate: string): string {
 function mapPostToThread(dto: PostInfoDto): ForumThread {
     return {
         id: dto.id,
-        author: `Utilizator #${dto.userId}`,
-        avatar: `U${dto.userId}`,
+        author: dto.authorName,
+        avatar: dto.authorName.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2),
         color: userColor(dto.userId),
-        handle: `@user${dto.userId}`,
+        handle: `@${dto.authorUsername}`,
         verified: false,
         content: dto.content,
         category: (dto.sport as ForumCategory) || 'Toate',

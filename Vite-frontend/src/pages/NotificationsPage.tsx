@@ -56,20 +56,6 @@ function dtoToNotif(dto: NotificationInfoDto): Notification {
     };
 }
 
-// ─── Mock notifications (fallback cât backend-ul nu e implementat) ─────────────
-
-const INITIAL_NOTIFS: Notification[] = [
-    { id: 1, type: 'like',     fromName: 'Ion Ceban',      fromHandle: '@ion_fitness',   fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a apreciat postarea ta despre maratonul din septembrie.',                                            time: '2 min', read: false },
-    { id: 2, type: 'follow',   fromName: 'Maria Lungu',    fromHandle: '@maria_runs',    fromAvatar: 'ML', fromColor: '#e91e8c', content: 'a început să te urmărească.',                                                                         time: '15 min', read: false },
-    { id: 3, type: 'reply',    fromName: 'Pavel Rotaru',   fromHandle: '@pavel_rotaru',  fromAvatar: 'PR', fromColor: '#00b894', content: 'a răspuns la postarea ta: "Complet de acord! Antrenamentul de dimineață e 🔥"',                       time: '1h', read: false },
-    { id: 4, type: 'repost',   fromName: 'FitMoldova',     fromHandle: '@fitmoldova',    fromAvatar: 'FM', fromColor: '#9b59b6', content: 'a repostat postarea ta despre nutriție.',                                                             time: '2h', read: false },
-    { id: 5, type: 'mention',  fromName: 'Ana Popescu',    fromHandle: '@ana_fit',       fromAvatar: 'AP', fromColor: '#e67e22', content: 'te-a menționat într-o postare: "Mulțumesc @user pentru sfaturile despre recuperare!"',               time: '3h', read: true },
-    { id: 6, type: 'like',     fromName: 'Dmitri Vasiliev',fromHandle: '@dmitri_runs',   fromAvatar: 'DV', fromColor: '#2ecc71', content: 'și alți 12 au apreciat postarea ta despre #LegDay.',                                                  time: '5h', read: true },
-    { id: 7, type: 'bookmark', fromName: 'Cristina Moga',  fromHandle: '@cristina_fit',  fromAvatar: 'CM', fromColor: '#e74c3c', content: 'a salvat postarea ta despre planul de antrenament.',                                                  time: '1z', read: true },
-    { id: 8, type: 'follow',   fromName: 'Radu Nistor',    fromHandle: '@radu_athlete',  fromAvatar: 'RN', fromColor: '#3498db', content: 'a început să te urmărească.',                                                                         time: '1z', read: true },
-    { id: 9, type: 'reply',    fromName: 'Ion Ceban',      fromHandle: '@ion_fitness',   fromAvatar: 'IC', fromColor: '#1a6fff', content: 'a răspuns la comentariul tău: "Super plan! Ai inclus și exerciții pentru mobilitate?"',               time: '2z', read: true },
-];
-
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
 
 const NOTIF_ICONS: Record<NotifType, { icon: string; color: string }> = {
@@ -91,7 +77,7 @@ export default function NotificationsPage() {
     const navigate = useNavigate();
     const { toast } = useForumContext();
 
-    const [notifs, setNotifs]       = useState<Notification[]>(INITIAL_NOTIFS);
+    const [notifs, setNotifs]       = useState<Notification[]>([]);
     const [activeTab, setActiveTab] = useState('Toate');
     const [loading, setLoading]     = useState(true);
 
@@ -106,7 +92,6 @@ export default function NotificationsPage() {
                 }
             })
             .catch(() => {
-                // Backend-ul pentru notificări nu e implementat încă — folosim mock data
                 if (!cancelled) setLoading(false);
             });
         return () => { cancelled = true; };

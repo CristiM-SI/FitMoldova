@@ -152,10 +152,10 @@ export function LoginForm({
                                 </span>
                             </div>
                             {[
-                                { ok: passwordStrength.checks.minChars,   text: `Minim 16 caractere (${form.password.length}/16)` },
-                                { ok: passwordStrength.checks.minLetters, text: `Cel puțin 6 litere (${(form.password.match(/[a-zA-Z]/g) || []).length}/6)` },
-                                { ok: passwordStrength.checks.minDigits,  text: `Cel puțin 6 cifre (${(form.password.match(/[0-9]/g) || []).length}/6)` },
-                                { ok: passwordStrength.checks.minSpecial, text: `Cel puțin 4 caractere speciale (${(form.password.match(/[^a-zA-Z0-9]/g) || []).length}/4)` },
+                                { ok: passwordStrength.checks.minChars,   text: `Minim 8 caractere (${form.password.length}/16)` },
+                                { ok: passwordStrength.checks.minLetters, text: `Cel puțin 3 litere (${(form.password.match(/[a-zA-Z]/g) || []).length}/6)` },
+                                { ok: passwordStrength.checks.minDigits,  text: `Cel puțin 3 cifre (${(form.password.match(/[0-9]/g) || []).length}/6)` },
+                                { ok: passwordStrength.checks.minSpecial, text: `Cel puțin 2 caractere speciale (${(form.password.match(/[^a-zA-Z0-9]/g) || []).length}/4)` },
                             ].map((item, i) => (
                                 <div key={i} style={{
                                     display: "flex", alignItems: "center", gap: "8px",

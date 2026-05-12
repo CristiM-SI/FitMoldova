@@ -32,12 +32,11 @@ function getPasswordStrength(password: string) {
     };
 }
 
+const PASSWORD_REGEX = /^(?=(.*[a-zA-Z]){3,})(?=(.*\d){3,})(?=(.*[^a-zA-Z\d]){2,}).{8,}$/;
+
 function validatePassword(password: string): string | undefined {
-    const { letters, digits, specials, total } = getPasswordStrength(password);
-    if (total < 16) return `Parola trebuie să aibă cel puțin 16 caractere (ai ${total}).`;
-    if (letters < 6) return `Sunt necesare cel puțin 6 litere (ai ${letters}).`;
-    if (digits < 6) return `Sunt necesare cel puțin 6 cifre (ai ${digits}).`;
-    if (specials < 4) return `Sunt necesare cel puțin 4 caractere speciale (ai ${specials}).`;
+    if (!PASSWORD_REGEX.test(password))
+        return 'Parola trebuie să conțină minim 8 caractere, 3 litere, 3 cifre și 2 caractere speciale.';
     return undefined;
 }
 
@@ -132,9 +131,9 @@ const SignUp = () => {
     };
 
     const strengthPercent = Math.min(100, Math.round(
-        (Math.min(strength.letters, 6) / 6) * 33 +
-        (Math.min(strength.digits, 6) / 6) * 33 +
-        (Math.min(strength.specials, 4) / 4) * 34
+        (Math.min(strength.letters, 3) / 3) * 33 +
+        (Math.min(strength.digits, 3) / 3) * 33 +
+        (Math.min(strength.specials, 2) / 2) * 34
     ));
 
     const strengthLabel =
@@ -233,7 +232,7 @@ const SignUp = () => {
                                 id="password" name="password" type={showPassword ? "text" : "password"}
                                 autoComplete="new-password"
                                 className={`su-input su-inputWithToggle ${touched.password && errors.password ? "su-inputError" : ""} ${touched.password && !errors.password && formData.password ? "su-inputValid" : ""}`}
-                                placeholder="Minim 16 caractere"
+                                placeholder="Minim 8 caractere"
                                 value={formData.password} onChange={handleChange} onBlur={handleBlur}
                             />
                             <button type="button" className="su-toggle" onClick={() => setShowPassword(v => !v)} aria-label="Toggle parolă">
@@ -250,10 +249,10 @@ const SignUp = () => {
                                     <span className="su-strengthLabel" style={{ color: strengthColor }}>{strengthLabel}</span>
                                 </div>
                                 <ul className="su-requirements">
-                                    <li className={strength.total >= 16 ? "su-reqMet" : "su-reqUnmet"}>{strength.total >= 16 ? "✓" : "○"} Minim 16 caractere ({strength.total}/16)</li>
-                                    <li className={strength.letters >= 6 ? "su-reqMet" : "su-reqUnmet"}>{strength.letters >= 6 ? "✓" : "○"} Cel puțin 6 litere ({strength.letters}/6)</li>
-                                    <li className={strength.digits >= 6 ? "su-reqMet" : "su-reqUnmet"}>{strength.digits >= 6 ? "✓" : "○"} Cel puțin 6 cifre ({strength.digits}/6)</li>
-                                    <li className={strength.specials >= 4 ? "su-reqMet" : "su-reqUnmet"}>{strength.specials >= 4 ? "✓" : "○"} Cel puțin 4 caractere speciale ({strength.specials}/4)</li>
+                                    <li className={strength.total >= 8 ? "su-reqMet" : "su-reqUnmet"}>{strength.total >= 8 ? "✓" : "○"} Minim 8 caractere ({strength.total}/8)</li>
+                                    <li className={strength.letters >= 3 ? "su-reqMet" : "su-reqUnmet"}>{strength.letters >= 3 ? "✓" : "○"} Cel puțin 3 litere ({strength.letters}/3)</li>
+                                    <li className={strength.digits >= 3 ? "su-reqMet" : "su-reqUnmet"}>{strength.digits >= 3 ? "✓" : "○"} Cel puțin 3 cifre ({strength.digits}/3)</li>
+                                    <li className={strength.specials >= 2 ? "su-reqMet" : "su-reqUnmet"}>{strength.specials >= 2 ? "✓" : "○"} Cel puțin 2 caractere speciale ({strength.specials}/2)</li>
                                 </ul>
                             </>
                         )}

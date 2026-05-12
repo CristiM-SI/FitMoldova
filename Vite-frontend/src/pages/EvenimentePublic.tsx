@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Link, useNavigate } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
@@ -159,6 +160,18 @@ const EvenimentePublic: React.FC = () => {
         }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [events, search, catFilter, diffFilter, priceFilter]);
 
+    const parentRef = useRef<HTMLDivElement>(null);
+    const eventRows: EventItem[][] = [];
+    for (let i = 0; i < filtered.length; i += 3) {
+        eventRows.push(filtered.slice(i, i + 3));
+    }
+    const rowVirtualizer = useVirtualizer({
+        count: eventRows.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 300,
+        overscan: 2,
+    });
+
     const hasActiveFilters = catFilter !== 'Toate' || diffFilter !== 'Toate' || priceFilter !== 'Toate' || search;
     const clearFilters = () => { setCatFilter('Toate'); setDiffFilter('Toate'); setPriceFilter('Toate'); setSearch(''); };
 
@@ -308,62 +321,89 @@ const EvenimentePublic: React.FC = () => {
                             <button className="ep-clear-btn" onClick={clearFilters}>Șterge filtrele</button>
                         </div>
                     ) : (
-                        <div className="ep-grid">
-                            {filtered.map((ev) => {
-                                const joined = isJoined(ev.id);
-                                const isJoining = joining === ev.id;
-                                return (
+                        <div
+                            ref={parentRef}
+                            style={{ height: '80vh', overflowY: 'auto' }}
+                        >
+                            <div
+                                style={{
+                                    height: `${rowVirtualizer.getTotalSize()}px`,
+                                    width: '100%',
+                                    position: 'relative',
+                                }}
+                            >
+                                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
                                     <div
-                                        key={ev.id}
-                                        className={`ep-card ${joined ? 'ep-card--joined' : ''}`}
-                                        onClick={() => { setDetail(ev); setShowMap(false); }}
-                                        role="button" tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && setDetail(ev)}
+                                        key={virtualRow.key}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            transform: `translateY(${virtualRow.start}px)`,
+                                            display: 'flex',
+                                            gap: '16px',
+                                        }}
                                     >
-                                        <div className="ep-card-img" style={{
-                                            background: ev.image ? 'none' : getGradient(ev.category),
-                                            position: 'relative', overflow: 'hidden',
-                                        }}>
-                                            {ev.image ? (
-                                                <img src={ev.image} alt={ev.name} loading="lazy"
-                                                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
-                                            ) : (
-                                                <span className="ep-card-emoji">{ev.icon}</span>
-                                            )}
-                                            <div className="ep-card-img-overlay">
-                                                <span className="ep-cat-chip">{ev.category}</span>
-                                                {joined && <span className="ep-joined-chip">✓ Înscris</span>}
-                                            </div>
-                                            <div className="ep-card-img-bottom">
-                                                <span className={`ep-price-chip ${ev.price === 'Gratuit' ? 'ep-price-chip--free' : ''}`}>
-                                                    {ev.price}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="ep-card-body">
-                                            <h3 className="ep-card-title">{ev.name}</h3>
-                                            <div className="ep-card-meta">
-                                                <span className="ep-card-meta-item"><span className="ep-meta-icon">📅</span>{formatDateShort(ev.date)}</span>
-                                                <span className="ep-card-meta-item"><span className="ep-meta-icon">📍</span>{ev.city}</span>
-                                            </div>
-                                            <div className="ep-card-meta">
-                                                <span className="ep-card-meta-item"><span className="ep-meta-icon">🕐</span>{ev.time}</span>
-                                                <span className="ep-card-meta-item"><span className="ep-meta-icon">👥</span>{ev.participants}/{ev.maxParticipants}</span>
-                                            </div>
-                                            <div className="ep-card-footer">
-                                                <span className="ep-diff-badge">{ev.difficulty}</span>
-                                                <button
-                                                    className={joined ? 'ep-btn-leave' : 'ep-btn-join'}
-                                                    onClick={(e) => handleJoin(ev, e)}
-                                                    disabled={isJoining}
+                                        {eventRows[virtualRow.index].map((ev) => {
+                                            const joined = isJoined(ev.id);
+                                            const isJoining = joining === ev.id;
+                                            return (
+                                                <div
+                                                    key={ev.id}
+                                                    className={`ep-card ${joined ? 'ep-card--joined' : ''}`}
+                                                    onClick={() => { setDetail(ev); setShowMap(false); }}
+                                                    role="button" tabIndex={0}
+                                                    onKeyDown={(e) => e.key === 'Enter' && setDetail(ev)}
+                                                    style={{ flex: '1 1 0' }}
                                                 >
-                                                    {isJoining ? '...' : !isAuthenticated ? '🔐 Autentifică-te' : joined ? '✕ Ieși' : 'Alătură-te →'}
-                                                </button>
-                                            </div>
-                                        </div>
+                                                    <div className="ep-card-img" style={{
+                                                        background: ev.image ? 'none' : getGradient(ev.category),
+                                                        position: 'relative', overflow: 'hidden',
+                                                    }}>
+                                                        {ev.image ? (
+                                                            <img src={ev.image} alt={ev.name} loading="lazy"
+                                                                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }} />
+                                                        ) : (
+                                                            <span className="ep-card-emoji">{ev.icon}</span>
+                                                        )}
+                                                        <div className="ep-card-img-overlay">
+                                                            <span className="ep-cat-chip">{ev.category}</span>
+                                                            {joined && <span className="ep-joined-chip">✓ Înscris</span>}
+                                                        </div>
+                                                        <div className="ep-card-img-bottom">
+                                                            <span className={`ep-price-chip ${ev.price === 'Gratuit' ? 'ep-price-chip--free' : ''}`}>
+                                                                {ev.price}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ep-card-body">
+                                                        <h3 className="ep-card-title">{ev.name}</h3>
+                                                        <div className="ep-card-meta">
+                                                            <span className="ep-card-meta-item"><span className="ep-meta-icon">📅</span>{formatDateShort(ev.date)}</span>
+                                                            <span className="ep-card-meta-item"><span className="ep-meta-icon">📍</span>{ev.city}</span>
+                                                        </div>
+                                                        <div className="ep-card-meta">
+                                                            <span className="ep-card-meta-item"><span className="ep-meta-icon">🕐</span>{ev.time}</span>
+                                                            <span className="ep-card-meta-item"><span className="ep-meta-icon">👥</span>{ev.participants}/{ev.maxParticipants}</span>
+                                                        </div>
+                                                        <div className="ep-card-footer">
+                                                            <span className="ep-diff-badge">{ev.difficulty}</span>
+                                                            <button
+                                                                className={joined ? 'ep-btn-leave' : 'ep-btn-join'}
+                                                                onClick={(e) => handleJoin(ev, e)}
+                                                                disabled={isJoining}
+                                                            >
+                                                                {isJoining ? '...' : !isAuthenticated ? '🔐 Autentifică-te' : joined ? '✕ Ieși' : 'Alătură-te →'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                );
-                            })}
+                                ))}
+                            </div>
                         </div>
                     ))}
                 </div>

@@ -63,13 +63,15 @@ export const clubApi = {
 
     /** DELETE /api/club/{clubId}/leave — CRITICA NOUA 1 FIX: userId din token, nu din URL */
     leaveClub: (clubId: number) =>
-        axiosInstance.delete(`/club/${clubId}/leave`).then(() => {}),
+        axiosInstance.post(`/club/${clubId}/leave`).then(() => {}),
 
     getMembers: (clubId: number) =>
         axiosInstance.get<ApiResponse<ClubMemberDto[]>>(`/club/${clubId}/members`).then(unwrap),
 
     getUserClubs: (userId: number) =>
-        axiosInstance.get<ApiResponse<ClubDto[]>>(`/club/user/${userId}`).then(unwrap),
+        axiosInstance.get<ApiResponse<ClubDto[]>>(`/club/user/${userId}`)
+            .then(unwrap)
+            .catch(() => [] as ClubDto[]),
 
     delete: (id: number) =>
         axiosInstance.delete(`/club/${id}`).then(() => {}),

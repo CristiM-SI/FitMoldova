@@ -16,19 +16,19 @@ export interface PasswordStrength {
     label: string;           // "Slabă" | "Medie" | "Bună" | "Excelentă"
     color: string;
     checks: {
-        minChars: boolean;     // minim 16 caractere
-        minLetters: boolean;   // cel puțin 6 litere
-        minDigits: boolean;    // cel puțin 6 cifre
-        minSpecial: boolean;   // cel puțin 4 caractere speciale
+        minChars: boolean;     // minim 8 caractere
+        minLetters: boolean;   // cel puțin 3 litere
+        minDigits: boolean;    // cel puțin 3 cifre
+        minSpecial: boolean;   // cel puțin 2 caractere speciale
     };
 }
 
 export function getPasswordStrength(password: string): PasswordStrength {
     const checks = {
-        minChars: password.length >= 16,
-        minLetters: (password.match(/[a-zA-Z]/g) || []).length >= 6,
-        minDigits: (password.match(/[0-9]/g) || []).length >= 6,
-        minSpecial: (password.match(/[^a-zA-Z0-9]/g) || []).length >= 4,
+        minChars: password.length >= 8,
+        minLetters: (password.match(/[a-zA-Z]/g) || []).length >= 3,
+        minDigits: (password.match(/[0-9]/g) || []).length >= 3,
+        minSpecial: (password.match(/[^a-zA-Z0-9]/g) || []).length >= 2,
     };
 
     const score = Object.values(checks).filter(Boolean).length;
@@ -63,7 +63,7 @@ export function useLoginForm() {
         if (!form.password) {
             newErrors.password = "Parola este obligatorie";
         } else if (!passwordStrength.checks.minChars) {
-            newErrors.password = "Parola trebuie să aibă cel puțin 16 caractere";
+            newErrors.password = "Parola trebuie să conțină minim 8 caractere, 3 litere, 3 cifre și 2 caractere speciale.";
         }
 
         setErrors(newErrors);

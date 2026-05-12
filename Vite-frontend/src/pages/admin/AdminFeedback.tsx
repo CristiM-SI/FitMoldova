@@ -12,7 +12,7 @@ import {
     StarOutlined, LikeOutlined, StarFilled,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { FORUM_CATEGORIES, type ForumCategory } from '../../services/mock/forum';
+import { FORUM_CATEGORIES, type ForumCategory } from '../../types/forum';
 import postApi, { type PostInfoDto } from '../../services/api/postApi';
 
 const { Title, Text, Paragraph } = Typography;

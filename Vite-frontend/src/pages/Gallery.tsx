@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { message, Spin, Empty } from 'antd';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
@@ -294,6 +295,18 @@ const Gallery: React.FC = () => {
         setSelected(item);
     }, []);
 
+    const galleryParentRef = useRef<HTMLDivElement>(null);
+    const galleryRows: GalleryInfoDto[][] = [];
+    for (let i = 0; i < filtered.length; i += 3) {
+        galleryRows.push(filtered.slice(i, i + 3));
+    }
+    const galleryRowVirtualizer = useVirtualizer({
+        count: galleryRows.length,
+        getScrollElement: () => galleryParentRef.current,
+        estimateSize: () => 250,
+        overscan: 2,
+    });
+
     return (
         <div style={{ background: '#0a1628', minHeight: '100vh', color: '#e0f2fe' }}>
             <Navbar />
@@ -379,15 +392,37 @@ const Gallery: React.FC = () => {
                     />
                 ) : (
                     <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                            gap: 20,
-                        }}
+                        ref={galleryParentRef}
+                        style={{ height: '80vh', overflowY: 'auto' }}
                     >
-                        {filtered.map((item) => (
-                            <GalleryCard key={item.id} item={item} onClick={handleCardClick} />
-                        ))}
+                        <div
+                            style={{
+                                height: `${galleryRowVirtualizer.getTotalSize()}px`,
+                                width: '100%',
+                                position: 'relative',
+                            }}
+                        >
+                            {galleryRowVirtualizer.getVirtualItems().map((virtualRow) => (
+                                <div
+                                    key={virtualRow.key}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        transform: `translateY(${virtualRow.start}px)`,
+                                        display: 'flex',
+                                        gap: '16px',
+                                    }}
+                                >
+                                    {galleryRows[virtualRow.index].map((item) => (
+                                        <div key={item.id} style={{ flex: '1 1 0' }}>
+                                            <GalleryCard item={item} onClick={handleCardClick} />
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </section>

@@ -18,6 +18,11 @@ export interface ChallengeCreatePayload {
 
 export interface ChallengeUpdatePayload extends ChallengeCreatePayload {}
 
+export interface ChallengeJoinedDto extends ChallengeDto {
+    joinedAt: string;
+    progressPercent: number;
+}
+
 function unwrap<T>(data: unknown): T {
     if (data && typeof data === 'object' && 'isSuccess' in data) {
         const env = data as { isSuccess: boolean; data: T; message?: string };
@@ -51,4 +56,7 @@ export const challengeApi = {
 
     delete: (id: number) =>
         axiosInstance.delete(`/challenge/${id}`).then(() => {}),
+
+    getJoined: () =>
+        axiosInstance.get('/challenge/joined').then(r => unwrap<ChallengeJoinedDto[]>(r.data)),
 };

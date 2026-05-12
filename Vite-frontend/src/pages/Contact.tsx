@@ -80,6 +80,9 @@ const Contact: React.FC = () => {
 
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Partial<typeof form>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const [cooldownSecs, setCooldownSecs] = useState(0);
   const [subjectOpen, setSubjectOpen] = useState(false);
   const subjectRef = useRef<HTMLDivElement>(null);
 
@@ -125,7 +128,7 @@ const Contact: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
+    setSubmitting(true);
     setStatus('loading');
     try {
       const result = await contactApi.submit({
@@ -137,11 +140,21 @@ const Contact: React.FC = () => {
       if (result.isSuccess) {
         setStatus('success');
         setForm({ name: '', email: '', subject: '', message: '' });
+        setCooldown(true);
+        setCooldownSecs(30);
+        const interval = setInterval(() => {
+          setCooldownSecs((s) => {
+            if (s <= 1) { clearInterval(interval); setCooldown(false); return 0; }
+            return s - 1;
+          });
+        }, 1000);
       } else {
         setStatus('error');
       }
     } catch {
       setStatus('error');
+    } finally {
+      setTimeout(() => setSubmitting(false), 500);
     }
   };
 
@@ -303,10 +316,10 @@ const Contact: React.FC = () => {
                 <button
                   type="submit"
                   className="btn btn-primary contact-submit-btn"
-                  disabled={status === 'loading'}
-                  style={{ opacity: status === 'loading' ? 0.7 : 1, cursor: status === 'loading' ? 'not-allowed' : 'pointer' }}
+                  disabled={submitting || cooldown}
+                  style={{ opacity: submitting || cooldown ? 0.7 : 1, cursor: submitting || cooldown ? 'not-allowed' : 'pointer' }}
                 >
-                  {status === 'loading' ? '⏳ Se trimite...' : 'Trimite Mesajul'}
+                  {submitting ? '⏳ Se trimite...' : cooldown ? `Așteaptă ${cooldownSecs}s` : 'Trimite Mesajul'}
                 </button>
               </form>
             </div>

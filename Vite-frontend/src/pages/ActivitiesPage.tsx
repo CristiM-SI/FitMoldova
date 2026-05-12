@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { activityApi, type ActivityDto } from "../services/api/activityApi";
 import { useAuth } from "../context/AuthContext";
 import { useDashboardData } from "../context/useDashboardData";
@@ -276,6 +277,18 @@ export default function ActivitiesPage() {
     const filtered = activFilter === "Toate" ? activities : activities.filter((a) => a.type === activFilter);
     const totalCalorii = activities.reduce((s, a) => s + a.calories, 0);
 
+    const parentRef = useRef<HTMLDivElement>(null);
+    const activityRows: ActivityDto[][] = [];
+    for (let i = 0; i < filtered.length; i += 3) {
+        activityRows.push(filtered.slice(i, i + 3));
+    }
+    const rowVirtualizer = useVirtualizer({
+        count: activityRows.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 220,
+        overscan: 3,
+    });
+
     return (
         <div style={{ minHeight: "100vh", background: "#0d1117", color: "#f1f5f9", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
             <style>{`
@@ -358,15 +371,42 @@ export default function ActivitiesPage() {
                                 Nu există activități în această categorie.
                             </div>
                         ) : (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
-                                {filtered.map((a) => (
-                                    <ActivityCard
-                                        key={a.id}
-                                        activity={a}
-                                        isJoined={joinedActivityIds.includes(a.id)}
-                                        onClick={() => setSelected(a)}
-                                    />
-                                ))}
+                            <div
+                                ref={parentRef}
+                                style={{ height: '80vh', overflowY: 'auto' }}
+                            >
+                                <div
+                                    style={{
+                                        height: `${rowVirtualizer.getTotalSize()}px`,
+                                        width: '100%',
+                                        position: 'relative',
+                                    }}
+                                >
+                                    {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+                                        <div
+                                            key={virtualRow.key}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                transform: `translateY(${virtualRow.start}px)`,
+                                                display: 'flex',
+                                                gap: '16px',
+                                            }}
+                                        >
+                                            {activityRows[virtualRow.index].map((a) => (
+                                                <div key={a.id} style={{ flex: '1 1 0' }}>
+                                                    <ActivityCard
+                                                        activity={a}
+                                                        isJoined={joinedActivityIds.includes(a.id)}
+                                                        onClick={() => setSelected(a)}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </>

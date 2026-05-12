@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
     Box, Typography, Card, CardContent, Grid, Button, Chip, Avatar,
     TextField, InputAdornment, Tabs, Tab, Rating, IconButton, Dialog,
@@ -156,6 +157,18 @@ const ClubsPage: React.FC = () => {
         return matchSearch && matchCat;
     }), [displayList, search, filterCat]);
 
+    const clubsParentRef = useRef<HTMLDivElement>(null);
+    const clubRows: ClubDto[][] = [];
+    for (let i = 0; i < filtered.length; i += 3) {
+        clubRows.push(filtered.slice(i, i + 3));
+    }
+    const clubRowVirtualizer = useVirtualizer({
+        count: clubRows.length,
+        getScrollElement: () => clubsParentRef.current,
+        estimateSize: () => 200,
+        overscan: 2,
+    });
+
     const totalMembers = clubs.reduce((s, c) => s + (c.membersCount ?? 0), 0);
 
     return (
@@ -267,73 +280,98 @@ const ClubsPage: React.FC = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <Grid container spacing={2}>
-                    {filtered.map(club => {
-                        const joined_ = isJoined(club.id);
-                        const catColor = CAT_COLORS[club.category] || '#6366f1';
-                        const catIcon  = CAT_ICONS[club.category] || '🏅';
-                        return (
-                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={club.id}>
-                                <Card
-                                    elevation={0}
-                                    onClick={() => setDetailClub(club)}
-                                    sx={{
-                                        borderRadius: 3,
-                                        border: `1px solid ${joined_ ? '#1a6fff30' : '#e8edf3'}`,
-                                        cursor: 'pointer',
-                                        '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transform: 'translateY(-2px)' },
-                                        transition: 'all 0.2s',
-                                        height: '100%',
-                                    }}
-                                >
-                                    <CardContent sx={{ p: 2.5 }}>
-                                        {/* Imagine club */}
-                                        <ClubImage src={club.imageUrl} color={catColor} icon={catIcon} height={120} />
+                <div
+                    ref={clubsParentRef}
+                    style={{ height: '80vh', overflowY: 'auto' }}
+                >
+                    <div
+                        style={{
+                            height: `${clubRowVirtualizer.getTotalSize()}px`,
+                            width: '100%',
+                            position: 'relative',
+                        }}
+                    >
+                        {clubRowVirtualizer.getVirtualItems().map((virtualRow) => (
+                            <div
+                                key={virtualRow.key}
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    transform: `translateY(${virtualRow.start}px)`,
+                                    display: 'flex',
+                                    gap: '16px',
+                                }}
+                            >
+                                {clubRows[virtualRow.index].map((club) => {
+                                    const joined_ = isJoined(club.id);
+                                    const catColor = CAT_COLORS[club.category] || '#6366f1';
+                                    const catIcon  = CAT_ICONS[club.category] || '🏅';
+                                    return (
+                                        <div key={club.id} style={{ flex: '1 1 0' }}>
+                                            <Card
+                                                elevation={0}
+                                                onClick={() => setDetailClub(club)}
+                                                sx={{
+                                                    borderRadius: 3,
+                                                    border: `1px solid ${joined_ ? '#1a6fff30' : '#e8edf3'}`,
+                                                    cursor: 'pointer',
+                                                    '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transform: 'translateY(-2px)' },
+                                                    transition: 'all 0.2s',
+                                                    height: '100%',
+                                                }}
+                                            >
+                                                <CardContent sx={{ p: 2.5 }}>
+                                                    <ClubImage src={club.imageUrl} color={catColor} icon={catIcon} height={120} />
 
-                                        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                                            <Avatar sx={{ width: 44, height: 44, fontSize: '1.3rem', bgcolor: `${catColor}12`, borderRadius: '12px' }}>
-                                                {catIcon}
-                                            </Avatar>
-                                            <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                    <Typography variant="body2" fontWeight={800} noWrap sx={{ flex: 1 }}>{club.name}</Typography>
-                                                    {joined_ && (
-                                                        <Chip label="✓ Înscris" size="small"
-                                                              sx={{ height: 18, bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 700, fontSize: '0.6rem', ml: 0.5 }}
-                                                        />
-                                                    )}
-                                                </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
-                                                    <LocationOn sx={{ fontSize: 11, color: '#94a3b8' }} />
-                                                    <Typography variant="caption" color="text.secondary" noWrap>{club.location}</Typography>
-                                                </Box>
-                                            </Box>
-                                        </Box>
+                                                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                                                        <Avatar sx={{ width: 44, height: 44, fontSize: '1.3rem', bgcolor: `${catColor}12`, borderRadius: '12px' }}>
+                                                            {catIcon}
+                                                        </Avatar>
+                                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                                <Typography variant="body2" fontWeight={800} noWrap sx={{ flex: 1 }}>{club.name}</Typography>
+                                                                {joined_ && (
+                                                                    <Chip label="✓ Înscris" size="small"
+                                                                          sx={{ height: 18, bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 700, fontSize: '0.6rem', ml: 0.5 }}
+                                                                    />
+                                                                )}
+                                                            </Box>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                                                                <LocationOn sx={{ fontSize: 11, color: '#94a3b8' }} />
+                                                                <Typography variant="caption" color="text.secondary" noWrap>{club.location}</Typography>
+                                                            </Box>
+                                                        </Box>
+                                                    </Box>
 
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.5 }}>
-                                            {club.description.length > 85 ? club.description.slice(0, 85) + '...' : club.description}
-                                        </Typography>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.5 }}>
+                                                        {club.description.length > 85 ? club.description.slice(0, 85) + '...' : club.description}
+                                                    </Typography>
 
-                                        <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
-                                            <Chip label={club.category} size="small" sx={{ height: 20, bgcolor: `${catColor}12`, color: catColor, fontWeight: 700, fontSize: '0.68rem' }} />
-                                            <Chip label={club.level}    size="small" sx={{ height: 20, bgcolor: '#f8faff', color: '#64748b', fontSize: '0.68rem' }} />
-                                        </Box>
+                                                    <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+                                                        <Chip label={club.category} size="small" sx={{ height: 20, bgcolor: `${catColor}12`, color: catColor, fontWeight: 700, fontSize: '0.68rem' }} />
+                                                        <Chip label={club.level}    size="small" sx={{ height: 20, bgcolor: '#f8faff', color: '#64748b', fontSize: '0.68rem' }} />
+                                                    </Box>
 
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                <Group sx={{ fontSize: 13, color: '#94a3b8' }} />
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {(club.membersCount ?? 0).toLocaleString()} membri
-                                                </Typography>
-                                            </Box>
-                                            <Rating value={club.rating} readOnly size="small" precision={0.5} sx={{ fontSize: '0.8rem' }} />
-                                        </Box>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
-                        );
-                    })}
-                </Grid>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            <Group sx={{ fontSize: 13, color: '#94a3b8' }} />
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {(club.membersCount ?? 0).toLocaleString()} membri
+                                                            </Typography>
+                                                        </Box>
+                                                        <Rating value={club.rating} readOnly size="small" precision={0.5} sx={{ fontSize: '0.8rem' }} />
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
             )}
 
             {/* Detail Dialog */}

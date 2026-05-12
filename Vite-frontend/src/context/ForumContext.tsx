@@ -4,7 +4,7 @@ import type {
     ForumReply,
     ForumCategory,
     SuggestedUser,
-} from '../services/mock/forum'
+} from '../types/forum'
 import postApi, { type PostInfoDto } from '../services/api/postApi';
 import { userApi } from '../services/api/userApi';
 import { useAuth } from './AuthContext';
@@ -110,7 +110,13 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
     // Load posts from API on mount
     useEffect(() => {
         postApi.getAll()
-            .then((posts) => setThreads(posts.map(mapPostToThread)))
+            .then((posts) => {
+                setThreads(posts.map(mapPostToThread));
+                postApi.getBookmarked().then(bookmarked => {
+                    const ids = new Set(bookmarked.map(p => p.id));
+                    setThreads(prev => prev.map(t => ({ ...t, bookmarked: ids.has(t.id) })));
+                }).catch(() => {});
+            })
             .catch(() => { /* Keep threads empty on error */ })
             .finally(() => setLoading(false));
     }, []);
@@ -175,6 +181,8 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
 
     const handleRepost = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
+        const thread = threadsRef.current.find((t) => t.id === threadId);
+        const isNowReposted = !thread?.reposted;
         setThreads((prev) =>
             prev.map((t) =>
                 t.id === threadId
@@ -182,19 +190,36 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
                     : t
             )
         );
-        const thread = threadsRef.current.find((t) => t.id === threadId);
-        if (thread && !thread.reposted) showToast('Repostat cu succes!');
+        if (isNowReposted) {
+            showToast('Repostat cu succes!');
+            postApi.repostPost(threadId).catch(() => {
+                setThreads(prev => prev.map(t => t.id === threadId ? { ...t, reposted: false, reposts: Math.max(0, t.reposts - 1) } : t));
+                showToast('Eroare la repost');
+            });
+        }
     }, [showToast]);
 
     const handleBookmark = useCallback((threadId: number, e: React.MouseEvent) => {
         e.stopPropagation();
         const thread = threadsRef.current.find((t) => t.id === threadId);
+        const isNowBookmarked = !thread?.bookmarked;
         setThreads((prev) =>
             prev.map((t) =>
                 t.id === threadId ? { ...t, bookmarked: !t.bookmarked } : t
             )
         );
         showToast(thread?.bookmarked ? 'Eliminat din salvate' : 'Adăugat la salvate! 🔖');
+        if (isNowBookmarked) {
+            postApi.bookmarkPost(threadId).catch(() => {
+                setThreads(prev => prev.map(t => t.id === threadId ? { ...t, bookmarked: false } : t));
+                showToast('Eroare la salvare');
+            });
+        } else {
+            postApi.unbookmarkPost(threadId).catch(() => {
+                setThreads(prev => prev.map(t => t.id === threadId ? { ...t, bookmarked: true } : t));
+                showToast('Eroare la eliminare');
+            });
+        }
     }, [showToast]);
 
     const handleReplyLike = useCallback((threadId: number, replyId: number) => {
@@ -212,6 +237,15 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
                     : t
             )
         );
+        postApi.likeComment(replyId).catch(() => {
+            setThreads(prev => prev.map(t => {
+                if (t.id !== threadId) return t;
+                return {
+                    ...t,
+                    replies: t.replies.map(r => r.id === replyId ? { ...r, likes: Math.max(0, r.likes - 1) } : r)
+                };
+            }));
+        });
     }, []);
 
     const handlePollVote = useCallback((threadId: number, optionIdx: number) => {
@@ -228,6 +262,9 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
             })
         );
         showToast('Votul tău a fost înregistrat!');
+        postApi.votePoll(threadId, optionIdx).catch(() => {
+            showToast('Eroare la vot — încearcă din nou');
+        });
     }, [showToast]);
 
     const handlePublish = useCallback((
@@ -415,4 +452,3 @@ export function useForumContext() {
     return ctx;
 }
 
-export { SUGGESTED_USERS };

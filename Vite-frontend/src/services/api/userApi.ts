@@ -166,4 +166,9 @@ export const userApi = {
         axiosInstance
             .put<ServiceResponse<void>>('/user/profile', data)
             .then((r) => r.data),
+
+    changePassword: (currentPassword: string, newPassword: string) =>
+        axiosInstance
+            .put<ServiceResponse<void>>('/user/change-password', { currentPassword, newPassword })
+            .then((r) => r.data),
 };

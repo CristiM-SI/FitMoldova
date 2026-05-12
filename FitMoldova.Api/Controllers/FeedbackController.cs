@@ -1,9 +1,15 @@
+// ACCESS CONTROL SUMMARY:
+// Public:             GET /api/feedback, GET /api/feedback/stats
+// [Authorize]:        POST /api/feedback (submit review, max 5/hour per IP)
+// [Authorize(Admin)]: GET /api/feedback/admin, PUT /api/feedback/{id}/status,
+//                     PUT /api/feedback/{id}/pin, DELETE /api/feedback/{id}
 using AutoMapper;
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Feedback;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
 [Route("api/feedback")]
@@ -17,10 +23,10 @@ public class FeedbackController : ControllerBase
         _feedbackLogic = bl.FeedbackLogic();
     }
 
-    // POST api/feedback
-    // Utilizator autentificat trimite o recenzie
+    // POST api/feedback — authenticated, rate-limited
     [HttpPost]
     [Authorize]
+    [EnableRateLimiting("ContactFormPolicy")]
     public IActionResult Submit([FromBody] FeedbackCreateDto dto)
     {
         var result = _feedbackLogic.Submit(dto);
@@ -29,8 +35,7 @@ public class FeedbackController : ControllerBase
         return Ok(result);
     }
 
-    // GET api/feedback
-    // Recenzii vizibile, pinned primele — public
+    // GET api/feedback — public
     [HttpGet]
     public IActionResult GetAll()
     {
@@ -38,8 +43,7 @@ public class FeedbackController : ControllerBase
         return Ok(result);
     }
 
-    // GET api/feedback/admin
-    // Toate recenziile inclusiv ascunse — doar admin
+    // GET api/feedback/admin — admin only
     [HttpGet("admin")]
     [Authorize(Roles = "Admin")]
     public IActionResult GetAllAdmin()
@@ -48,8 +52,7 @@ public class FeedbackController : ControllerBase
         return Ok(result);
     }
 
-    // GET api/feedback/stats
-    // Statistici globale — public
+    // GET api/feedback/stats — public
     [HttpGet("stats")]
     public IActionResult GetStats()
     {
@@ -57,8 +60,7 @@ public class FeedbackController : ControllerBase
         return Ok(result);
     }
 
-    // PUT api/feedback/42/status
-    // Schimbă vizibilitatea — doar admin
+    // PUT api/feedback/{id}/status — admin only
     [HttpPut("{id}/status")]
     [Authorize(Roles = "Admin")]
     public IActionResult UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
@@ -69,8 +71,7 @@ public class FeedbackController : ControllerBase
         return Ok(result);
     }
 
-    // PUT api/feedback/42/pin
-    // Toggle pin pentru pagina publică — doar admin
+    // PUT api/feedback/{id}/pin — admin only
     [HttpPut("{id}/pin")]
     [Authorize(Roles = "Admin")]
     public IActionResult TogglePin(int id)
@@ -81,8 +82,7 @@ public class FeedbackController : ControllerBase
         return Ok(result);
     }
 
-    // DELETE api/feedback/42
-    // Șterge o recenzie — doar admin
+    // DELETE api/feedback/{id} — admin only
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public IActionResult Delete(int id)

@@ -19,5 +19,7 @@ namespace FitMoldova.BusinessLogic.Structure
                var action = new ChallengeAction();
                return action.LeaveChallengeExecution(challengeId, userId);
           }
+
+          public ServiceResponse GetJoined(int userId) => GetJoinedExecution(userId);
      }
 }

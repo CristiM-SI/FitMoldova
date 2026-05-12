@@ -56,6 +56,10 @@ public class FitMoldovaContext : DbContext
     public DbSet<NotificationEntity> Notifications { get; set; }
     public DbSet<UserFollowEntity> UserFollows { get; set; }
     public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
+    public DbSet<PostBookmarkEntity> PostBookmarks { get; set; }
+    public DbSet<PostRepostEntity> PostReposts { get; set; }
+    public DbSet<PostPollVoteEntity> PostPollVotes { get; set; }
+    public DbSet<PostReplyLikeEntity> PostReplyLikes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -208,5 +212,45 @@ public class FitMoldovaContext : DbContext
              .WithMany()
              .HasForeignKey(rt => rt.UserId)
              .OnDelete(DeleteBehavior.Cascade);
+
+        // ── PostBookmark ───────────────────────────────────────────────────────
+        modelBuilder.Entity<PostBookmarkEntity>()
+            .HasIndex(pb => new { pb.UserId, pb.PostId }).IsUnique();
+        modelBuilder.Entity<PostBookmarkEntity>()
+            .HasOne(pb => pb.User).WithMany()
+            .HasForeignKey(pb => pb.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PostBookmarkEntity>()
+            .HasOne(pb => pb.Post).WithMany()
+            .HasForeignKey(pb => pb.PostId).OnDelete(DeleteBehavior.Cascade);
+
+        // ── PostRepost ─────────────────────────────────────────────────────────
+        modelBuilder.Entity<PostRepostEntity>()
+            .HasIndex(pr => new { pr.UserId, pr.PostId }).IsUnique();
+        modelBuilder.Entity<PostRepostEntity>()
+            .HasOne(pr => pr.User).WithMany()
+            .HasForeignKey(pr => pr.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PostRepostEntity>()
+            .HasOne(pr => pr.Post).WithMany()
+            .HasForeignKey(pr => pr.PostId).OnDelete(DeleteBehavior.Cascade);
+
+        // ── PostPollVote ───────────────────────────────────────────────────────
+        modelBuilder.Entity<PostPollVoteEntity>()
+            .HasIndex(pv => new { pv.UserId, pv.PostId }).IsUnique();
+        modelBuilder.Entity<PostPollVoteEntity>()
+            .HasOne(pv => pv.User).WithMany()
+            .HasForeignKey(pv => pv.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PostPollVoteEntity>()
+            .HasOne(pv => pv.Post).WithMany()
+            .HasForeignKey(pv => pv.PostId).OnDelete(DeleteBehavior.Cascade);
+
+        // ── PostReplyLike ──────────────────────────────────────────────────────
+        modelBuilder.Entity<PostReplyLikeEntity>()
+            .HasIndex(rl => new { rl.UserId, rl.ReplyId }).IsUnique();
+        modelBuilder.Entity<PostReplyLikeEntity>()
+            .HasOne(rl => rl.User).WithMany()
+            .HasForeignKey(rl => rl.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PostReplyLikeEntity>()
+            .HasOne(rl => rl.Reply).WithMany()
+            .HasForeignKey(rl => rl.ReplyId).OnDelete(DeleteBehavior.Cascade);
     }
 }

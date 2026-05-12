@@ -523,6 +523,33 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostBookmarkEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId", "PostId")
+                        .IsUnique();
+
+                    b.ToTable("PostBookmarks");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -547,7 +574,19 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsRepost")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Likes")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("OriginalPostId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PollOptions")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Reposts")
                         .HasColumnType("integer");
 
                     b.Property<string>("Sport")
@@ -570,6 +609,36 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.HasIndex("ClubId", "CreatedAt");
 
                     b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostPollVoteEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OptionIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId", "PostId")
+                        .IsUnique();
+
+                    b.ToTable("PostPollVotes");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostReplyEntity", b =>
@@ -607,6 +676,60 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.HasIndex("PostEntityId");
 
                     b.ToTable("PostReplies");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostReplyLikeEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ReplyId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReplyId");
+
+                    b.HasIndex("UserId", "ReplyId")
+                        .IsUnique();
+
+                    b.ToTable("PostReplyLikes");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostRepostEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId", "PostId")
+                        .IsUnique();
+
+                    b.ToTable("PostReposts");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteCoordEntity", b =>
@@ -963,6 +1086,25 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostBookmarkEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Post.PostEntity", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostEntity", b =>
                 {
                     b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
@@ -974,11 +1116,68 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostPollVoteEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Post.PostEntity", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostReplyEntity", b =>
                 {
                     b.HasOne("FitMoldova.Domain.Entities.Post.PostEntity", null)
                         .WithMany("Replies")
                         .HasForeignKey("PostEntityId");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostReplyLikeEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Post.PostReplyEntity", "Reply")
+                        .WithMany()
+                        .HasForeignKey("ReplyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reply");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostRepostEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.Post.PostEntity", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Route.RouteCoordEntity", b =>

@@ -46,7 +46,7 @@ builder.Services.AddSwaggerGen(c =>
      });
 });
 
-// ── Rate limiting — maxim 5 cereri/minut pe /login și /register ───────────
+// ── Rate limiting ─────────────────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("auth-limit", opt =>
@@ -56,7 +56,27 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit           = 0;
     });
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("ContactFormPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit          = 5,
+                Window               = TimeSpan.FromHours(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = 0
+            }));
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            isSuccess = false,
+            message   = "Prea multe cereri. Poți trimite maxim 5 mesaje pe oră."
+        }, cancellationToken);
+    };
 });
 
 // ── Encryption service (SINGLETON — cheia se citește o dată) ──────────────
@@ -77,7 +97,8 @@ builder.Services.AddCors(options =>
                     "https://test2-ruby-two.vercel.app"
                )
                .AllowAnyHeader()
-               .AllowAnyMethod());
+               .AllowAnyMethod()
+               .AllowCredentials());
 });
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");

@@ -28,13 +28,11 @@ public class StatsController : ControllerBase
         var totalEvents = _ctx.Events.Count();
         var totalClubs  = _ctx.Clubs.Count();
 
-        var totalKm = _ctx.Activities
-             .AsEnumerable()
-             .Select(a => {
-                  double.TryParse(a.Distance, out var km);
-                  return km;
-             })
-             .Sum();
+        var allDistances = _ctx.Activities
+             .Select(a => a.Distance)
+             .ToList();
+        var totalKm = allDistances
+             .Sum(d => double.TryParse(d, out var km) ? km : 0);
         return Ok(new
         {
             totalUsers,

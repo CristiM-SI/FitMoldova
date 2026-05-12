@@ -272,6 +272,30 @@ namespace FitMoldova.BusinessLogic.Core
                return new ServiceResponse { isSuccess = true, Data = following };
           }
 
+          public ServiceResponse ChangePasswordExecution(int userId, ChangePasswordDto dto)
+          {
+               var user = _ctx.Users.FirstOrDefault(u => u.Id == userId);
+               if (user == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Utilizatorul nu a fost găsit." };
+
+               if (!BC.Verify(dto.CurrentPassword, user.Password))
+                    return new ServiceResponse { isSuccess = false, Message = "Parola curentă este incorectă." };
+
+               var hasLetter  = dto.NewPassword.Any(char.IsLetter);
+               var hasDigit   = dto.NewPassword.Any(char.IsDigit);
+               var hasSpecial = dto.NewPassword.Any(c => !char.IsLetterOrDigit(c));
+               if (dto.NewPassword.Length < 8 || !hasLetter || !hasDigit || !hasSpecial)
+                    return new ServiceResponse
+                    {
+                         isSuccess = false,
+                         Message = "Parola nouă trebuie să conțină cel puțin 8 caractere, o literă, o cifră și un caracter special."
+                    };
+
+               user.Password = BC.HashPassword(dto.NewPassword);
+               _ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Parola a fost schimbată cu succes." };
+          }
+
           // ── Upload avatar ──────────────────────────────────────────────────────
 
           private static readonly HashSet<string> AllowedAvatarExtensions =

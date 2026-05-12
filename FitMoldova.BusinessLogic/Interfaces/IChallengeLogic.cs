@@ -12,5 +12,6 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse JoinChallenge(int challengeId, int userId);
           ServiceResponse LeaveChallenge(int challengeId, int userId);
           ServiceResponse Delete(int id);
+          ServiceResponse GetJoined(int userId);
      }
 }

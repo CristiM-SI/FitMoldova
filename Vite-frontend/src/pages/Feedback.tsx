@@ -43,8 +43,11 @@ const Feedback: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [form, setForm] = useState({ title: '', message: '' });
   const [errors, setErrors] = useState<Partial<typeof form & { rating: string }>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitting, setSubmitting] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const [cooldownSecs, setCooldownSecs] = useState(0);
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
@@ -78,6 +81,7 @@ const Feedback: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setSubmitting(true);
     setIsLoading(true);
     setStatus('idle');
     try {
@@ -92,10 +96,19 @@ const Feedback: React.FC = () => {
       setForm({ title: '', message: '' });
       setRating(0);
       setSelectedCategories([]);
+      setCooldown(true);
+      setCooldownSecs(30);
+      const interval = setInterval(() => {
+        setCooldownSecs((s) => {
+          if (s <= 1) { clearInterval(interval); setCooldown(false); return 0; }
+          return s - 1;
+        });
+      }, 1000);
     } catch {
       setStatus('error');
     } finally {
       setIsLoading(false);
+      setTimeout(() => setSubmitting(false), 500);
     }
   };
 
@@ -261,9 +274,10 @@ const Feedback: React.FC = () => {
                 <button
                     type="submit"
                     className="btn btn-primary feedback-submit-btn"
-                    disabled={isLoading}
+                    disabled={submitting || cooldown}
+                    style={{ opacity: submitting || cooldown ? 0.7 : 1, cursor: submitting || cooldown ? 'not-allowed' : 'pointer' }}
                 >
-                  {isLoading ? 'Se trimite...' : 'Trimite Feedback'}
+                  {submitting ? 'Se trimite...' : cooldown ? `Așteaptă ${cooldownSecs}s` : 'Trimite Feedback'}
                 </button>
               </form>
             </div>

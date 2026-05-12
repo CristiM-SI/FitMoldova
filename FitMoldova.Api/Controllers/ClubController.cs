@@ -79,6 +79,14 @@ public class ClubController : ControllerBase
           return Ok(result);
      }
 
+     // GET api/club/user/7 — cluburile unui utilizator
+     [HttpGet("user/{userId}")]
+     public IActionResult GetByUser(int userId)
+     {
+          var result = _clubLogic.GetUserClubs(userId);
+          return Ok(result);
+     }
+
      // DELETE api/club/42 — doar Admin
      [HttpDelete("{id}")]
      [AdminMod]

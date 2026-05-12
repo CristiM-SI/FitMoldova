@@ -312,5 +312,118 @@ namespace FitMoldova.BusinessLogic.Core
                ctx.SaveChanges();
                return new ServiceResponse { isSuccess = true, Message = "Postare ștearsă." };
           }
+
+          public ServiceResponse BookmarkPostExecution(int postId, int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var existing = ctx.PostBookmarks.FirstOrDefault(b => b.PostId == postId && b.UserId == userId);
+               if (existing != null)
+               {
+                    ctx.PostBookmarks.Remove(existing);
+                    ctx.SaveChanges();
+                    return new ServiceResponse { isSuccess = true, Message = "Bookmark eliminat.", Data = false };
+               }
+               var post = ctx.Posts.FirstOrDefault(p => p.Id == postId && !p.IsDeleted);
+               if (post == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Postarea nu a fost găsită." };
+               ctx.PostBookmarks.Add(new PostBookmarkEntity { PostId = postId, UserId = userId, CreatedAt = DateTime.UtcNow });
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Bookmark adăugat.", Data = true };
+          }
+
+          public ServiceResponse UnbookmarkPostExecution(int postId, int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var existing = ctx.PostBookmarks.FirstOrDefault(b => b.PostId == postId && b.UserId == userId);
+               if (existing == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Bookmark-ul nu există." };
+               ctx.PostBookmarks.Remove(existing);
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Bookmark eliminat." };
+          }
+
+          public ServiceResponse GetBookmarkedPostsExecution(int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var posts = (from b in ctx.PostBookmarks
+                            join p in ctx.Posts on b.PostId equals p.Id
+                            join u in ctx.Users on p.UserId equals u.Id
+                            where b.UserId == userId && !p.IsDeleted
+                            orderby b.CreatedAt descending
+                            select new PostInfoDto
+                            {
+                                 Id = p.Id,
+                                 UserId = p.UserId,
+                                 AuthorName = u.FirstName + " " + u.LastName,
+                                 AuthorUsername = u.Username,
+                                 Content = p.Content,
+                                 Sport = p.Sport,
+                                 Likes = p.Likes,
+                                 CommentsCount = p.CommentsCount,
+                                 CreatedAt = p.CreatedAt
+                            }).ToList();
+               return new ServiceResponse { isSuccess = true, Data = posts };
+          }
+
+          public ServiceResponse RepostPostExecution(int postId, int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var post = ctx.Posts.FirstOrDefault(p => p.Id == postId && !p.IsDeleted);
+               if (post == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Postarea nu a fost găsită." };
+               var existing = ctx.PostReposts.FirstOrDefault(r => r.PostId == postId && r.UserId == userId);
+               if (existing != null)
+               {
+                    ctx.PostReposts.Remove(existing);
+                    if (post.Reposts > 0) post.Reposts--;
+                    ctx.SaveChanges();
+                    return new ServiceResponse { isSuccess = true, Message = "Repost eliminat.", Data = false };
+               }
+               ctx.PostReposts.Add(new PostRepostEntity { PostId = postId, UserId = userId, CreatedAt = DateTime.UtcNow });
+               post.Reposts++;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Message = "Repost adăugat.", Data = true };
+          }
+
+          public ServiceResponse VotePollExecution(int postId, int userId, int optionIndex)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var post = ctx.Posts.FirstOrDefault(p => p.Id == postId && !p.IsDeleted);
+               if (post == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Postarea nu a fost găsită." };
+               if (string.IsNullOrEmpty(post.PollOptions))
+                    return new ServiceResponse { isSuccess = false, Message = "Postarea nu are sondaj." };
+               bool alreadyVoted = ctx.PostPollVotes.Any(v => v.PostId == postId && v.UserId == userId);
+               if (alreadyVoted)
+                    return new ServiceResponse { isSuccess = false, Message = "Ai votat deja la acest sondaj." };
+               ctx.PostPollVotes.Add(new PostPollVoteEntity { PostId = postId, UserId = userId, OptionIndex = optionIndex, CreatedAt = DateTime.UtcNow });
+               ctx.SaveChanges();
+               var distribution = ctx.PostPollVotes
+                    .Where(v => v.PostId == postId)
+                    .GroupBy(v => v.OptionIndex)
+                    .Select(g => new { OptionIndex = g.Key, Count = g.Count() })
+                    .ToList();
+               return new ServiceResponse { isSuccess = true, Message = "Vot înregistrat.", Data = distribution };
+          }
+
+          public ServiceResponse LikeCommentExecution(int commentId, int userId)
+          {
+               using var ctx = _dbSession.FitMoldovaContext();
+               var reply = ctx.PostReplies.FirstOrDefault(r => r.Id == commentId && !r.IsDeleted);
+               if (reply == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Comentariul nu a fost găsit." };
+               var existing = ctx.PostReplyLikes.FirstOrDefault(l => l.ReplyId == commentId && l.UserId == userId);
+               if (existing != null)
+               {
+                    ctx.PostReplyLikes.Remove(existing);
+                    if (reply.Likes > 0) reply.Likes--;
+                    ctx.SaveChanges();
+                    return new ServiceResponse { isSuccess = true, Data = new { liked = false, likes = reply.Likes } };
+               }
+               ctx.PostReplyLikes.Add(new PostReplyLikeEntity { ReplyId = commentId, UserId = userId, CreatedAt = DateTime.UtcNow });
+               reply.Likes++;
+               ctx.SaveChanges();
+               return new ServiceResponse { isSuccess = true, Data = new { liked = true, likes = reply.Likes } };
+          }
      }
 }

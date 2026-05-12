@@ -3,8 +3,9 @@ import { useNavigate } from '@tanstack/react-router';
 import {
     Box, Typography, Card, CardContent, Button, Avatar, Chip,
     TextField, Snackbar, Alert, Divider, Paper, LinearProgress, CircularProgress,
+    Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment, IconButton,
 } from '@mui/material';
-import { Edit, Save, Cancel, Person, Info } from '@mui/icons-material';
+import { Edit, Save, Cancel, Person, Info, LockOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
 import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
@@ -32,6 +33,55 @@ const Profile: React.FC = () => {
     const { activitatiCurente, joinedChallengeIds } = useDashboardData();
     const { count: cluburiJoinedCount } = useUserClubs();
     const navigate = useNavigate();
+
+    // ── Password change state ─────────────────────────────────────────────────
+    const [pwdOpen, setPwdOpen]     = useState(false);
+    const [pwdData, setPwdData]     = useState({ current: '', newPwd: '', confirm: '' });
+    const [pwdError, setPwdError]   = useState('');
+    const [pwdLoading, setPwdLoading] = useState(false);
+    const [pwdSuccess, setPwdSuccess] = useState(false);
+    const [showPwd, setShowPwd]     = useState({ current: false, newPwd: false, confirm: false });
+
+    const pwdStrength = (() => {
+        const p = pwdData.newPwd;
+        if (!p) return 0;
+        let score = 0;
+        if (p.length >= 8) score++;
+        if ((p.match(/[a-zA-Z]/g) || []).length >= 3) score++;
+        if ((p.match(/\d/g) || []).length >= 3) score++;
+        if ((p.match(/[^a-zA-Z0-9]/g) || []).length >= 2) score++;
+        return score;
+    })();
+    const pwdStrengthColor = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'][pwdStrength - 1] ?? '#e2e8f0';
+    const pwdStrengthLabel = ['Slabă', 'Medie', 'Bună', 'Puternică'][pwdStrength - 1] ?? '';
+
+    const handlePwdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPwdData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setPwdError('');
+    };
+
+    const handlePwdSubmit = async () => {
+        const PASSWORD_REGEX = /^(?=(.*[a-zA-Z]){3,})(?=(.*\d){3,})(?=(.*[^a-zA-Z\d]){2,}).{8,}$/;
+        if (!PASSWORD_REGEX.test(pwdData.newPwd)) {
+            setPwdError('Parola trebuie să conțină minim 8 caractere, 3 litere, 3 cifre și 2 caractere speciale.');
+            return;
+        }
+        if (pwdData.newPwd !== pwdData.confirm) {
+            setPwdError('Parolele nu coincid.');
+            return;
+        }
+        setPwdLoading(true);
+        try {
+            await userApi.changePassword(pwdData.current, pwdData.newPwd);
+            setPwdOpen(false);
+            setPwdData({ current: '', newPwd: '', confirm: '' });
+            setPwdSuccess(true);
+        } catch (err: unknown) {
+            setPwdError(err instanceof Error ? err.message : 'Eroare la schimbarea parolei.');
+        } finally {
+            setPwdLoading(false);
+        }
+    };
 
     // ── State ─────────────────────────────────────────────────────────────────
     const [isEditing, setIsEditing] = useState(false);
@@ -147,14 +197,19 @@ const Profile: React.FC = () => {
                     <Typography variant="h5" fontWeight={800} color="#0f172a">Profil</Typography>
                     <Typography variant="body2" color="text.secondary">Gestioneaza informatiile tale personale</Typography>
                 </Box>
-                {!isEditing ? (
-                    <Button variant="outlined" startIcon={<Edit />} onClick={() => setIsEditing(true)} sx={{ borderRadius: 2 }}>Editeaza</Button>
-                ) : (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button variant="outlined" startIcon={<Cancel />} onClick={handleCancel} sx={{ borderRadius: 2 }}>Anuleaza</Button>
-                        <Button variant="contained" startIcon={<Save />} onClick={handleSave} sx={{ borderRadius: 2, boxShadow: 'none' }}>Salveaza</Button>
-                    </Box>
-                )}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button variant="outlined" startIcon={<LockOutlined />} onClick={() => { setPwdOpen(true); setPwdError(''); setPwdData({ current: '', newPwd: '', confirm: '' }); }} sx={{ borderRadius: 2 }}>
+                        Schimbă parola
+                    </Button>
+                    {!isEditing ? (
+                        <Button variant="outlined" startIcon={<Edit />} onClick={() => setIsEditing(true)} sx={{ borderRadius: 2 }}>Editeaza</Button>
+                    ) : (
+                        <>
+                            <Button variant="outlined" startIcon={<Cancel />} onClick={handleCancel} sx={{ borderRadius: 2 }}>Anuleaza</Button>
+                            <Button variant="contained" startIcon={<Save />} onClick={handleSave} sx={{ borderRadius: 2, boxShadow: 'none' }}>Salveaza</Button>
+                        </>
+                    )}
+                </Box>
             </Box>
 
             {/* Container */}
@@ -368,6 +423,63 @@ const Profile: React.FC = () => {
             <Snackbar open={saved} autoHideDuration={3000} onClose={() => setSaved(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
                 <Alert severity="success" sx={{ borderRadius: 2 }}>Profilul a fost actualizat cu succes!</Alert>
             </Snackbar>
+
+            <Snackbar open={pwdSuccess} autoHideDuration={3000} onClose={() => setPwdSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                <Alert severity="success" sx={{ borderRadius: 2 }}>Parola a fost schimbată cu succes!</Alert>
+            </Snackbar>
+
+            <Dialog open={pwdOpen} onClose={() => !pwdLoading && setPwdOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+                <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>Schimbă parola</DialogTitle>
+                <DialogContent sx={{ pt: '8px !important' }}>
+                    {(['current', 'newPwd', 'confirm'] as const).map((field) => (
+                        <TextField
+                            key={field}
+                            fullWidth
+                            size="small"
+                            name={field}
+                            label={field === 'current' ? 'Parola actuală' : field === 'newPwd' ? 'Parola nouă' : 'Confirmă parola'}
+                            type={showPwd[field] ? 'text' : 'password'}
+                            value={pwdData[field]}
+                            onChange={handlePwdChange}
+                            sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton size="small" onClick={() => setShowPwd(prev => ({ ...prev, [field]: !prev[field] }))}>
+                                            {showPwd[field] ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    ))}
+                    {pwdData.newPwd.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">Putere parolă</Typography>
+                                <Typography variant="caption" fontWeight={700} sx={{ color: pwdStrengthColor }}>{pwdStrengthLabel}</Typography>
+                            </Box>
+                            <LinearProgress
+                                variant="determinate"
+                                value={pwdStrength * 25}
+                                sx={{ height: 5, borderRadius: 3, bgcolor: '#f0f4f8', '& .MuiLinearProgress-bar': { bgcolor: pwdStrengthColor, borderRadius: 3 } }}
+                            />
+                        </Box>
+                    )}
+                    {pwdError && <Alert severity="error" sx={{ borderRadius: 2 }}>{pwdError}</Alert>}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+                    <Button onClick={() => setPwdOpen(false)} disabled={pwdLoading} sx={{ borderRadius: 2 }}>Anulează</Button>
+                    <Button
+                        variant="contained"
+                        onClick={handlePwdSubmit}
+                        disabled={pwdLoading || !pwdData.current || !pwdData.newPwd || !pwdData.confirm}
+                        sx={{ borderRadius: 2, boxShadow: 'none' }}
+                    >
+                        {pwdLoading ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : 'Salvează'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </DashboardLayout>
     );
 };

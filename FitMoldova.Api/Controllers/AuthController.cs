@@ -1,6 +1,5 @@
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.DataAccesLayer;
-using FitMoldova.Domain.Models.User;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitMoldova.Api.Controllers
@@ -21,12 +20,13 @@ namespace FitMoldova.Api.Controllers
         }
 
         [HttpPost("refresh")]
-        public IActionResult Refresh([FromBody] RefreshTokenRequestDto dto)
+        public IActionResult Refresh()
         {
-            if (string.IsNullOrWhiteSpace(dto.RefreshToken))
-                return BadRequest(new { message = "Refresh token lipsește." });
+            var refreshToken = Request.Cookies["fitmoldova_refresh"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized(new { message = "Refresh token lipsă." });
 
-            var stored = _refreshTokenService.FindActive(dto.RefreshToken);
+            var stored = _refreshTokenService.FindActive(refreshToken);
             if (stored == null)
                 return Unauthorized(new { message = "Refresh token invalid sau expirat." });
 
@@ -34,26 +34,42 @@ namespace FitMoldova.Api.Controllers
             if (user == null || !user.IsActive)
                 return Unauthorized(new { message = "Utilizator inactiv sau inexistent." });
 
+            _refreshTokenService.Revoke(refreshToken);
+            var newRefreshToken = _refreshTokenService.Generate(user.Id);
+
+            Response.Cookies.Append("fitmoldova_refresh", newRefreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = true,
+                SameSite = SameSiteMode.Strict,
+                Path     = "/api/auth",
+                Expires  = newRefreshToken.ExpiresAt
+            });
+
             var (token, expiresAt) = _jwtService.GenerateToken(
                 user.Id, user.Email, user.Username, user.Role.ToString());
 
-            return Ok(new
-            {
-                token,
-                expiresAt,
-                userId = user.Id
-            });
+            return Ok(new { token, expiresAt });
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout([FromBody] RefreshTokenRequestDto dto)
+        public IActionResult Logout()
         {
-            if (string.IsNullOrWhiteSpace(dto.RefreshToken))
+            var refreshToken = Request.Cookies["fitmoldova_refresh"];
+            if (string.IsNullOrEmpty(refreshToken))
                 return BadRequest(new { message = "Refresh token lipsește." });
 
-            var revoked = _refreshTokenService.Revoke(dto.RefreshToken);
+            var revoked = _refreshTokenService.Revoke(refreshToken);
             if (!revoked)
                 return NotFound(new { message = "Refresh token inexistent sau deja revocat." });
+
+            Response.Cookies.Delete("fitmoldova_refresh", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = true,
+                SameSite = SameSiteMode.Strict,
+                Path     = "/api/auth/refresh"
+            });
 
             return Ok(new { message = "Logout reușit." });
         }

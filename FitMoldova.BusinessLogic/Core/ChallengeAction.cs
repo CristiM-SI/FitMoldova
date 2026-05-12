@@ -116,5 +116,47 @@ namespace FitMoldova.BusinessLogic.Core
             ctx.SaveChanges();
             return new ServiceResponse { isSuccess = true, Message = "Provocare ștearsă." };
         }
+
+        public ServiceResponse GetJoinedExecution(int userId)
+        {
+            using var ctx = _dbSession.FitMoldovaContext();
+            var joined = (from cp in ctx.ChallengeParticipants
+                          join c in ctx.Challenges on cp.ChallengeId equals c.Id
+                          where cp.UserId == userId
+                          select new
+                          {
+                              c.Id,
+                              c.Name,
+                              c.Description,
+                              c.Duration,
+                              c.Difficulty,
+                              Participants = ctx.ChallengeParticipants.Count(p => p.ChallengeId == c.Id),
+                              cp.JoinedAt
+                          }).ToList();
+
+            var result = joined.Select(j =>
+            {
+                int progressPercent = 0;
+                var parts = j.Duration.Split(' ');
+                if (parts.Length > 0 && int.TryParse(parts[0], out int totalDays) && totalDays > 0)
+                {
+                    double daysPassed = (DateTime.UtcNow - j.JoinedAt).TotalDays;
+                    progressPercent = Math.Min(100, (int)(daysPassed / totalDays * 100));
+                }
+                return new ChallengeJoinedDto
+                {
+                    Id = j.Id,
+                    Name = j.Name,
+                    Description = j.Description,
+                    Duration = j.Duration,
+                    Difficulty = j.Difficulty,
+                    Participants = j.Participants,
+                    JoinedAt = j.JoinedAt,
+                    ProgressPercent = progressPercent
+                };
+            }).ToList();
+
+            return new ServiceResponse { isSuccess = true, Data = result };
+        }
     }
 }

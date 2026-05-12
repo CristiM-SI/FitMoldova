@@ -149,6 +149,26 @@ const postApi = {
     /** @deprecated use `addComment(postId, content)` */
     addReply: (dto: PostReplyCreateDto) =>
         axiosInstance.post<ApiResponse<number>>(`/posts/${dto.postId}/comments`, { content: dto.content }).then(unwrap),
+
+    bookmarkPost: (postId: number) =>
+        axiosInstance.post<ApiResponse<void>>(`/posts/${postId}/bookmark`).then(r => r.data),
+
+    unbookmarkPost: (postId: number) =>
+        axiosInstance.delete<ApiResponse<void>>(`/posts/${postId}/bookmark`).then(r => r.data),
+
+    getBookmarked: (): Promise<PostInfoDto[]> =>
+        axiosInstance
+            .get<ApiResponse<PostInfoDto[]>>('/posts/bookmarked')
+            .then(res => unwrap(res)),
+
+    repostPost: (postId: number) =>
+        axiosInstance.post<ApiResponse<void>>(`/posts/${postId}/repost`).then(r => r.data),
+
+    votePoll: (postId: number, optionIndex: number) =>
+        axiosInstance.post<ApiResponse<unknown>>(`/posts/${postId}/poll-vote`, { optionIndex }).then(r => r.data),
+
+    likeComment: (commentId: number) =>
+        axiosInstance.post<ApiResponse<{ liked: boolean; likes: number }>>(`/comments/${commentId}/like`).then(r => r.data.data),
 };
 
 export default postApi;

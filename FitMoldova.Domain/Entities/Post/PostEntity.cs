@@ -31,6 +31,11 @@ namespace FitMoldova.Domain.Entities.Post
 
           public bool IsDeleted { get; set; } = false;
 
+          public int Reposts { get; set; } = 0;
+          public bool IsRepost { get; set; } = false;
+          public int? OriginalPostId { get; set; }
+          public string? PollOptions { get; set; }
+
           public ICollection<PostReplyEntity> Replies { get; set; } = new List<PostReplyEntity>();
      }
 }

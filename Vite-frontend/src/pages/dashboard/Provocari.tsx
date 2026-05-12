@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react';
 import {
     Box, Typography, Card, CardContent, Button, Chip,
     LinearProgress, Paper, Tabs, Tab, Skeleton, Alert,
@@ -9,6 +9,7 @@ import DashboardLayout from './DashboardLayout';
 import { useProgress } from '../../context/ProgressContext';
 import { useAuth } from '../../context/AuthContext';
 import { challengeApi, type ChallengeDto } from '../../services/api/challengeApi';
+import { DashboardDataContext } from '../../context/DashboardDataContext';
 
 const DIFF_CONFIG: Record<string, { color: string; bg: string }> = {
     'Usor':  { color: '#10b981', bg: '#ecfdf5' },
@@ -37,6 +38,8 @@ function saveJoinedIds(ids: number[]) {
 const Provocari: React.FC = () => {
     const { user } = useAuth();
     const { completeChallenge } = useProgress();
+    const dashData = useContext(DashboardDataContext);
+    const joinedChallengesWithProgress = dashData?.joinedChallengesWithProgress ?? [];
 
     const [allChallenges, setAllChallenges] = useState<ChallengeDto[]>([]);
     const [joinedIds, setJoinedIds] = useState<number[]>(loadJoinedIds);
@@ -179,6 +182,7 @@ const Provocari: React.FC = () => {
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                                 {inscrise.map((ch) => {
                                     const cfg = getDiffConfig(ch.difficulty);
+                                    const progressPercent = joinedChallengesWithProgress.find(j => j.id === ch.id)?.progressPercent ?? 0;
                                     return (
                                         <Box key={ch.id} sx={{ flex: '1 1 280px', minWidth: 0 }}>
                                             <Paper elevation={0} sx={{ p: 2.5, borderRadius: 2, bgcolor: '#f8faff', border: '1px solid #e8edf3', height: '100%' }}>
@@ -207,9 +211,9 @@ const Provocari: React.FC = () => {
                                                 </Box>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                                                     <Typography variant="caption" color="text.secondary">Progres</Typography>
-                                                    <Typography variant="caption" fontWeight={800} color="#1a6fff">0%</Typography>
+                                                    <Typography variant="caption" fontWeight={800} color="#1a6fff">{progressPercent}%</Typography>
                                                 </Box>
-                                                <LinearProgress variant="determinate" value={0}
+                                                <LinearProgress variant="determinate" value={progressPercent}
                                                                 sx={{ height: 6, borderRadius: 3, bgcolor: '#e8edf3', '& .MuiLinearProgress-bar': { bgcolor: '#1a6fff', borderRadius: 3 } }} />
                                             </Paper>
                                         </Box>

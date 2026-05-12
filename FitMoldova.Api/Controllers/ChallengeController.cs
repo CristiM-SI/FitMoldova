@@ -17,6 +17,16 @@ public class ChallengeController : ControllerBase
           _challengeLogic = bl.ChallengeLogic();
      }
 
+     // GET api/challenge/joined — user authenticated
+     [HttpGet("joined")]
+     [UserMod]
+     public IActionResult GetJoined()
+     {
+          var userId = int.Parse(User.FindFirst("userId")!.Value);
+          var result = _challengeLogic.GetJoined(userId);
+          return Ok(result);
+     }
+
      // GET api/challenge — public
      [HttpGet]
      public IActionResult GetAll()

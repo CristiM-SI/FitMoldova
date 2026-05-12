@@ -18,5 +18,11 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse SoftDelete(int id, int userId, string role);
           ServiceResponse DeleteComment(int commentId, int userId, string role);
           ServiceResponse Delete(int id);
+          ServiceResponse BookmarkPost(int postId, int userId);
+          ServiceResponse UnbookmarkPost(int postId, int userId);
+          ServiceResponse GetBookmarkedPosts(int userId);
+          ServiceResponse RepostPost(int postId, int userId);
+          ServiceResponse VotePoll(int postId, int userId, int optionIndex);
+          ServiceResponse LikeComment(int commentId, int userId);
      }
 }

@@ -7,12 +7,11 @@ import { useAuth } from '../context/AuthContext';
 import { useForumContext } from '../context/ForumContext';
 import {
     FORUM_CATEGORIES,
-    TRENDING_TOPICS,
-} from '../services/mock/forum';
+} from '../types/forum';
 import type {
     ForumCategory,
     ForumThread,
-} from '../services/mock/forum';
+} from '../types/forum';
 import {
     ft, fontImportCSS, keyframesCSS,
     sxPageRoot, sxBody, sxSidebar, sxNavItem, sxNavItemActive,
@@ -699,17 +698,6 @@ export default function ForumPage() {
                         <Box sx={sxSearchBox}>
                             <Box component="span" sx={sxSearchIcon}>{Icons.search}</Box>
                             <Box component="input" sx={sxSearchInput} placeholder="Caută în forum..." value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} />
-                        </Box>
-
-                        <Box sx={{ bgcolor: ft.card, border: `1px solid ${ft.border}`, borderRadius: ft.radius, overflow: 'hidden' }}>
-                            <Box sx={{ p: '16px 18px', fontFamily: ft.fontCondensed, fontWeight: 800, fontSize: '1.15rem', letterSpacing: '.5px' }}>🔥 Trending</Box>
-                            {TRENDING_TOPICS.slice(0, 4).map((topic) => (
-                                <Box key={topic.id} sx={{ p: '12px 18px', borderTop: `1px solid ${ft.border}`, cursor: 'pointer', transition: 'background .15s', '&:hover': { bgcolor: 'rgba(0,200,255,0.03)' } }} onClick={() => { setSearchQuery(topic.tag); goTo('feed'); }}>
-                                    <Box sx={{ fontSize: '.7rem', color: ft.muted, fontWeight: 600, letterSpacing: '.5px' }}>{topic.category}</Box>
-                                    <Box sx={{ fontWeight: 700, fontSize: '.92rem', my: '2px' }}>{topic.tag}</Box>
-                                    <Box sx={{ fontSize: '.72rem', color: ft.muted }}>{formatCount(topic.posts)} postări</Box>
-                                </Box>
-                            ))}
                         </Box>
 
                         <Box sx={sxSuggestBox}>

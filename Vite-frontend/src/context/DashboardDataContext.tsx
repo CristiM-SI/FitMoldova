@@ -2,7 +2,7 @@ import {
     createContext, useState, useEffect, useCallback, useMemo, type ReactNode,
 } from 'react';
 import { activityApi, type ActivityDto } from '../services/api/activityApi';
-import { challengeApi, type ChallengeDto } from '../services/api/challengeApi';
+import { challengeApi, type ChallengeDto, type ChallengeJoinedDto } from '../services/api/challengeApi';
 import { eventApi, type EventDto } from '../services/api/eventApi';
 import { clubApi, type ClubDto } from '../services/api/clubApi';
 import { useAuth } from './AuthContext';
@@ -33,6 +33,7 @@ export interface DashboardApiState {
 
     userClubs: ClubDto[];
     joinedChallengeIds: number[];
+    joinedChallengesWithProgress: ChallengeJoinedDto[];
     joinedEventIds: number[];
     joinedActivityIds: number[];        // NOU
     joinedActivities: ActivityDto[];    // NOU — activitatile complete la care e inscris
@@ -93,6 +94,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     const [clubs, setClubs]           = useState<ClubDto[]>([]);
     const [userClubs, setUserClubs]   = useState<ClubDto[]>([]);
     const [joinedChallengeIds, setJoinedChallengeIds] = useState<number[]>([]);
+    const [joinedChallengesWithProgress, setJoinedChallengesWithProgress] = useState<ChallengeJoinedDto[]>([]);
     const [joinedEventIds, setJoinedEventIds]         = useState<number[]>([]);
     const [joinedActivityIds, setJoinedActivityIds]   = useState<number[]>([]);   // NOU
     const [joinedActivities, setJoinedActivities]     = useState<ActivityDto[]>([]); // NOU
@@ -114,6 +116,9 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
 
     useEffect(() => {
         let cancelled = false;
+        const safetyTimer = setTimeout(() => {
+            if (!cancelled) setLoading(false);
+        }, 10_000);
         setLoading(true);
         setError(null);
 
@@ -127,7 +132,28 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             ...(isAuthenticated ? [eventApi.getJoined()]   : []),
         ];
 
+        if (isAuthenticated) {
+            challengeApi.getJoined()
+                .then(joined => {
+                    if (cancelled) return;
+                    setJoinedChallengesWithProgress(joined);
+                    setJoinedChallengeIds(joined.map(c => c.id));
+                    setProvocariInscrise(joined.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        description: c.description,
+                        duration: c.duration,
+                        difficulty: c.difficulty,
+                        participants: c.participants,
+                        progress: c.progressPercent,
+                    })));
+                    saveLS(LS.challenges, joined);
+                })
+                .catch(() => {});
+        }
+
         Promise.allSettled(fetches).then(results => {
+            clearTimeout(safetyTimer);
             if (cancelled) return;
             const [acts, chals, evs, clbs, uClubs, joinedActs, joinedEvs] = results;
             if (acts.status    === 'fulfilled') setActivities((acts.value    as ActivityDto[]) ?? []);
@@ -153,7 +179,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
             setLoading(false);
         });
 
-        return () => { cancelled = true; };
+        return () => { cancelled = true; clearTimeout(safetyTimer); };
     }, [user?.id, isAuthenticated, tick]);
 
     // ─── Acțiuni API ──────────────────────────────────────────────────────────
@@ -272,7 +298,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
 
     const value = useMemo<DashboardApiState>(() => ({
         activities, challenges, events, clubs,
-        userClubs, joinedChallengeIds, joinedEventIds,
+        userClubs, joinedChallengeIds, joinedChallengesWithProgress, joinedEventIds,
         joinedActivityIds, joinedActivities,
         activitatiCurente, provocariInscrise, evenimenteInscrise, traseeSalvate,
         loading, error,
@@ -286,7 +312,7 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
         resetAll,
     }), [
         activities, challenges, events, clubs,
-        userClubs, joinedChallengeIds, joinedEventIds,
+        userClubs, joinedChallengeIds, joinedChallengesWithProgress, joinedEventIds,
         joinedActivityIds, joinedActivities,
         activitatiCurente, provocariInscrise, evenimenteInscrise, traseeSalvate,
         loading, error,

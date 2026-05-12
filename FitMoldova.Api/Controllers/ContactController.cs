@@ -1,9 +1,13 @@
+// ACCESS CONTROL SUMMARY:
+// Public:             POST /api/contact (submit message, max 5/hour per IP)
+// [Authorize(Admin)]: GET /api/contact, PUT /api/contact/{id}/read, DELETE /api/contact/{id}
 using AutoMapper;
 using FitMoldova.BusinessLogic;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Contact;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
 [Route("api/contact")]
@@ -17,9 +21,9 @@ public class ContactController : ControllerBase
           _contactLogic = bl.ContactLogic();
      }
 
-     // POST api/contact
-     // Rută publică — oricine poate trimite un mesaj de contact (nu necesită auth)
+     // POST api/contact — public, rate-limited
      [HttpPost]
+     [EnableRateLimiting("ContactFormPolicy")]
      public IActionResult Submit([FromBody] ContactMessageCreateDto dto)
      {
           var result = _contactLogic.Submit(dto);
@@ -28,8 +32,7 @@ public class ContactController : ControllerBase
           return Ok(result);
      }
 
-     // GET api/contact
-     // Returnează toate mesajele — doar admin
+     // GET api/contact — admin only
      [HttpGet]
      [Authorize(Roles = "Admin")]
      public IActionResult GetAll()
@@ -38,8 +41,7 @@ public class ContactController : ControllerBase
           return Ok(result);
      }
 
-     // PUT api/contact/42/read
-     // Marchează mesajul ca citit — doar admin
+     // PUT api/contact/{id}/read — admin only
      [HttpPut("{id}/read")]
      [Authorize(Roles = "Admin")]
      public IActionResult MarkAsRead(int id)
@@ -50,8 +52,7 @@ public class ContactController : ControllerBase
           return Ok(result);
      }
 
-     // DELETE api/contact/42
-     // Șterge un mesaj — doar admin
+     // DELETE api/contact/{id} — admin only
      [HttpDelete("{id}")]
      [Authorize(Roles = "Admin")]
      public IActionResult Delete(int id)

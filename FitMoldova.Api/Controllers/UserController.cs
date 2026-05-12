@@ -1,3 +1,9 @@
+// ACCESS CONTROL SUMMARY:
+// Public:             GET /api/user/{id}, GET /api/user/community, POST /api/user/register, POST /api/user/login
+// [Authorize]:        GET /api/user/profile, PUT /api/user/profile, POST /api/user/{id}/follow,
+//                     DELETE /api/user/{id}/unfollow, GET /api/user/following,
+//                     POST /api/user/avatar, PUT /api/user/change-password
+// [Authorize(Admin)]: GET /api/user, PATCH /api/user/{id}/role, PATCH /api/user/{id}/status, DELETE /api/user/{id}
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.User;
@@ -38,7 +44,6 @@ public class UserController : ControllerBase
         var result = _userLogic.Login(dto);
         if (!result.isSuccess) return Unauthorized(result);
 
-        // CRITICA 3 FIX: cast direct la DTO tipat — zero reflexie
         var data = (UserLoginResultDto)result.Data!;
 
         var (token, expiresAt) = _jwtService.GenerateToken(
@@ -46,12 +51,19 @@ public class UserController : ControllerBase
 
         var refreshToken = _refreshTokenService.Generate(data.Id);
 
+        Response.Cookies.Append("fitmoldova_refresh", refreshToken.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure   = true,
+            SameSite = SameSiteMode.Strict,
+            Path     = "/api/auth",
+            Expires  = refreshToken.ExpiresAt
+        });
+
         return Ok(new
         {
             token,
             expiresAt,
-            refreshToken          = refreshToken.Token,
-            refreshTokenExpiresAt = refreshToken.ExpiresAt,
             userId    = data.Id,
             username  = data.Username,
             firstName = data.FirstName,
@@ -104,6 +116,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public IActionResult Delete(int id)
     {
         var result = _userLogic.Delete(id);
@@ -128,6 +141,16 @@ public class UserController : ControllerBase
         var userId = int.Parse(User.FindFirst("userId")!.Value);
         var result = _userLogic.UpdateProfile(userId, dto);
         if (!result.isSuccess) return NotFound(result);
+        return Ok(result);
+    }
+
+    [HttpPut("change-password")]
+    [Authorize]
+    public IActionResult ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var userId = int.Parse(User.FindFirst("userId")!.Value);
+        var result = _userLogic.ChangePassword(userId, dto);
+        if (!result.isSuccess) return BadRequest(result);
         return Ok(result);
     }
 

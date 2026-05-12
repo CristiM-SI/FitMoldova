@@ -21,5 +21,6 @@ namespace FitMoldova.BusinessLogic.Interfaces
           ServiceResponse Unfollow(int followerId, int followedId);
           ServiceResponse GetFollowing(int userId);
           ServiceResponse UploadAvatar(int userId, IFormFile file, string webRootPath);
+          ServiceResponse ChangePassword(int userId, ChangePasswordDto dto);
      }
 }

@@ -37,5 +37,16 @@ namespace FitMoldova.Api.Controllers
             }
             return NoContent();
         }
+
+        // POST /api/comments/{id}/like  — toggle like on a reply
+        [HttpPost("{id}/like")]
+        [Authorize]
+        public IActionResult LikeComment(int id)
+        {
+            var userId = int.Parse(User.FindFirst("userId")!.Value);
+            var result = _postLogic.LikeComment(id, userId);
+            if (!result.isSuccess) return NotFound(result);
+            return Ok(result);
+        }
     }
 }

@@ -79,10 +79,10 @@ export const TRENDING_TOPICS: TrendingTopic[] = [
 ];
 
 export const SUGGESTED_USERS: SuggestedUser[] = [
-    { name: 'Ion Ceban',      handle: '@ion_fitness',     color: '#1a6fff', bio: 'Antrenor certificat • 10+ ani exp.',  verified: true,  followers: 12400 },
-    { name: 'Maria Lungu',    handle: '@maria_runs',      color: '#e84393', bio: 'Ultra-maratonistă 🏃‍♀️ | Chișinău',    verified: true,  followers: 8900 },
-    { name: 'Pavel Rotaru',   handle: '@pavel_lifts',     color: '#00b894', bio: 'Powerlifting & coaching',              verified: false, followers: 3200 },
-    { name: 'Ana Stratan',    handle: '@ana_yoga',        color: '#fdcb6e', bio: 'Yoga & meditație • Instructor',        verified: true,  followers: 6700 },
+    { id: 1, name: 'Ion Ceban',      handle: '@ion_fitness',     color: '#1a6fff', bio: 'Antrenor certificat • 10+ ani exp.',  verified: true,  followers: 12400 },
+    { id: 2, name: 'Maria Lungu',    handle: '@maria_runs',      color: '#e84393', bio: 'Ultra-maratonistă 🏃‍♀️ | Chișinău',    verified: true,  followers: 8900 },
+    { id: 3, name: 'Pavel Rotaru',   handle: '@pavel_lifts',     color: '#00b894', bio: 'Powerlifting & coaching',              verified: false, followers: 3200 },
+    { id: 4, name: 'Ana Stratan',    handle: '@ana_yoga',        color: '#fdcb6e', bio: 'Yoga & meditație • Instructor',        verified: true,  followers: 6700 },
 ];
 
 export const INITIAL_THREADS: ForumThread[] = [

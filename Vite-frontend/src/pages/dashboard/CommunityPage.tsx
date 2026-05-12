@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useNavigate, Link } from '@tanstack/react-router';
 import {
     Box, Typography, Button, Avatar, Chip, TextField, IconButton,
@@ -576,6 +577,32 @@ export default function CommunityPage() {
         { id: 'members' as FeedTab,    icon: '👥', label: 'Membri',    onClick: () => setTab('members') },
     ];
 
+    const filteredMembers = members.filter((m) => m.id !== user?.id);
+
+    const feedParentRef = useRef<HTMLDivElement>(null);
+    const feedVirtualizer = useVirtualizer({
+        count: filteredPosts.length,
+        getScrollElement: () => feedParentRef.current,
+        estimateSize: () => 100,
+        overscan: 3,
+    });
+
+    const challengesParentRef = useRef<HTMLDivElement>(null);
+    const challengesVirtualizer = useVirtualizer({
+        count: challenges.length,
+        getScrollElement: () => challengesParentRef.current,
+        estimateSize: () => 100,
+        overscan: 3,
+    });
+
+    const membersParentRef = useRef<HTMLDivElement>(null);
+    const membersVirtualizer = useVirtualizer({
+        count: filteredMembers.length,
+        getScrollElement: () => membersParentRef.current,
+        estimateSize: () => 100,
+        overscan: 3,
+    });
+
     // ── RENDER ───────────────────────────────
     return (
         <>
@@ -781,54 +808,80 @@ export default function CommunityPage() {
                                         </DarkCard>
                                     ) : (
                                         <>
-                                            {filteredPosts.map((p) => {
-                                                const canModify = isAuthenticated && (user?.id === p.userId || isAdmin);
-                                                return (
-                                                    <DarkCard key={p.id}>
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
-                                                            <Avatar sx={{ width: 42, height: 42, bgcolor: p.color, fontSize: '0.9rem', fontWeight: 900, flexShrink: 0 }}>
-                                                                {getInitials(p.author)}
-                                                            </Avatar>
-                                                            <Box sx={{ flex: 1 }}>
-                                                                <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: T.text }}>{p.author}</Typography>
-                                                                <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>{p.time}</Typography>
-                                                            </Box>
-                                                            <Chip label={p.sport} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.7rem', fontWeight: 600, height: 22 }} />
-                                                            {canModify && (
-                                                                <Box sx={{ display: 'flex', gap: 0.25 }}>
-                                                                    <Tooltip title="Editează">
-                                                                        <IconButton size="small" onClick={() => openEditPost(p)}
-                                                                                    sx={{ color: T.muted, '&:hover': { color: T.cyan, bgcolor: T.cdim } }}>
-                                                                            <Edit sx={{ fontSize: 16 }} />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                    <Tooltip title="Șterge">
-                                                                        <IconButton size="small" onClick={() => setConfirmDelete({ kind: 'post', id: p.id })}
-                                                                                    sx={{ color: T.muted, '&:hover': { color: '#ff4d6d', bgcolor: 'rgba(255,77,109,.1)' } }}>
-                                                                            <Delete sx={{ fontSize: 16 }} />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                </Box>
-                                                            )}
-                                                        </Box>
-                                                        <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75, whiteSpace: 'pre-wrap' }}>
-                                                            {p.content}
-                                                        </Typography>
-                                                        <Box sx={{ display: 'flex', gap: 0.5, borderTop: `1px solid ${T.border}`, pt: 1.5 }}>
-                                                            <Box component="button" onClick={() => handleLike(p.id)}
-                                                                 sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: p.liked ? '#ff4d6d' : T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: p.liked ? 'rgba(255,77,109,.1)' : T.cdim, color: p.liked ? '#ff4d6d' : T.cyan } }}>
-                                                                {p.liked ? <Favorite sx={{ fontSize: 15 }} /> : <FavoriteBorder sx={{ fontSize: 15 }} />}
-                                                                {p.likes}
-                                                            </Box>
-                                                            <Box component="button" onClick={() => openComments(p)}
-                                                                 sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: T.cdim, color: T.cyan } }}>
-                                                                <ChatBubbleOutline sx={{ fontSize: 15 }} />
-                                                                {p.comments}
-                                                            </Box>
-                                                        </Box>
-                                                    </DarkCard>
-                                                );
-                                            })}
+                                            <div
+                                                ref={feedParentRef}
+                                                style={{ height: '80vh', overflowY: 'auto' }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        height: `${feedVirtualizer.getTotalSize()}px`,
+                                                        width: '100%',
+                                                        position: 'relative',
+                                                    }}
+                                                >
+                                                    {feedVirtualizer.getVirtualItems().map((virtualItem) => {
+                                                        const p = filteredPosts[virtualItem.index];
+                                                        const canModify = isAuthenticated && (user?.id === p.userId || isAdmin);
+                                                        return (
+                                                            <div
+                                                                key={virtualItem.key}
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: '100%',
+                                                                    height: `${virtualItem.size}px`,
+                                                                    transform: `translateY(${virtualItem.start}px)`,
+                                                                }}
+                                                            >
+                                                                <DarkCard>
+                                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
+                                                                        <Avatar sx={{ width: 42, height: 42, bgcolor: p.color, fontSize: '0.9rem', fontWeight: 900, flexShrink: 0 }}>
+                                                                            {getInitials(p.author)}
+                                                                        </Avatar>
+                                                                        <Box sx={{ flex: 1 }}>
+                                                                            <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: T.text }}>{p.author}</Typography>
+                                                                            <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>{p.time}</Typography>
+                                                                        </Box>
+                                                                        <Chip label={p.sport} size="small" sx={{ bgcolor: T.cdim, color: T.cyan, border: `1px solid rgba(0,200,255,.2)`, fontSize: '0.7rem', fontWeight: 600, height: 22 }} />
+                                                                        {canModify && (
+                                                                            <Box sx={{ display: 'flex', gap: 0.25 }}>
+                                                                                <Tooltip title="Editează">
+                                                                                    <IconButton size="small" onClick={() => openEditPost(p)}
+                                                                                                sx={{ color: T.muted, '&:hover': { color: T.cyan, bgcolor: T.cdim } }}>
+                                                                                        <Edit sx={{ fontSize: 16 }} />
+                                                                                    </IconButton>
+                                                                                </Tooltip>
+                                                                                <Tooltip title="Șterge">
+                                                                                    <IconButton size="small" onClick={() => setConfirmDelete({ kind: 'post', id: p.id })}
+                                                                                                sx={{ color: T.muted, '&:hover': { color: '#ff4d6d', bgcolor: 'rgba(255,77,109,.1)' } }}>
+                                                                                        <Delete sx={{ fontSize: 16 }} />
+                                                                                    </IconButton>
+                                                                                </Tooltip>
+                                                                            </Box>
+                                                                        )}
+                                                                    </Box>
+                                                                    <Typography sx={{ fontSize: '0.875rem', color: '#c8d8f0', lineHeight: 1.65, mb: 1.75, whiteSpace: 'pre-wrap' }}>
+                                                                        {p.content}
+                                                                    </Typography>
+                                                                    <Box sx={{ display: 'flex', gap: 0.5, borderTop: `1px solid ${T.border}`, pt: 1.5 }}>
+                                                                        <Box component="button" onClick={() => handleLike(p.id)}
+                                                                             sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: p.liked ? '#ff4d6d' : T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: p.liked ? 'rgba(255,77,109,.1)' : T.cdim, color: p.liked ? '#ff4d6d' : T.cyan } }}>
+                                                                            {p.liked ? <Favorite sx={{ fontSize: 15 }} /> : <FavoriteBorder sx={{ fontSize: 15 }} />}
+                                                                            {p.likes}
+                                                                        </Box>
+                                                                        <Box component="button" onClick={() => openComments(p)}
+                                                                             sx={{ display: 'flex', alignItems: 'center', gap: 0.625, bgcolor: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', fontSize: '0.79rem', fontWeight: 600, px: 1.375, py: 0.625, borderRadius: '7px', fontFamily: 'inherit', transition: 'all .2s', '&:hover': { bgcolor: T.cdim, color: T.cyan } }}>
+                                                                            <ChatBubbleOutline sx={{ fontSize: 15 }} />
+                                                                            {p.comments}
+                                                                        </Box>
+                                                                    </Box>
+                                                                </DarkCard>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
                                             {postsHasMore && (
                                                 <Box sx={{ textAlign: 'center', mt: 1 }}>
                                                     <Button onClick={handleLoadMorePosts} disabled={postsLoadingMore}
@@ -858,38 +911,62 @@ export default function CommunityPage() {
                                         <Typography sx={{ color: T.muted, mt: 2, fontSize: '0.85rem' }}>Se încarcă provocările…</Typography>
                                     </Box>
                                 ) : (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                                        {challenges.map((c, i) => (
-                                            <Box key={c.id}>
-                                                {i > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
-                                                    <CircleProgress pct={c.progress} uid={String(c.id)} />
-                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: T.text, mb: 0.25 }}>{c.title}</Typography>
-                                                        <Typography sx={{ fontSize: '0.8rem', color: T.muted, mb: 0.75, lineHeight: 1.5 }}>{c.desc}</Typography>
-                                                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>👥 {c.participants.toLocaleString()} participanți</Typography>
-                                                            <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>⏱ {c.days} zile rămase</Typography>
+                                    <div
+                                        ref={challengesParentRef}
+                                        style={{ height: '80vh', overflowY: 'auto' }}
+                                    >
+                                        <div
+                                            style={{
+                                                height: `${challengesVirtualizer.getTotalSize()}px`,
+                                                width: '100%',
+                                                position: 'relative',
+                                            }}
+                                        >
+                                            {challengesVirtualizer.getVirtualItems().map((virtualItem) => {
+                                                const c = challenges[virtualItem.index];
+                                                return (
+                                                    <div
+                                                        key={virtualItem.key}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            left: 0,
+                                                            width: '100%',
+                                                            height: `${virtualItem.size}px`,
+                                                            transform: `translateY(${virtualItem.start}px)`,
+                                                        }}
+                                                    >
+                                                        {virtualItem.index > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
+                                                            <CircleProgress pct={c.progress} uid={String(c.id)} />
+                                                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                                <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: T.text, mb: 0.25 }}>{c.title}</Typography>
+                                                                <Typography sx={{ fontSize: '0.8rem', color: T.muted, mb: 0.75, lineHeight: 1.5 }}>{c.desc}</Typography>
+                                                                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                                                                    <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>👥 {c.participants.toLocaleString()} participanți</Typography>
+                                                                    <Typography sx={{ fontSize: '0.75rem', color: T.muted }}>⏱ {c.days} zile rămase</Typography>
+                                                                </Box>
+                                                                <Box sx={{ mt: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                                                                    <Box sx={{ height: '100%', borderRadius: 2, width: `${c.progress}%`, background: `linear-gradient(90deg, ${T.blue}, ${T.cyan})`, transition: 'width .5s ease' }} />
+                                                                </Box>
+                                                            </Box>
+                                                            <Box component="button" onClick={() => handleJoin(c.id)}
+                                                                 sx={{
+                                                                     px: 2, py: 0.875, borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
+                                                                     fontSize: '0.78rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+                                                                     flexShrink: 0, transition: 'all .2s',
+                                                                     ...(c.joined
+                                                                         ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: 'transparent', color: '#ff4d6d', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d' } }
+                                                                         : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
+                                                                 }}>
+                                                                {c.joined ? 'Părăsește' : 'Alătură-te'}
+                                                            </Box>
                                                         </Box>
-                                                        <Box sx={{ mt: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                                                            <Box sx={{ height: '100%', borderRadius: 2, width: `${c.progress}%`, background: `linear-gradient(90deg, ${T.blue}, ${T.cyan})`, transition: 'width .5s ease' }} />
-                                                        </Box>
-                                                    </Box>
-                                                    <Box component="button" onClick={() => handleJoin(c.id)}
-                                                         sx={{
-                                                             px: 2, py: 0.875, borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit',
-                                                             fontSize: '0.78rem', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
-                                                             flexShrink: 0, transition: 'all .2s',
-                                                             ...(c.joined
-                                                                 ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: 'transparent', color: '#ff4d6d', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d' } }
-                                                                 : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
-                                                         }}>
-                                                        {c.joined ? 'Părăsește' : 'Alătură-te'}
-                                                    </Box>
-                                                </Box>
-                                            </Box>
-                                        ))}
-                                    </Box>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 )}
                             </DarkCard>
                         )}
@@ -914,58 +991,79 @@ export default function CommunityPage() {
                                         <Typography sx={{ color: T.muted, fontSize: '0.85rem' }}>Niciun membru găsit.</Typography>
                                     </Box>
                                 ) : (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                                        {members.map((m, i) => {
-                                            const fullName = `${m.firstName} ${m.lastName}`;
-                                            const isFollowingMember = following.has(fullName);
-                                            if (m.id === user?.id) return null;
-                                            return (
-                                                <Box key={m.id}>
-                                                    {i > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.75 }}>
-                                                        <Avatar
-                                                            onClick={() => setSelectedMember(m)}
-                                                            sx={{
-                                                                width: 44, height: 44,
-                                                                bgcolor: stringToColor(fullName),
-                                                                fontWeight: 900, fontSize: '0.9rem',
-                                                                flexShrink: 0, cursor: 'pointer',
-                                                                transition: 'transform .2s',
-                                                                '&:hover': { transform: 'scale(1.08)' },
-                                                            }}>
-                                                            {getInitials(fullName)}
-                                                        </Avatar>
-                                                        <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setSelectedMember(m)}>
-                                                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: T.text }}>{fullName}</Typography>
-                                                            <Box sx={{ display: 'flex', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
-                                                                <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>@{m.username}</Typography>
-                                                                {m.location && (
-                                                                    <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>📍 {m.location}</Typography>
-                                                                )}
+                                    <div
+                                        ref={membersParentRef}
+                                        style={{ height: '80vh', overflowY: 'auto' }}
+                                    >
+                                        <div
+                                            style={{
+                                                height: `${membersVirtualizer.getTotalSize()}px`,
+                                                width: '100%',
+                                                position: 'relative',
+                                            }}
+                                        >
+                                            {membersVirtualizer.getVirtualItems().map((virtualItem) => {
+                                                const m = filteredMembers[virtualItem.index];
+                                                const fullName = `${m.firstName} ${m.lastName}`;
+                                                const isFollowingMember = following.has(fullName);
+                                                return (
+                                                    <div
+                                                        key={virtualItem.key}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            left: 0,
+                                                            width: '100%',
+                                                            height: `${virtualItem.size}px`,
+                                                            transform: `translateY(${virtualItem.start}px)`,
+                                                        }}
+                                                    >
+                                                        {virtualItem.index > 0 && <Divider sx={{ borderColor: T.border, my: 0.25 }} />}
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.75 }}>
+                                                            <Avatar
+                                                                onClick={() => setSelectedMember(m)}
+                                                                sx={{
+                                                                    width: 44, height: 44,
+                                                                    bgcolor: stringToColor(fullName),
+                                                                    fontWeight: 900, fontSize: '0.9rem',
+                                                                    flexShrink: 0, cursor: 'pointer',
+                                                                    transition: 'transform .2s',
+                                                                    '&:hover': { transform: 'scale(1.08)' },
+                                                                }}>
+                                                                {getInitials(fullName)}
+                                                            </Avatar>
+                                                            <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setSelectedMember(m)}>
+                                                                <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: T.text }}>{fullName}</Typography>
+                                                                <Box sx={{ display: 'flex', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
+                                                                    <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>@{m.username}</Typography>
+                                                                    {m.location && (
+                                                                        <Typography sx={{ fontSize: '0.72rem', color: T.muted }}>📍 {m.location}</Typography>
+                                                                    )}
+                                                                </Box>
+                                                            </Box>
+                                                            <Box component="button"
+                                                                 onClick={() => handleFollow(m.id, fullName)}
+                                                                 sx={{
+                                                                     px: 1.75, py: 0.75, borderRadius: '8px',
+                                                                     cursor: 'pointer', fontFamily: 'inherit',
+                                                                     fontSize: '0.78rem', fontWeight: 700,
+                                                                     letterSpacing: 0.5, flexShrink: 0, transition: 'all .2s',
+                                                                     display: 'flex', alignItems: 'center', gap: 0.75,
+                                                                     ...(isFollowingMember
+                                                                         ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: T.cdim, color: '#c8d8f0', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d', color: '#ff4d6d' } }
+                                                                         : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
+                                                                 }}>
+                                                                {isFollowingMember
+                                                                    ? <><Check sx={{ fontSize: 14 }} /> Urmărești</>
+                                                                    : <><PersonAdd sx={{ fontSize: 14 }} /> Urmărește</>
+                                                                }
                                                             </Box>
                                                         </Box>
-                                                        <Box component="button"
-                                                             onClick={() => handleFollow(m.id, fullName)}
-                                                             sx={{
-                                                                 px: 1.75, py: 0.75, borderRadius: '8px',
-                                                                 cursor: 'pointer', fontFamily: 'inherit',
-                                                                 fontSize: '0.78rem', fontWeight: 700,
-                                                                 letterSpacing: 0.5, flexShrink: 0, transition: 'all .2s',
-                                                                 display: 'flex', alignItems: 'center', gap: 0.75,
-                                                                 ...(isFollowingMember
-                                                                     ? { border: `1px solid rgba(255,77,109,.4)`, bgcolor: T.cdim, color: '#c8d8f0', '&:hover': { bgcolor: 'rgba(255,77,109,.1)', borderColor: '#ff4d6d', color: '#ff4d6d' } }
-                                                                     : { border: `1.5px solid ${T.cyan}`, bgcolor: 'transparent', color: T.cyan, '&:hover': { bgcolor: T.cdim } }),
-                                                             }}>
-                                                            {isFollowingMember
-                                                                ? <><Check sx={{ fontSize: 14 }} /> Urmărești</>
-                                                                : <><PersonAdd sx={{ fontSize: 14 }} /> Urmărește</>
-                                                            }
-                                                        </Box>
-                                                    </Box>
-                                                </Box>
-                                            );
-                                        })}
-                                    </Box>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 )}
                             </DarkCard>
                         )}

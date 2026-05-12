@@ -135,5 +135,59 @@ namespace FitMoldova.Api.Controllers
              if (!result.isSuccess) return NotFound(result);
              return Ok(result);
         }
+
+        // GET /api/posts/bookmarked
+        [HttpGet("bookmarked")]
+        [Authorize]
+        public IActionResult GetBookmarked()
+        {
+            var userId = int.Parse(User.FindFirst("userId")!.Value);
+            var result = _postLogic.GetBookmarkedPosts(userId);
+            return Ok(result);
+        }
+
+        // POST /api/posts/{id}/bookmark  — toggle bookmark
+        [HttpPost("{id}/bookmark")]
+        [Authorize]
+        public IActionResult Bookmark(int id)
+        {
+            var userId = int.Parse(User.FindFirst("userId")!.Value);
+            var result = _postLogic.BookmarkPost(id, userId);
+            if (!result.isSuccess) return NotFound(result);
+            return Ok(result);
+        }
+
+        // DELETE /api/posts/{id}/bookmark
+        [HttpDelete("{id}/bookmark")]
+        [Authorize]
+        public IActionResult RemoveBookmark(int id)
+        {
+            var userId = int.Parse(User.FindFirst("userId")!.Value);
+            var result = _postLogic.UnbookmarkPost(id, userId);
+            if (!result.isSuccess) return NotFound(result);
+            return NoContent();
+        }
+
+        // POST /api/posts/{id}/repost  — toggle repost
+        [HttpPost("{id}/repost")]
+        [Authorize]
+        public IActionResult Repost(int id)
+        {
+            var userId = int.Parse(User.FindFirst("userId")!.Value);
+            var result = _postLogic.RepostPost(id, userId);
+            if (!result.isSuccess) return NotFound(result);
+            return Ok(result);
+        }
+
+        // POST /api/posts/{id}/poll-vote
+        [HttpPost("{id}/poll-vote")]
+        [Authorize]
+        public IActionResult PollVote(int id, [FromBody] PollVoteDto dto)
+        {
+            var userId = int.Parse(User.FindFirst("userId")!.Value);
+            var result = _postLogic.VotePoll(id, userId, dto.OptionIndex);
+            if (!result.isSuccess) return BadRequest(result);
+            return Ok(result);
+        }
     }
 }

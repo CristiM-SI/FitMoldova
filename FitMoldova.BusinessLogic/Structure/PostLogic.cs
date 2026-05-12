@@ -20,5 +20,11 @@ namespace FitMoldova.BusinessLogic.Structure
           public ServiceResponse SoftDelete(int id, int userId, string role) => SoftDeleteExecution(id, userId, role);
           public ServiceResponse DeleteComment(int commentId, int userId, string role) => DeleteCommentExecution(commentId, userId, role);
           public ServiceResponse Delete(int id) => DeleteExecution(id);
+          public ServiceResponse BookmarkPost(int postId, int userId) => BookmarkPostExecution(postId, userId);
+          public ServiceResponse UnbookmarkPost(int postId, int userId) => UnbookmarkPostExecution(postId, userId);
+          public ServiceResponse GetBookmarkedPosts(int userId) => GetBookmarkedPostsExecution(userId);
+          public ServiceResponse RepostPost(int postId, int userId) => RepostPostExecution(postId, userId);
+          public ServiceResponse VotePoll(int postId, int userId, int optionIndex) => VotePollExecution(postId, userId, optionIndex);
+          public ServiceResponse LikeComment(int commentId, int userId) => LikeCommentExecution(commentId, userId);
      }
 }

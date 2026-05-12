@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { userApi } from '../services/api/userApi';
-import axiosInstance from '../services/api/axiosInstance';
 
 export interface User {
     id: number;
@@ -38,9 +37,8 @@ interface AuthContextType {
 // ─── Constante & helpers la nivel de modul ───────────────────────────────────
 
 const STORAGE = {
-    token:        'fitmoldova_token',
-    refreshToken: 'fitmoldova_refresh_token',
-    user:         'fitmoldova_user',
+    token: 'fitmoldova_token',
+    user:  'fitmoldova_user',
 };
 
 function decodeAdminFromToken(token: string): boolean {
@@ -75,7 +73,6 @@ function readStoredAuth(): { user: User | null; isAuthenticated: boolean; isAdmi
     } catch {
         localStorage.removeItem(STORAGE.user);
         localStorage.removeItem(STORAGE.token);
-        localStorage.removeItem(STORAGE.refreshToken);
     }
     return { user: null, isAuthenticated: false, isAdmin: false };
 }
@@ -105,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const res = await userApi.login(username, password);
             localStorage.setItem(STORAGE.token, res.token);
-            localStorage.setItem(STORAGE.refreshToken, res.refreshToken);
             const loggedUser: User = {
                 id: res.userId,
                 username: res.username,
@@ -141,19 +137,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        // Best-effort revoke pe backend (nu blocheaza logout-ul daca pica).
-        const refreshToken = localStorage.getItem(STORAGE.refreshToken);
-        if (refreshToken) {
-            try {
-                await axiosInstance.post('/auth/logout', { refreshToken });
-            } catch { /* ignore */ }
-        }
         setUser(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
         localStorage.removeItem(STORAGE.user);
         localStorage.removeItem(STORAGE.token);
-        localStorage.removeItem(STORAGE.refreshToken);
     };
 
     return (

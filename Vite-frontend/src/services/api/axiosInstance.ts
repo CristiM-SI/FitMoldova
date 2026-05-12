@@ -6,6 +6,7 @@ export const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:20111/
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
     headers: { 'Content-Type': 'application/json' },
+    timeout: 8000,
 });
 
 interface RetriableRequestConfig extends InternalAxiosRequestConfig {
@@ -47,7 +48,6 @@ const forceLogout = () => {
 };
 
 const requestNewToken = async (): Promise<string> => {
-    // Bare axios call so we don't recurse through our own interceptors.
     const response = await axios.post<{ token: string; expiresAt?: string }>(
         `${BASE_URL}/auth/refresh`,
         {},

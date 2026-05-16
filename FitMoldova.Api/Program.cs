@@ -18,6 +18,17 @@ DbSession.ConnectionString =
      builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
+
+var cloudinaryConfig = builder.Configuration.GetSection("Cloudinary");
+var cloudinaryAccount = new CloudinaryDotNet.Account(
+     cloudinaryConfig["CloudName"],
+     cloudinaryConfig["ApiKey"],
+     cloudinaryConfig["ApiSecret"]
+);
+var cloudinary = new CloudinaryDotNet.Cloudinary(cloudinaryAccount);
+cloudinary.Api.Secure = true;
+builder.Services.AddSingleton(cloudinary);
+GalleryAction.CloudinaryInstance = cloudinary;
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

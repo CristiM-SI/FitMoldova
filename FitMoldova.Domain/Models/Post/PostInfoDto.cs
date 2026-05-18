@@ -11,6 +11,6 @@
           public int Likes { get; set; }
           public int CommentsCount { get; set; }
           public DateTime CreatedAt { get; set; }
+          public int? ClubId { get; set; }
      }
-
 }

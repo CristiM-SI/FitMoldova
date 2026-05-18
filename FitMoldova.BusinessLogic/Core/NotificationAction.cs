@@ -9,7 +9,6 @@ namespace FitMoldova.BusinessLogic.Core
     {
         private readonly DbSession _dbSession = new DbSession();
 
-        // Culori deterministe pentru avatare (index = fromUserId % culori.Length)
         private static readonly string[] AvatarColors =
         {
             "#1a6fff", "#e91e8c", "#00b894", "#9b59b6",
@@ -51,6 +50,8 @@ namespace FitMoldova.BusinessLogic.Core
                     Content        = n.Content,
                     CreatedAt      = n.CreatedAt,
                     IsRead         = n.IsRead,
+                    PostId         = n.PostId,
+                    ClubId         = n.ClubId,
                 }
             ).ToList();
 
@@ -105,7 +106,7 @@ namespace FitMoldova.BusinessLogic.Core
             return new ServiceResponse { isSuccess = true, Message = "Notificare ștearsă." };
         }
 
-        // ── GET unread list + count (un singur apel DB) ───────────────────────
+        // ── GET unread list + count ───────────────────────────────────────────
 
         public ServiceResponse GetUnreadExecution(int userId)
         {
@@ -129,6 +130,8 @@ namespace FitMoldova.BusinessLogic.Core
                     Content        = n.Content,
                     CreatedAt      = n.CreatedAt,
                     IsRead         = n.IsRead,
+                    PostId         = n.PostId,
+                    ClubId         = n.ClubId,
                 }
             ).ToList();
 
@@ -139,9 +142,16 @@ namespace FitMoldova.BusinessLogic.Core
             };
         }
 
-        // ── CREATE (folosit intern de alte module) ────────────────────────────
+        // ── CREATE (folosit intern de alte module + SignalR) ──────────────────
+        // Versiunea extinsă acceptă PostId și ClubId opțional.
 
-        public ServiceResponse CreateExecution(int userId, int fromUserId, string type, string content)
+        public ServiceResponse CreateExecution(
+            int userId,
+            int fromUserId,
+            string type,
+            string content,
+            int? postId = null,
+            int? clubId = null)
         {
             if (string.IsNullOrWhiteSpace(type))
                 return new ServiceResponse { isSuccess = false, Message = "Tipul notificării este obligatoriu." };
@@ -155,12 +165,52 @@ namespace FitMoldova.BusinessLogic.Core
                 FromUserId = fromUserId,
                 Type       = type.Trim(),
                 Content    = content.Trim(),
+                PostId     = postId,
+                ClubId     = clubId,
                 IsRead     = false,
                 CreatedAt  = DateTime.UtcNow,
             };
             ctx.Notifications.Add(entity);
             ctx.SaveChanges();
+
             return new ServiceResponse { isSuccess = true, Data = entity.Id };
+        }
+
+        // ── CREATE BULK pentru notificări club (toți membrii simultan) ────────
+
+        public ServiceResponse CreateBulkExecution(
+            IEnumerable<int> recipientUserIds,
+            int fromUserId,
+            string type,
+            string content,
+            int? postId = null,
+            int? clubId = null)
+        {
+            if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(content))
+                return new ServiceResponse { isSuccess = false, Message = "Date incomplete." };
+
+            using var ctx = _dbSession.FitMoldovaContext();
+            var now = DateTime.UtcNow;
+            var entities = recipientUserIds
+                .Distinct()
+                .Where(uid => uid != fromUserId) // autorul nu primește notificare de la el însuși
+                .Select(uid => new NotificationEntity
+                {
+                    UserId     = uid,
+                    FromUserId = fromUserId,
+                    Type       = type.Trim(),
+                    Content    = content.Trim(),
+                    PostId     = postId,
+                    ClubId     = clubId,
+                    IsRead     = false,
+                    CreatedAt  = now,
+                })
+                .ToList();
+
+            ctx.Notifications.AddRange(entities);
+            ctx.SaveChanges();
+
+            return new ServiceResponse { isSuccess = true, Data = entities.Count };
         }
     }
 }

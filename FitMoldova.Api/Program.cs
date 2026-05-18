@@ -18,6 +18,7 @@ DbSession.ConnectionString =
      builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 var cloudinaryConfig = builder.Configuration.GetSection("Cloudinary");
 var cloudinaryAccount = new CloudinaryDotNet.Account(
@@ -122,6 +123,17 @@ builder.Services.AddAuthentication(options =>
      })
      .AddJwtBearer(options =>
      {
+          options.Events = new JwtBearerEvents
+          {
+               OnMessageReceived = context =>
+               {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                         context.Token = accessToken;
+                    return Task.CompletedTask;
+               }
+          };
           options.TokenValidationParameters = new TokenValidationParameters
           {
                ValidateIssuer = true,
@@ -194,4 +206,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.Run();

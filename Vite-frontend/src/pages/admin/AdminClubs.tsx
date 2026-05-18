@@ -8,7 +8,7 @@ import {
 import {
     SearchOutlined, PlusOutlined, EditOutlined,
     DeleteOutlined, TeamOutlined, ReloadOutlined,
-    UploadOutlined, LinkOutlined, DeleteFilled, CalendarOutlined,
+    UploadOutlined, LinkOutlined, DeleteFilled, CalendarOutlined, FileTextOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { RcFile } from 'antd/es/upload';
@@ -17,6 +17,7 @@ import 'dayjs/locale/ro';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import roRO from 'antd/locale/ro_RO';
 import { clubApi, type ClubDto, type ClubCreatePayload, type ClubUpdatePayload } from '../../services/api/clubApi';
+import postApi from '../../services/api/postApi';
 
 // Activează plugin-ul pentru a parsa formate custom (la editare).
 dayjs.extend(customParseFormat);
@@ -67,6 +68,10 @@ const AdminClubs: React.FC = () => {
     const [clubs, setClubs]         = useState<ClubDto[]>([]);
     const [loading, setLoading]     = useState(false);
     const [saving, setSaving]       = useState(false);
+    const [postModalOpen, setPostModalOpen]   = useState(false);
+    const [postTargetClub, setPostTargetClub] = useState<ClubDto | null>(null);
+    const [postForm]                          = Form.useForm();
+    const [postSaving, setPostSaving]         = useState(false);
     const [apiError, setApiError]   = useState<string | null>(null);
     const [search, setSearch]       = useState('');
     const [filterCat, setFilterCat] = useState<string>('all');
@@ -220,6 +225,33 @@ const AdminClubs: React.FC = () => {
         }
     };
 
+    const openPostModal = (club: ClubDto) => {
+        setPostTargetClub(club);
+        postForm.resetFields();
+        setPostModalOpen(true);
+    };
+
+    const handleCreatePost = async () => {
+        if (!postTargetClub) return;
+        try {
+            const values = await postForm.validateFields();
+            setPostSaving(true);
+            await postApi.create({
+                userId:  0,  // backend-ul ia userId din JWT
+                content: values.content,
+                sport:   values.sport ?? '',
+                clubId:  postTargetClub.id,
+            });
+            messageApi.success(`Postare adăugată în "${postTargetClub.name}". Membrii au primit notificare!`);
+            setPostModalOpen(false);
+        } catch (err: unknown) {
+            if (err && typeof err === 'object' && 'errorFields' in err) return;
+            messageApi.error(err instanceof Error ? err.message : 'Eroare la creare postare.');
+        } finally {
+            setPostSaving(false);
+        }
+    };
+
     const columns: ColumnsType<ClubDto> = [
         {
             title: '',
@@ -285,6 +317,7 @@ const AdminClubs: React.FC = () => {
             key: 'actions',
             render: (_, r) => (
                 <Space>
+                    <Button size="small" icon={<FileTextOutlined />} onClick={() => openPostModal(r)}>Postare</Button>
                     <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)}>Editează</Button>
                     <Popconfirm
                         title="Șterge clubul"
@@ -517,6 +550,52 @@ const AdminClubs: React.FC = () => {
                                 </div>
                             )}
                         </Form.Item>
+                    </Form>
+                </Modal>
+
+                <Modal
+                    title={<Space><FileTextOutlined /><span>Adaugă postare în {postTargetClub?.name}</span></Space>}
+                    open={postModalOpen}
+                    onCancel={() => setPostModalOpen(false)}
+                    onOk={handleCreatePost}
+                    okText="Publică postarea"
+                    cancelText="Anulează"
+                    confirmLoading={postSaving}
+                    width={560}
+                    destroyOnClose
+                >
+                    <Form form={postForm} layout="vertical" style={{ marginTop: 16 }}>
+                        <Form.Item
+                            name="content"
+                            label="Conținut postare"
+                            rules={[
+                                { required: true, message: 'Câmp obligatoriu' },
+                                { min: 10, message: 'Minim 10 caractere' },
+                            ]}
+                        >
+                            <Input.TextArea
+                                rows={5}
+                                placeholder={`Scrie o postare pentru membrii clubului "${postTargetClub?.name}"...`}
+                                maxLength={1000}
+                                showCount
+                            />
+                        </Form.Item>
+                        <Form.Item name="sport" label="Sport (opțional)">
+                            <Select placeholder="Selectează sportul..." allowClear>
+                                {CATEGORIES.map(s => <Option key={s} value={s}>{s}</Option>)}
+                            </Select>
+                        </Form.Item>
+                        <Alert
+                            type="info"
+                            showIcon
+                            icon={<TeamOutlined />}
+                            message={
+                                <span>
+                                    Postarea va fi vizibilă pentru toți cei <strong>{postTargetClub?.membersCount ?? 0} membri</strong> ai clubului,
+                                    care vor primi o <strong>notificare în timp real</strong>.
+                                </span>
+                            }
+                        />
                     </Form>
                 </Modal>
             </div>

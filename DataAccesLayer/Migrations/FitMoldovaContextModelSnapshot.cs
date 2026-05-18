@@ -510,6 +510,12 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ClubId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)

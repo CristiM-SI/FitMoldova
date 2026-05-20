@@ -488,6 +488,43 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.ToTable("Galleries");
                 });
 
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Message.PrivateMessageEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId", "IsRead");
+
+                    b.HasIndex("SenderId", "ReceiverId");
+
+                    b.ToTable("PrivateMessages");
+                });
+
             modelBuilder.Entity("FitMoldova.Domain.Entities.Notification.NotificationEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -495,6 +532,9 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ClubId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -511,9 +551,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<int?>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ClubId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Type")
@@ -1090,6 +1127,25 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FitMoldova.Domain.Entities.Message.PrivateMessageEntity", b =>
+                {
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.Post.PostBookmarkEntity", b =>

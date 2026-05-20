@@ -12,9 +12,6 @@ import { useRoutePreloader } from './hooks/useRoutePreloader'
 
 import Home from './pages/Home'
 
-// Standard lazy — each chunk is only downloaded when first needed.
-// Background preloading is triggered by useRoutePreloader() inside
-// the root route component, after React's first successful render.
 const Clubs             = lazy(() => import('./pages/dashboard/Clubs'))
 const SignUp            = lazy(() => import('./pages/SignUp'))
 const LoginPage         = lazy(() => import('./pages/LoginPage'))
@@ -39,43 +36,36 @@ const AdminUsers        = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminEvents       = lazy(() => import('./pages/admin/AdminEvents'))
 const AdminClubs        = lazy(() => import('./pages/admin/AdminClubs'))
 const AdminChallenges   = lazy(() => import('./pages/admin/AdminChallenges'))
-const AdminActivities = lazy(() => import('./pages/admin/AdminActivities'))
+const AdminActivities   = lazy(() => import('./pages/admin/AdminActivities'))
 const AdminRoutes       = lazy(() => import('./pages/admin/AdminRoutes'))
-const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'))
+const AdminGallery      = lazy(() => import('./pages/admin/AdminGallery'))
 const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
 const AdminContact      = lazy(() => import('./pages/admin/AdminContact'))
-const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
-const AccessDenied   = lazy(() => import('./pages/AccessDenied'))
-const ClubDetailPage = lazy(() => import('./pages/ClubDetailPage'))
-const DetailPage     = lazy(() => import('./pages/DetailPage'))
+const ActivitiesPage    = lazy(() => import('./pages/ActivitiesPage'))
+const AccessDenied      = lazy(() => import('./pages/AccessDenied'))
+const ClubDetailPage    = lazy(() => import('./pages/ClubDetailPage'))
+const MessagesPage      = lazy(() => import('./pages/MessagesPage'))
+const DetailPage        = lazy(() => import('./pages/DetailPage'))
 
-// Redirect logged-in users away from public-only pages (login / register)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated } = useAuth()
     if (isAuthenticated) return <Navigate to={ROUTES.DASHBOARD} />
     return <>{children}</>
 }
 
-// Admin-only guard — used only for the /admin subtree
-// Afișează AccessDenied cu motiv specific în loc de redirect silențios
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated, isAdmin } = useAuth()
-
     if (!isAuthenticated) {
         console.warn('[AdminRoute] Acces blocat: utilizator neautentificat.')
         return <AccessDenied reason="unauthenticated" />
     }
-
     if (!isAdmin) {
         console.warn('[AdminRoute] Acces blocat: utilizatorul nu are rol de Admin.')
         return <AccessDenied reason="unauthorized" />
     }
-
     return <>{children}</>
 }
 
-// Inline spinner shown while a lazy chunk is being downloaded.
-// Uses a <style> tag for the keyframe so no .css file is needed.
 const PAGE_LOADER_KEYFRAMES = `@keyframes _fmSpin{to{transform:rotate(360deg)}}`
 
 const PageLoader: React.FC = () => (
@@ -97,16 +87,8 @@ const PageLoader: React.FC = () => (
     </>
 )
 
-// ── Root route ────────────────────────────────────────────────────────────────
-// Named component so React hooks (useRoutePreloader) can run here.
-// Mounts auth, user, progress, and dashboard-data contexts on every page.
-// ForumProvider is scoped to the forum layout route — never runs on other pages.
 const RootComponent: React.FC = () => {
-    // Kicks off background chunk preloading via requestIdleCallback after
-    // the first render. Safe from Vite dep-discovery restarts because React
-    // has already rendered the home page (all entry deps are settled).
     useRoutePreloader()
-
     return (
         <>
             <style>{globalStyles}</style>
@@ -131,9 +113,6 @@ const rootRoute = createRootRoute({
     notFoundComponent: () => <Navigate to={ROUTES.HOME} />,
 })
 
-// ── Protected layout route ────────────────────────────────────────────────────
-// Pathless layout (no URL segment). Enforces authentication — unauthenticated
-// requests are redirected before any protected page mounts.
 const protectedLayoutRoute = createRoute({
     getParentRoute: () => rootRoute,
     id: 'protectedLayout',
@@ -144,10 +123,6 @@ const protectedLayoutRoute = createRoute({
     },
 })
 
-// ── Forum layout route ────────────────────────────────────────────────────────
-// Pathless layout nested under protectedLayoutRoute. ForumProvider (with its
-// large INITIAL_THREADS state) only mounts when visiting /forum, /feed, /saved.
-// This prevents the heavy forum state from initialising on every page.
 const forumLayoutRoute = createRoute({
     getParentRoute: () => protectedLayoutRoute,
     id: 'forumLayout',
@@ -159,53 +134,41 @@ const forumLayoutRoute = createRoute({
 })
 
 // ── Public routes ─────────────────────────────────────────────────────────────
-const homeRoute      = createRoute({ getParentRoute: () => rootRoute, path: '/',        component: Home })
-const clubsRoute     = createRoute({ getParentRoute: () => rootRoute, path: '/clubs',   component: () => <Clubs /> })
-const galleryRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/gallery', component: () => <Gallery /> })
-const eventsRoute    = createRoute({ getParentRoute: () => rootRoute, path: '/events',  component: () => <EvenimentePublic /> })
-const routesMapRoute = createRoute({ getParentRoute: () => rootRoute, path: '/routes',  component: () => <RoutesPage /> })
-const contactRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/contact', component: () => <Contact /> })
-const activitiesPublicRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/activitati',
-    component: () => <ActivitiesPage />
-})
-const loginRoute    = createRoute({
-    getParentRoute: () => rootRoute, path: '/login',
-    component: () => <PublicRoute><LoginPage /></PublicRoute>,
-})
-const registerRoute = createRoute({
-    getParentRoute: () => rootRoute, path: '/register',
-    component: () => <PublicRoute><SignUp /></PublicRoute>,
-})
-const accessDeniedRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/access-denied',
-    component: () => <AccessDenied />,
-})
+const homeRoute             = createRoute({ getParentRoute: () => rootRoute, path: '/',        component: Home })
+const clubsRoute            = createRoute({ getParentRoute: () => rootRoute, path: '/clubs',   component: () => <Clubs /> })
+const galleryRoute          = createRoute({ getParentRoute: () => rootRoute, path: '/gallery', component: () => <Gallery /> })
+const eventsRoute           = createRoute({ getParentRoute: () => rootRoute, path: '/events',  component: () => <EvenimentePublic /> })
+const routesMapRoute        = createRoute({ getParentRoute: () => rootRoute, path: '/routes',  component: () => <RoutesPage /> })
+const contactRoute          = createRoute({ getParentRoute: () => rootRoute, path: '/contact', component: () => <Contact /> })
+const activitiesPublicRoute = createRoute({ getParentRoute: () => rootRoute, path: '/activitati', component: () => <ActivitiesPage /> })
+const loginRoute            = createRoute({ getParentRoute: () => rootRoute, path: '/login',   component: () => <PublicRoute><LoginPage /></PublicRoute> })
+const registerRoute         = createRoute({ getParentRoute: () => rootRoute, path: '/register', component: () => <PublicRoute><SignUp /></PublicRoute> })
+const accessDeniedRoute     = createRoute({ getParentRoute: () => rootRoute, path: '/access-denied', component: () => <AccessDenied /> })
 
 // ── Detail routes ─────────────────────────────────────────────────────────────
 const eventDetailRoute     = createRoute({ getParentRoute: () => rootRoute, path: '/events/$id',     component: () => <DetailPage entity="event" /> })
 const clubDetailRoute      = createRoute({ getParentRoute: () => rootRoute, path: '/clubs/$id',      component: () => <ClubDetailPage /> })
 const challengeDetailRoute = createRoute({ getParentRoute: () => rootRoute, path: '/challenges/$id', component: () => <DetailPage entity="challenge" /> })
-// ── Protected routes (auth guard via protectedLayoutRoute) ────────────────────
+
+// ── Protected routes ──────────────────────────────────────────────────────────
 const dashboardRoute       = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/dashboard',        component: () => <Dashboard /> })
 const profileRoute         = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/profile',          component: () => <Profile /> })
 const communityRoute       = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/community',        component: () => <CommunityPage /> })
 const activitiesRoute      = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/activities',       component: () => <Activitati /> })
 const challengesRoute      = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/challenges',       component: () => <Provocari /> })
 const eventsDashboardRoute = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/dashboard/events', component: () => <EVENTS /> })
-const notificationsRoute   = createRoute({ getParentRoute: () => forumLayoutRoute,     path: '/notifications',    component: () => <NotificationsPage /> })
 const feedbackRoute        = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/feedback',         component: () => <Feedback /> })
+// ↓ messagesRoute este în protectedLayoutRoute — NU în forumLayoutRoute
+const messagesRoute        = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/messages',         component: () => <MessagesPage /> })
 
-// ── Forum routes (ForumProvider only mounts for these three pages) ────────────
-const forumRoute    = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/forum',    component: () => <ForumPage /> })
-const feedRoute     = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/feed',     component: () => <FeedPage /> })
-const savedRoute    = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/saved',    component: () => <SavedPage /> })
-const messagesRoute = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/messages', component: () => <NotificationsPage /> })
+// ── Forum routes ──────────────────────────────────────────────────────────────
+const forumRoute         = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/forum',         component: () => <ForumPage /> })
+const feedRoute          = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/feed',          component: () => <FeedPage /> })
+const savedRoute         = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/saved',         component: () => <SavedPage /> })
+const notificationsRoute = createRoute({ getParentRoute: () => forumLayoutRoute, path: '/notifications', component: () => <NotificationsPage /> })
 
 // ── Admin routes ──────────────────────────────────────────────────────────────
-const adminRoute           = createRoute({ getParentRoute: () => rootRoute, path: '/admin',       component: () => <AdminRoute><AdminLayout /></AdminRoute> })
+const adminRoute           = createRoute({ getParentRoute: () => rootRoute,  path: '/admin',       component: () => <AdminRoute><AdminLayout /></AdminRoute> })
 const adminIndexRoute      = createRoute({ getParentRoute: () => adminRoute, path: '/',           component: () => <AdminOverview /> })
 const adminUsersRoute      = createRoute({ getParentRoute: () => adminRoute, path: '/users',      component: () => <AdminUsers /> })
 const adminEventsRoute     = createRoute({ getParentRoute: () => adminRoute, path: '/events',     component: () => <AdminEvents /> })
@@ -214,7 +177,6 @@ const adminChallengesRoute = createRoute({ getParentRoute: () => adminRoute, pat
 const adminRoutesRoute     = createRoute({ getParentRoute: () => adminRoute, path: '/routes',     component: () => <AdminRoutes /> })
 const adminFeedbackRoute   = createRoute({ getParentRoute: () => adminRoute, path: '/feedback',   component: () => <AdminFeedback /> })
 const adminContactRoute    = createRoute({ getParentRoute: () => adminRoute, path: '/contact',    component: () => <AdminContact /> })
-// Definite DUPĂ adminRoute pentru a evita temporal dead zone
 const adminActivitiesRoute = createRoute({ getParentRoute: () => adminRoute, path: '/activities', component: () => <AdminActivities /> })
 const adminGalleryRoute    = createRoute({ getParentRoute: () => adminRoute, path: '/gallery',    component: () => <AdminGallery /> })
 
@@ -240,12 +202,12 @@ const routeTree = rootRoute.addChildren([
         challengesRoute,
         eventsDashboardRoute,
         feedbackRoute,
+        messagesRoute,          // ← aici, direct în protectedLayout
         forumLayoutRoute.addChildren([
             forumRoute,
             feedRoute,
             savedRoute,
-            notificationsRoute,
-            messagesRoute,
+            notificationsRoute, // ← notifications rămâne în forumLayout (are nevoie de ForumProvider)
         ]),
     ]),
     adminRoute.addChildren([
@@ -264,9 +226,9 @@ const routeTree = rootRoute.addChildren([
 
 const router = createRouter({
     routeTree,
-    defaultPreload: 'intent',       // preload chunks on hover/focus — makes navigation instant
-    defaultPreloadDelay: 80,        // start after 80 ms of intent to avoid noise
-    defaultStaleTime: 5 * 60_000,   // treat loaded route data as fresh for 5 min
+    defaultPreload: 'intent',
+    defaultPreloadDelay: 80,
+    defaultStaleTime: 5 * 60_000,
 })
 
 declare module '@tanstack/react-router' {

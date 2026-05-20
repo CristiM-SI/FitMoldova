@@ -13,6 +13,7 @@ using FitMoldova.Domain.Enums;
 using FitMoldova.BusinessLogic.Core;
 using FitMoldova.DataAccesLayer.Converters;
 using FitMoldova.Domain.Entities.Gallery;
+using FitMoldova.Domain.Entities.Message;
 
 namespace FitMoldova.DataAccesLayer;
 
@@ -60,6 +61,7 @@ public class FitMoldovaContext : DbContext
     public DbSet<PostRepostEntity> PostReposts { get; set; }
     public DbSet<PostPollVoteEntity> PostPollVotes { get; set; }
     public DbSet<PostReplyLikeEntity> PostReplyLikes { get; set; }
+    public DbSet<PrivateMessageEntity> PrivateMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -252,5 +254,22 @@ public class FitMoldovaContext : DbContext
         modelBuilder.Entity<PostReplyLikeEntity>()
             .HasOne(rl => rl.Reply).WithMany()
             .HasForeignKey(rl => rl.ReplyId).OnDelete(DeleteBehavior.Cascade);
+
+        // ── PrivateMessage ─────────────────────────────────────────────────────
+        modelBuilder.Entity<PrivateMessageEntity>(entity =>
+        {
+            entity.HasIndex(m => new { m.SenderId, m.ReceiverId });
+            entity.HasIndex(m => new { m.ReceiverId, m.IsRead });
+
+            entity.HasOne(m => m.Sender)
+                  .WithMany()
+                  .HasForeignKey(m => m.SenderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(m => m.Receiver)
+                  .WithMany()
+                  .HasForeignKey(m => m.ReceiverId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
     }
 }

@@ -19,7 +19,7 @@ namespace FitMoldova.BusinessLogic
           }
           
           public IContactLogic ContactLogic()   => new ContactLogic();
-         public IFeedbackLogic FeedbackLogic() => new FeedbackLogic();
+          public IFeedbackLogic FeedbackLogic() => new FeedbackLogic();
           public IActivityLogic ActivityLogic() => new ActivityLogic(_mapper);
           public IRouteLogic RouteLogic() => new RouteLogic();
           public IEventLogic EventLogic() => new EventLogic();
@@ -27,5 +27,6 @@ namespace FitMoldova.BusinessLogic
           public IChallengeLogic ChallengeLogic() => new ChallengeLogic();
           public IPostLogic PostLogic() => new PostLogic();
           public INotificationLogic NotificationLogic() => new NotificationLogic();
+          public IMessageLogic MessageLogic() => new MessageLogic();
      }
 }

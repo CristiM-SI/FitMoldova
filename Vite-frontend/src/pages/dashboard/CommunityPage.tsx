@@ -653,6 +653,7 @@ export default function CommunityPage() {
                                     active={tab === item.id} badge={item.badge} onClick={item.onClick} />
                         ))}
 
+                        <NavBtn icon="✉️" label="Mesaje" active={false} onClick={() => navigate({ to: ROUTES.MESSAGES })} />
                         <NavBtn icon="💬" label="Forum" active={false} onClick={() => navigate({ to: ROUTES.FORUM })} />
                         <NavBtn icon="🏟️" label="Cluburi" active={false} onClick={() => navigate({ to: ROUTES.CLUBS })} />
 
@@ -690,6 +691,10 @@ export default function CommunityPage() {
                                 )}
                             </Box>
                         ))}
+                        <Box component="button" onClick={() => navigate({ to: ROUTES.MESSAGES })}
+                             sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap', border: `1px solid ${T.border}`, bgcolor: T.card, color: T.muted, fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all .2s', flexShrink: 0, '&:hover': { bgcolor: T.cdim, color: '#fff' } }}>
+                            <span style={{ fontSize: '1rem' }}>✉️</span> Mesaje
+                        </Box>
                         <Box component="button" onClick={() => navigate({ to: ROUTES.FORUM })}
                              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 1, borderRadius: '10px', whiteSpace: 'nowrap', border: `1px solid ${T.border}`, bgcolor: T.card, color: T.muted, fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', transition: 'all .2s', flexShrink: 0, '&:hover': { bgcolor: T.cdim, color: '#fff' } }}>
                             <span style={{ fontSize: '1rem' }}>💬</span> Forum

@@ -110,6 +110,14 @@ const postApi = {
     getByUser: (userId: number) =>
         axiosInstance.get<ApiResponse<PostInfoDto[]>>(`/posts/user/${userId}`).then(unwrap),
 
+    getByClub: (clubId: number, pageSize = 20): Promise<PostInfoDto[]> =>
+        axiosInstance
+            .get<ApiResponse<PaginatedResult<PostInfoDto> | PostInfoDto[]>>(
+                '/posts',
+                { params: { clubId, page: 1, pageSize } }
+            )
+            .then((res) => toPaginated<PostInfoDto>(unwrap(res), 1, pageSize).items),
+
     // 2. Create post (Bearer token attached by axiosInstance request interceptor)
     create: (dto: PostCreateDto) =>
         axiosInstance.post<ApiResponse<number>>('/posts', dto).then(unwrap),

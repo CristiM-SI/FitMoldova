@@ -5,18 +5,19 @@ import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useForumContext } from '../context/ForumContext';
 import {
-  ft, fontImportCSS, keyframesCSS,
-  sxPageRoot, sxBody, sxSidebar, sxNavItem, sxNavItemActive,
-  sxNavIcon, sxNavIconActive, sxNavBadge, sxPostBtn, sxMain,
-  sxHeader, sxHeaderTitle, sxEmpty, sxEmptyIcon, sxEmptyTitle,
-  sxEmptySub, sxToast, sxTab, sxTabs,
+    ft, fontImportCSS, keyframesCSS,
+    sxPageRoot, sxBody, sxSidebar, sxNavItem, sxNavItemActive,
+    sxNavIcon, sxNavIconActive, sxNavBadge, sxPostBtn, sxMain,
+    sxHeader, sxHeaderTitle, sxEmpty, sxEmptyIcon, sxEmptyTitle,
+    sxEmptySub, sxToast, sxTab, sxTabs,
 } from '../styles/forumStyles';
 import notificationApi from '../services/api/notificationApi';
 import type { NotificationInfoDto } from '../types/Notification';
+import { signalRService } from '../services/signalRService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type NotifType = 'like' | 'reply' | 'follow' | 'repost' | 'mention' | 'bookmark';
+type NotifType = 'like' | 'reply' | 'follow' | 'repost' | 'mention' | 'bookmark' | 'club_post';
 
 interface Notification {
     id: number;
@@ -28,6 +29,8 @@ interface Notification {
     content?: string;
     time: string;
     read: boolean;
+    postId?: number;
+    clubId?: number;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -45,7 +48,7 @@ function dtoToNotif(dto: NotificationInfoDto): Notification {
 
     return {
         id:         dto.id,
-        type:       dto.type,
+        type:       dto.type as NotifType,
         fromName:   dto.fromUserName,
         fromHandle: dto.fromUserHandle,
         fromAvatar: dto.fromUserAvatar,
@@ -53,23 +56,26 @@ function dtoToNotif(dto: NotificationInfoDto): Notification {
         content:    dto.content,
         time,
         read:       dto.isRead,
+        postId:     dto.postId,
+        clubId:     dto.clubId,
     };
 }
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
 
 const NOTIF_ICONS: Record<NotifType, { icon: string; color: string }> = {
-    like:     { icon: '❤️', color: '#ff4d6d' },
-    reply:    { icon: '💬', color: '#00c8ff' },
-    follow:   { icon: '👤', color: '#00b894' },
-    repost:   { icon: '🔁', color: '#00b894' },
-    mention:  { icon: '@',  color: '#1a6fff' },
-    bookmark: { icon: '🔖', color: '#00c8ff' },
+    like:      { icon: '❤️',  color: '#ff4d6d' },
+    reply:     { icon: '💬',  color: '#00c8ff' },
+    follow:    { icon: '👤',  color: '#00b894' },
+    repost:    { icon: '🔁',  color: '#00b894' },
+    mention:   { icon: '@',   color: '#1a6fff' },
+    bookmark:  { icon: '🔖',  color: '#00c8ff' },
+    club_post: { icon: '🏋️', color: '#10b981' },
 };
 
 // ─── Filter tabs ──────────────────────────────────────────────────────────────
 
-const FILTER_TABS = ['Toate', 'Aprecieri', 'Răspunsuri', 'Urmăritori', 'Mențiuni'];
+const FILTER_TABS = ['Toate', 'Aprecieri', 'Răspunsuri', 'Urmăritori', 'Mențiuni', 'Cluburi'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -97,6 +103,36 @@ export default function NotificationsPage() {
         return () => { cancelled = true; };
     }, []);
 
+    // ── SignalR — ascultă notificări push în timp real ───────────────────────
+    useEffect(() => {
+        const token = localStorage.getItem('fitmoldova_token');
+        if (!token) return;
+
+        signalRService.start(token);
+
+        const handler = (...args: unknown[]) => {
+            // SignalR trimite payload-ul ca prim argument
+            const payload = args[0] as { type: string; content: string; postId?: number; clubId?: number };
+            const newNotif: Notification = {
+                id:         Date.now(),
+                type:       payload.type as NotifType,
+                fromName:   'Club',
+                fromHandle: '',
+                fromAvatar: '🏋',
+                fromColor:  '#10b981',
+                content:    payload.content,
+                time:       'acum',
+                read:       false,
+                postId:     payload.postId,
+                clubId:     payload.clubId,
+            };
+            setNotifs((prev) => [newNotif, ...prev]);
+        };
+
+        signalRService.on('ReceiveNotification', handler);
+        return () => { signalRService.off('ReceiveNotification', handler); };
+    }, []);
+
     const unreadCount = notifs.filter((n) => !n.read).length;
 
     const filtered = useMemo(() => {
@@ -106,6 +142,7 @@ export default function NotificationsPage() {
             'Răspunsuri': ['reply'],
             'Urmăritori': ['follow'],
             'Mențiuni':   ['mention', 'repost', 'bookmark'],
+            'Cluburi':    ['club_post'],
         };
         return notifs.filter((n) => map[activeTab]?.includes(n.type));
     }, [notifs, activeTab]);
@@ -279,7 +316,14 @@ export default function NotificationsPage() {
                                             '&:hover': { bgcolor: notif.read ? 'rgba(0,200,255,0.025)' : 'rgba(26,111,255,0.07)' },
                                             '&:hover .notif-dismiss': { opacity: 1 },
                                         }}
-                                        onClick={() => { markRead(notif.id); navigate({ to: ROUTES.FORUM }); }}
+                                        onClick={() => {
+                                            markRead(notif.id);
+                                            if (notif.type === 'club_post' && notif.postId) {
+                                                navigate({ to: ROUTES.FORUM, search: { postId: String(notif.postId) } });
+                                            } else {
+                                                navigate({ to: ROUTES.FORUM });
+                                            }
+                                        }}
                                     >
                                         {/* Unread indicator bar */}
                                         {!notif.read && (

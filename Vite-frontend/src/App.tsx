@@ -46,6 +46,7 @@ const AdminFeedback     = lazy(() => import('./pages/admin/AdminFeedback'))
 const AdminContact      = lazy(() => import('./pages/admin/AdminContact'))
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'))
 const AccessDenied   = lazy(() => import('./pages/AccessDenied'))
+const ClubDetailPage = lazy(() => import('./pages/ClubDetailPage'))
 const DetailPage     = lazy(() => import('./pages/DetailPage'))
 
 // Redirect logged-in users away from public-only pages (login / register)
@@ -185,7 +186,7 @@ const accessDeniedRoute = createRoute({
 
 // ── Detail routes ─────────────────────────────────────────────────────────────
 const eventDetailRoute     = createRoute({ getParentRoute: () => rootRoute, path: '/events/$id',     component: () => <DetailPage entity="event" /> })
-const clubDetailRoute      = createRoute({ getParentRoute: () => rootRoute, path: '/clubs/$id',      component: () => <DetailPage entity="club" /> })
+const clubDetailRoute      = createRoute({ getParentRoute: () => rootRoute, path: '/clubs/$id',      component: () => <ClubDetailPage /> })
 const challengeDetailRoute = createRoute({ getParentRoute: () => rootRoute, path: '/challenges/$id', component: () => <DetailPage entity="challenge" /> })
 // ── Protected routes (auth guard via protectedLayoutRoute) ────────────────────
 const dashboardRoute       = createRoute({ getParentRoute: () => protectedLayoutRoute, path: '/dashboard',        component: () => <Dashboard /> })

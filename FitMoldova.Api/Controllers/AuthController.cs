@@ -40,7 +40,7 @@ namespace FitMoldova.Api.Controllers
             Response.Cookies.Append("fitmoldova_refresh", newRefreshToken.Token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure   = true,
+                Secure   = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Path     = "/api/auth",
                 Expires  = newRefreshToken.ExpiresAt
@@ -66,9 +66,9 @@ namespace FitMoldova.Api.Controllers
             Response.Cookies.Delete("fitmoldova_refresh", new CookieOptions
             {
                 HttpOnly = true,
-                Secure   = true,
+                Secure   = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
-                Path     = "/api/auth/refresh"
+                Path     = "/api/auth"
             });
 
             return Ok(new { message = "Logout reușit." });

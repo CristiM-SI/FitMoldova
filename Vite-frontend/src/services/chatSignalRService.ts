@@ -4,7 +4,7 @@ import type { MessageInfoDto } from '../types/Message';
 
 const BASE = import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
-    : 'http://localhost:20111';
+    : 'http://localhost:5296';
 
 const HUB_URL = `${BASE}/hubs/chat`;
 

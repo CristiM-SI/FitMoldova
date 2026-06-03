@@ -54,7 +54,7 @@ public class UserController : ControllerBase
         Response.Cookies.Append("fitmoldova_refresh", refreshToken.Token, new CookieOptions
         {
             HttpOnly = true,
-            Secure   = true,
+            Secure   = Request.IsHttps,
             SameSite = SameSiteMode.Strict,
             Path     = "/api/auth",
             Expires  = refreshToken.ExpiresAt

@@ -13,7 +13,11 @@
 
 import * as signalR from '@microsoft/signalr';
 
-const HUB_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:5000'}/hubs/notifications`;
+const SIGNALR_BASE = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+  : 'http://localhost:5296';
+
+const HUB_URL = `${SIGNALR_BASE}/hubs/notifications`;
 
 // Tipul payload-ului trimis de NotificationHub
 export interface SignalRNotification {

@@ -51,5 +51,17 @@ namespace FitMoldova.BusinessLogic.Core
                _ctx.SaveChanges();
                return true;
           }
+
+          // Revocă toate refresh tokenele active ale unui user (ex. după reset de parolă).
+          public void RevokeAllForUser(int userId)
+          {
+               var tokens = _ctx.RefreshTokens
+                    .Where(t => t.UserId == userId && !t.IsRevoked)
+                    .ToList();
+               foreach (var t in tokens)
+                    t.IsRevoked = true;
+               if (tokens.Count > 0)
+                    _ctx.SaveChanges();
+          }
      }
 }

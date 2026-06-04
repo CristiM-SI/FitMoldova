@@ -136,13 +136,7 @@ namespace FitMoldova.BusinessLogic.Core
 
             var result = joined.Select(j =>
             {
-                int progressPercent = 0;
-                var parts = j.Duration.Split(' ');
-                if (parts.Length > 0 && int.TryParse(parts[0], out int totalDays) && totalDays > 0)
-                {
-                    double daysPassed = (DateTime.UtcNow - j.JoinedAt).TotalDays;
-                    progressPercent = Math.Min(100, (int)(daysPassed / totalDays * 100));
-                }
+                int progressPercent = ComputeProgressPercent(j.Duration, j.JoinedAt);
                 return new ChallengeJoinedDto
                 {
                     Id = j.Id,
@@ -157,6 +151,20 @@ namespace FitMoldova.BusinessLogic.Core
             }).ToList();
 
             return new ServiceResponse { isSuccess = true, Data = result };
+        }
+
+        // Progresul "real" al unui participant: derivat din durata challenge-ului și data înscrierii.
+        // Sursa unică folosită atât pentru lista de challenge-uri cât și pentru postările cu challenge atașat.
+        public static int ComputeProgressPercent(string duration, DateTime joinedAt)
+        {
+            int progressPercent = 0;
+            var parts = (duration ?? string.Empty).Split(' ');
+            if (parts.Length > 0 && int.TryParse(parts[0], out int totalDays) && totalDays > 0)
+            {
+                double daysPassed = (DateTime.UtcNow - joinedAt).TotalDays;
+                progressPercent = Math.Min(100, (int)(daysPassed / totalDays * 100));
+            }
+            return progressPercent;
         }
     }
 }

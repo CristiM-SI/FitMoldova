@@ -35,7 +35,7 @@ interface ForumContextValue {
     handleBookmark: (threadId: number, e: React.MouseEvent) => void;
     handleReplyLike: (threadId: number, replyId: number) => void;
     handlePollVote: (threadId: number, optionIdx: number) => void;
-    handlePublish: (content: string, category: ForumCategory, userName: string, userAvatar: string, userHandle: string) => void;
+    handlePublish: (content: string, category: ForumCategory, userName: string, userAvatar: string, userHandle: string, imageUrl?: string, pollOptions?: string[]) => void;
     handleReplySubmit: (replyText: string, expandedThread: number | null, userName: string, userAvatar: string, userHandle: string) => void;
     heartAnims: Set<number>;
     toast: { msg: string; visible: boolean };
@@ -83,6 +83,7 @@ function mapPostToThread(dto: PostInfoDto): ForumThread {
         reposted: false,
         bookmarked: false,
         views: 0,
+        image: dto.imageUrl ?? undefined,
         commentsCount: dto.commentsCount,
     } as ForumThread & { commentsCount: number };
 }
@@ -273,11 +274,17 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
         userName: string,
         userAvatar: string,
         userHandle: string,
+        imageUrl?: string,
+        pollOptions?: string[],
     ) => {
         if (!user?.id) {
             showToast('Trebuie să fii autentificat pentru a posta.');
             return;
         }
+
+        // Doar opțiunile completate, minim 2 pentru un sondaj valid
+        const cleanPoll = (pollOptions ?? []).map((o) => o.trim()).filter(Boolean);
+        const hasPoll = cleanPoll.length >= 2;
 
         // Optimistic UI — add thread immediately with a temp id
         const tempId = -Date.now();
@@ -298,11 +305,21 @@ export function ForumProvider({ children }: { children: React.ReactNode }) {
             reposted: false,
             bookmarked: false,
             views: 0,
+            image: imageUrl || undefined,
+            poll: hasPoll
+                ? { question: '', options: cleanPoll.map((label) => ({ label, votes: 0 })), totalVotes: 0, voted: false }
+                : undefined,
         };
         setThreads((prev) => [optimisticThread, ...prev]);
         showToast('Postarea ta a fost publicată!');
 
-        postApi.create({ userId: user.id, content: content.trim(), sport: category })
+        postApi.create({
+            userId: user.id,
+            content: content.trim(),
+            sport: category,
+            imageUrl: imageUrl || undefined,
+            pollOptions: hasPoll ? cleanPoll : undefined,
+        })
             .then((realId) => {
                 // Replace temp id with real id from server
                 setThreads((prev) =>

@@ -57,11 +57,14 @@ public class FitMoldovaContext : DbContext
     public DbSet<NotificationEntity> Notifications { get; set; }
     public DbSet<UserFollowEntity> UserFollows { get; set; }
     public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
+    public DbSet<PasswordResetCodeEntity> PasswordResetCodes { get; set; }
     public DbSet<PostBookmarkEntity> PostBookmarks { get; set; }
     public DbSet<PostRepostEntity> PostReposts { get; set; }
     public DbSet<PostPollVoteEntity> PostPollVotes { get; set; }
     public DbSet<PostReplyLikeEntity> PostReplyLikes { get; set; }
     public DbSet<PrivateMessageEntity> PrivateMessages { get; set; }
+    public DbSet<PollEntity> Polls { get; set; }
+    public DbSet<PollOptionEntity> PollOptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -181,6 +184,14 @@ public class FitMoldovaContext : DbContext
             .HasIndex(p => new { p.ClubId, p.CreatedAt });
         modelBuilder.Entity<PostEntity>()
             .HasIndex(p => p.IsDeleted);
+
+        // ── Post → Challenge (opțional, FĂRĂ cascade) ──
+        // La ștergerea challenge-ului, AttachedChallengeId devine null.
+        modelBuilder.Entity<PostEntity>()
+            .HasOne(p => p.AttachedChallenge)
+            .WithMany()
+            .HasForeignKey(p => p.AttachedChallengeId)
+            .OnDelete(DeleteBehavior.SetNull);
         //ChallengeParticipantEntity
         modelBuilder.Entity<ChallengeParticipantEntity>()
              .HasIndex(cp => new { cp.ChallengeId, cp.UserId }).IsUnique();
@@ -213,6 +224,15 @@ public class FitMoldovaContext : DbContext
              .HasOne(rt => rt.User)
              .WithMany()
              .HasForeignKey(rt => rt.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+        // ── PasswordResetCode → User ──────────────────────────────────────────
+        modelBuilder.Entity<PasswordResetCodeEntity>()
+             .HasIndex(pr => pr.UserId);
+        modelBuilder.Entity<PasswordResetCodeEntity>()
+             .HasOne(pr => pr.User)
+             .WithMany()
+             .HasForeignKey(pr => pr.UserId)
              .OnDelete(DeleteBehavior.Cascade);
 
         // ── PostBookmark ───────────────────────────────────────────────────────
@@ -254,6 +274,22 @@ public class FitMoldovaContext : DbContext
         modelBuilder.Entity<PostReplyLikeEntity>()
             .HasOne(rl => rl.Reply).WithMany()
             .HasForeignKey(rl => rl.ReplyId).OnDelete(DeleteBehavior.Cascade);
+
+        // ── Poll (1:0..1 cu Post) + PollOption ───────────────────────────────────
+        // Cascade: ștergerea postării șterge Poll-ul; ștergerea Poll-ului șterge opțiunile.
+        modelBuilder.Entity<PollEntity>()
+            .HasOne(p => p.Post)
+            .WithOne(post => post.Poll)
+            .HasForeignKey<PollEntity>(p => p.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PollEntity>()
+            .HasIndex(p => p.PostId).IsUnique();
+
+        modelBuilder.Entity<PollOptionEntity>()
+            .HasOne(o => o.Poll)
+            .WithMany(p => p.Options)
+            .HasForeignKey(o => o.PollId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ── PrivateMessage ─────────────────────────────────────────────────────
         modelBuilder.Entity<PrivateMessageEntity>(entity =>

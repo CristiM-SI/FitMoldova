@@ -1,15 +1,17 @@
 using FitMoldova.Domain.Models.Post;
 using FitMoldova.Domain.Models.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace FitMoldova.BusinessLogic.Interfaces
 {
      public interface IPostLogic
      {
-          ServiceResponse GetAll();
-          ServiceResponse GetAllPaged(int page, int pageSize, int? clubId);
-          ServiceResponse GetById(int id);
-          ServiceResponse GetByUser(int userId);
+          ServiceResponse GetAll(int? currentUserId = null);
+          ServiceResponse GetAllPaged(int page, int pageSize, int? clubId, int? currentUserId = null);
+          ServiceResponse GetById(int id, int? currentUserId = null);
+          ServiceResponse GetByUser(int userId, int? currentUserId = null);
           ServiceResponse CreatePost(PostCreateDto dto);
+          ServiceResponse UploadImage(IFormFile file);
           ServiceResponse UpdatePost(int postId, int userId, string role, PostUpdateDto dto);
           ServiceResponse SoftDelete(int id, int userId, string role);
           ServiceResponse Delete(int id);

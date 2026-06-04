@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FitMoldova.Domain.Entities.User;
+using FitMoldova.Domain.Entities.Challenge;
 
 namespace FitMoldova.Domain.Entities.Post
 {
@@ -35,6 +36,21 @@ namespace FitMoldova.Domain.Entities.Post
           public bool IsRepost { get; set; } = false;
           public int? OriginalPostId { get; set; }
           public string? PollOptions { get; set; }
+
+          // ── Progres opțional dintr-un challenge atașat postării ──
+          public int? AttachedChallengeId { get; set; }
+
+          [ForeignKey(nameof(AttachedChallengeId))]
+          public ChallengeEntity? AttachedChallenge { get; set; }
+
+          public int? AttachedChallengeProgress { get; set; }
+
+          // ── Imagine opțională (stocată ca .webp în Cloudinary, exact ca galeria) ──
+          public string? ImageUrl { get; set; }
+          public string? ImageThumbnailUrl { get; set; }
+
+          // ── Sondaj opțional (1:0..1) ──
+          public PollEntity? Poll { get; set; }
 
           public ICollection<PostReplyEntity> Replies { get; set; } = new List<PostReplyEntity>();
      }

@@ -1,8 +1,12 @@
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using FitMoldova.DataAccesLayer;
 using FitMoldova.Domain.Entities.Post;
 using FitMoldova.Domain.Models.Common;
 using FitMoldova.Domain.Models.Post;
 using FitMoldova.Domain.Models.Services;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
 
 namespace FitMoldova.BusinessLogic.Core
 {
@@ -10,6 +14,10 @@ namespace FitMoldova.BusinessLogic.Core
      {
           private readonly DbSession _dbSession = new DbSession();
           private const int MaxPageSize = 100;
+
+          private const long MaxImageSizeBytes = 5 * 1024 * 1024;
+          private static readonly HashSet<string> AllowedImageExtensions =
+               new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp" };
 
           private static (int page, int pageSize) NormalizePaging(int page, int pageSize)
           {
@@ -19,15 +27,15 @@ namespace FitMoldova.BusinessLogic.Core
                return (page, pageSize);
           }
 
-          public ServiceResponse GetAllExecution()
+          public ServiceResponse GetAllExecution(int? currentUserId = null)
           {
                using var ctx = _dbSession.FitMoldovaContext();
                var posts = ctx.Posts.Where(p => !p.IsDeleted).OrderByDescending(p => p.CreatedAt)
-                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId }).ToList();
+                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId, AttachedChallengeId=p.AttachedChallengeId, AttachedChallengeProgress=p.AttachedChallengeProgress, AttachedChallengeName=p.AttachedChallenge != null ? p.AttachedChallenge.Name : null, ImageUrl=p.ImageUrl, ImageThumbnailUrl=p.ImageThumbnailUrl, Poll = p.Poll == null ? null : new PostPollDto { Id=p.Poll.Id, Question=p.Poll.Question, Options=p.Poll.Options.OrderBy(o=>o.Id).Select(o=>new PostPollOptionDto{ Id=o.Id, Text=o.Text, Votes=o.VotesCount }).ToList(), TotalVotes=p.Poll.Options.Sum(o=>o.VotesCount), Voted = currentUserId != null && ctx.PostPollVotes.Any(v => v.PostId==p.Id && v.UserId==currentUserId) } }).ToList();
                return new ServiceResponse { isSuccess=true, Data=posts };
           }
 
-          public ServiceResponse GetAllPagedExecution(int page, int pageSize, int? clubId)
+          public ServiceResponse GetAllPagedExecution(int page, int pageSize, int? clubId, int? currentUserId = null)
           {
                (page, pageSize) = NormalizePaging(page, pageSize);
                using var ctx = _dbSession.FitMoldovaContext();
@@ -35,23 +43,23 @@ namespace FitMoldova.BusinessLogic.Core
                if (clubId.HasValue) query = query.Where(p => p.ClubId == clubId.Value);
                var totalCount = query.Count();
                var items = query.OrderByDescending(p => p.CreatedAt).Skip((page-1)*pageSize).Take(pageSize)
-                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId }).ToList();
+                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId, AttachedChallengeId=p.AttachedChallengeId, AttachedChallengeProgress=p.AttachedChallengeProgress, AttachedChallengeName=p.AttachedChallenge != null ? p.AttachedChallenge.Name : null, ImageUrl=p.ImageUrl, ImageThumbnailUrl=p.ImageThumbnailUrl, Poll = p.Poll == null ? null : new PostPollDto { Id=p.Poll.Id, Question=p.Poll.Question, Options=p.Poll.Options.OrderBy(o=>o.Id).Select(o=>new PostPollOptionDto{ Id=o.Id, Text=o.Text, Votes=o.VotesCount }).ToList(), TotalVotes=p.Poll.Options.Sum(o=>o.VotesCount), Voted = currentUserId != null && ctx.PostPollVotes.Any(v => v.PostId==p.Id && v.UserId==currentUserId) } }).ToList();
                return new ServiceResponse { isSuccess=true, Data=new PagedResultDto<PostInfoDto>{ Items=items, Page=page, PageSize=pageSize, TotalCount=totalCount } };
           }
 
-          public ServiceResponse GetByUserExecution(int userId)
+          public ServiceResponse GetByUserExecution(int userId, int? currentUserId = null)
           {
                using var ctx = _dbSession.FitMoldovaContext();
                var posts = ctx.Posts.Where(p => p.UserId==userId && !p.IsDeleted).OrderByDescending(p => p.CreatedAt)
-                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId }).ToList();
+                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId, AttachedChallengeId=p.AttachedChallengeId, AttachedChallengeProgress=p.AttachedChallengeProgress, AttachedChallengeName=p.AttachedChallenge != null ? p.AttachedChallenge.Name : null, ImageUrl=p.ImageUrl, ImageThumbnailUrl=p.ImageThumbnailUrl, Poll = p.Poll == null ? null : new PostPollDto { Id=p.Poll.Id, Question=p.Poll.Question, Options=p.Poll.Options.OrderBy(o=>o.Id).Select(o=>new PostPollOptionDto{ Id=o.Id, Text=o.Text, Votes=o.VotesCount }).ToList(), TotalVotes=p.Poll.Options.Sum(o=>o.VotesCount), Voted = currentUserId != null && ctx.PostPollVotes.Any(v => v.PostId==p.Id && v.UserId==currentUserId) } }).ToList();
                return new ServiceResponse { isSuccess=true, Data=posts };
           }
 
-          public ServiceResponse GetByIdExecution(int id)
+          public ServiceResponse GetByIdExecution(int id, int? currentUserId = null)
           {
                using var ctx = _dbSession.FitMoldovaContext();
                var p = ctx.Posts.Where(x => x.Id==id && !x.IsDeleted)
-                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId }).FirstOrDefault();
+                   .Select(p => new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=p.User.FirstName+" "+p.User.LastName, AuthorUsername=p.User.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId, AttachedChallengeId=p.AttachedChallengeId, AttachedChallengeProgress=p.AttachedChallengeProgress, AttachedChallengeName=p.AttachedChallenge != null ? p.AttachedChallenge.Name : null, ImageUrl=p.ImageUrl, ImageThumbnailUrl=p.ImageThumbnailUrl, Poll = p.Poll == null ? null : new PostPollDto { Id=p.Poll.Id, Question=p.Poll.Question, Options=p.Poll.Options.OrderBy(o=>o.Id).Select(o=>new PostPollOptionDto{ Id=o.Id, Text=o.Text, Votes=o.VotesCount }).ToList(), TotalVotes=p.Poll.Options.Sum(o=>o.VotesCount), Voted = currentUserId != null && ctx.PostPollVotes.Any(v => v.PostId==p.Id && v.UserId==currentUserId) } }).FirstOrDefault();
                if (p == null) return new ServiceResponse { isSuccess=false, Message="Postarea nu a fost găsită." };
                return new ServiceResponse { isSuccess=true, Data=p };
           }
@@ -64,7 +72,56 @@ namespace FitMoldova.BusinessLogic.Core
           public ServiceResponse CreatePostExecution(PostCreateDto dto)
           {
                using var ctx = _dbSession.FitMoldovaContext();
-               var entity = new PostEntity { UserId=dto.UserId, Content=dto.Content, Sport=dto.Sport??string.Empty, ClubId=dto.ClubId, CreatedAt=DateTime.UtcNow };
+
+               // ── Challenge atașat (opțional) ──
+               // Validăm că userul curent e înscris la challenge și preluăm progresul REAL din DB.
+               // Dacă nu e înscris (sau challenge inexistent), câmpurile rămân null.
+               int? attachedChallengeId = null;
+               int? attachedChallengeProgress = null;
+               if (dto.AttachedChallengeId.HasValue)
+               {
+                    var ch = ctx.Challenges.FirstOrDefault(c => c.Id == dto.AttachedChallengeId.Value);
+                    var participant = ctx.ChallengeParticipants
+                         .FirstOrDefault(cp => cp.ChallengeId == dto.AttachedChallengeId.Value && cp.UserId == dto.UserId);
+                    if (ch != null && participant != null)
+                    {
+                         attachedChallengeId = ch.Id;
+                         attachedChallengeProgress = ChallengeAction.ComputeProgressPercent(ch.Duration, participant.JoinedAt);
+                    }
+               }
+
+               var entity = new PostEntity
+               {
+                    UserId = dto.UserId,
+                    Content = dto.Content,
+                    Sport = dto.Sport ?? string.Empty,
+                    ClubId = dto.ClubId,
+                    CreatedAt = DateTime.UtcNow,
+                    AttachedChallengeId = attachedChallengeId,
+                    AttachedChallengeProgress = attachedChallengeProgress,
+                    ImageUrl = dto.ImageUrl,
+                    ImageThumbnailUrl = dto.ImageThumbnailUrl,
+               };
+
+               // ── Sondaj opțional ──
+               // Acceptă poll.options sau pollOptions (formă plată). Minim 2, maxim 4 opțiuni.
+               var pollOptionTexts = (dto.Poll?.Options ?? dto.PollOptions)
+                    ?.Select(o => o?.Trim())
+                    .Where(o => !string.IsNullOrEmpty(o))
+                    .Select(o => o!)
+                    .ToList();
+               if (pollOptionTexts is { Count: >= 2 and <= 4 })
+               {
+                    var question = dto.Poll?.Question?.Trim();
+                    entity.Poll = new PollEntity
+                    {
+                         Question = string.IsNullOrEmpty(question) ? null : question,
+                         Options = pollOptionTexts
+                              .Select(t => new PollOptionEntity { Text = t, VotesCount = 0 })
+                              .ToList()
+                    };
+               }
+
                ctx.Posts.Add(entity);
                ctx.SaveChanges();
 
@@ -96,6 +153,85 @@ namespace FitMoldova.BusinessLogic.Core
                          ClubName   = clubName,
                          AuthorName = authorName,
                     }
+               };
+          }
+
+          // ── UPLOAD IMAGINE POST ──
+          // Refolosește EXACT pattern-ul din GalleryAction: validare extensie/dimensiune,
+          // procesare cu ImageProcessor (ImageSharp → WebP q82 + thumbnail), upload .webp în Cloudinary.
+          // Reutilizează aceeași instanță Cloudinary configurată la startup (GalleryAction.CloudinaryInstance).
+          public ServiceResponse UploadImageExecution(IFormFile file)
+          {
+               if (file == null || file.Length == 0)
+                    return new ServiceResponse { isSuccess = false, Message = "Fișierul lipsește." };
+               if (file.Length > MaxImageSizeBytes)
+                    return new ServiceResponse { isSuccess = false, Message = "Fișierul depășește limita de 5 MB." };
+
+               var ext = Path.GetExtension(file.FileName);
+               if (string.IsNullOrEmpty(ext) || !AllowedImageExtensions.Contains(ext))
+                    return new ServiceResponse { isSuccess = false, Message = "Extensie nepermisă. Sunt acceptate: .jpg, .jpeg, .png, .webp." };
+
+               var cloudinary = GalleryAction.CloudinaryInstance;
+               if (cloudinary == null)
+                    return new ServiceResponse { isSuccess = false, Message = "Cloudinary nu este configurat pe server." };
+
+               MemoryStream webpStream;
+               MemoryStream thumbStream;
+               try
+               {
+                    using var inputStream = file.OpenReadStream();
+                    (webpStream, thumbStream, _, _) = ImageProcessor.Process(inputStream);
+               }
+               catch (UnknownImageFormatException)
+               {
+                    return new ServiceResponse { isSuccess = false, Message = "Fișierul nu este o imagine validă." };
+               }
+               catch (Exception ex)
+               {
+                    return new ServiceResponse { isSuccess = false, Message = $"Eroare la procesarea imaginii: {ex.Message}" };
+               }
+
+               var guid = Guid.NewGuid().ToString("N");
+               string imageUrl, thumbUrl;
+               try
+               {
+                    var uploadParams = new ImageUploadParams
+                    {
+                         File = new FileDescription($"{guid}.webp", webpStream),
+                         PublicId = $"fitmoldova/posts/{guid}",
+                         Overwrite = false,
+                    };
+                    var uploadResult = cloudinary.Upload(uploadParams);
+                    if (uploadResult.Error != null)
+                         return new ServiceResponse { isSuccess = false, Message = $"Cloudinary error: {uploadResult.Error.Message}" };
+                    imageUrl = uploadResult.SecureUrl.ToString();
+
+                    var thumbParams = new ImageUploadParams
+                    {
+                         File = new FileDescription($"{guid}_thumb.webp", thumbStream),
+                         PublicId = $"fitmoldova/posts/thumbs/{guid}_thumb",
+                         Overwrite = false,
+                    };
+                    var thumbResult = cloudinary.Upload(thumbParams);
+                    if (thumbResult.Error != null)
+                         return new ServiceResponse { isSuccess = false, Message = $"Cloudinary thumb error: {thumbResult.Error.Message}" };
+                    thumbUrl = thumbResult.SecureUrl.ToString();
+               }
+               catch (Exception ex)
+               {
+                    return new ServiceResponse { isSuccess = false, Message = $"Eroare la upload Cloudinary: {ex.Message}" };
+               }
+               finally
+               {
+                    webpStream.Dispose();
+                    thumbStream.Dispose();
+               }
+
+               return new ServiceResponse
+               {
+                    isSuccess = true,
+                    Message = "Imagine încărcată cu succes.",
+                    Data = new { imageUrl, thumbnailUrl = thumbUrl }
                };
           }
 
@@ -205,11 +341,12 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse GetBookmarkedPostsExecution(int userId)
           {
+               int? currentUserId = userId; // voted reflectă userul curent (proprietarul bookmark-urilor)
                using var ctx = _dbSession.FitMoldovaContext();
                var posts = (from b in ctx.PostBookmarks join p in ctx.Posts on b.PostId equals p.Id
                             join u in ctx.Users on p.UserId equals u.Id
                             where b.UserId==userId && !p.IsDeleted orderby b.CreatedAt descending
-                            select new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=u.FirstName+" "+u.LastName, AuthorUsername=u.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId }).ToList();
+                            select new PostInfoDto { Id=p.Id, UserId=p.UserId, AuthorName=u.FirstName+" "+u.LastName, AuthorUsername=u.Username, Content=p.Content, Sport=p.Sport, Likes=p.Likes, CommentsCount=p.CommentsCount, CreatedAt=p.CreatedAt, ClubId=p.ClubId, AttachedChallengeId=p.AttachedChallengeId, AttachedChallengeProgress=p.AttachedChallengeProgress, AttachedChallengeName=p.AttachedChallenge != null ? p.AttachedChallenge.Name : null, ImageUrl=p.ImageUrl, ImageThumbnailUrl=p.ImageThumbnailUrl, Poll = p.Poll == null ? null : new PostPollDto { Id=p.Poll.Id, Question=p.Poll.Question, Options=p.Poll.Options.OrderBy(o=>o.Id).Select(o=>new PostPollOptionDto{ Id=o.Id, Text=o.Text, Votes=o.VotesCount }).ToList(), TotalVotes=p.Poll.Options.Sum(o=>o.VotesCount), Voted = currentUserId != null && ctx.PostPollVotes.Any(v => v.PostId==p.Id && v.UserId==currentUserId) } }).ToList();
                return new ServiceResponse { isSuccess=true, Data=posts };
           }
 
@@ -230,8 +367,37 @@ namespace FitMoldova.BusinessLogic.Core
                using var ctx = _dbSession.FitMoldovaContext();
                var post = ctx.Posts.FirstOrDefault(p => p.Id==postId && !p.IsDeleted);
                if (post==null) return new ServiceResponse { isSuccess=false, Message="Postarea nu a fost găsită." };
-               if (string.IsNullOrEmpty(post.PollOptions)) return new ServiceResponse { isSuccess=false, Message="Postarea nu are sondaj." };
-               if (ctx.PostPollVotes.Any(v => v.PostId==postId && v.UserId==userId)) return new ServiceResponse { isSuccess=false, Message="Ai votat deja la acest sondaj." };
+
+               // Sondaj normalizat (Poll/PollOption) — sursa canonică.
+               var poll = ctx.Polls.FirstOrDefault(p => p.PostId==postId);
+
+               if (poll==null && string.IsNullOrEmpty(post.PollOptions))
+                    return new ServiceResponse { isSuccess=false, Message="Postarea nu are sondaj." };
+
+               // Protecție anti-dublu-vot (index unic UserId+PostId pe PostPollVotes).
+               if (ctx.PostPollVotes.Any(v => v.PostId==postId && v.UserId==userId))
+                    return new ServiceResponse { isSuccess=false, Message="Ai votat deja la acest sondaj." };
+
+               if (poll!=null)
+               {
+                    var options = ctx.PollOptions.Where(o => o.PollId==poll.Id).OrderBy(o => o.Id).ToList();
+                    if (optionIndex < 0 || optionIndex >= options.Count)
+                         return new ServiceResponse { isSuccess=false, Message="Opțiune invalidă." };
+
+                    ctx.PostPollVotes.Add(new PostPollVoteEntity { PostId=postId, UserId=userId, OptionIndex=optionIndex, CreatedAt=DateTime.UtcNow });
+                    options[optionIndex].VotesCount++;
+                    ctx.SaveChanges();
+
+                    var data = new
+                    {
+                         options = options.Select(o => new { o.Id, o.Text, votes = o.VotesCount }).ToList(),
+                         totalVotes = options.Sum(o => o.VotesCount),
+                         voted = true
+                    };
+                    return new ServiceResponse { isSuccess=true, Message="Vot înregistrat.", Data=data };
+               }
+
+               // Fallback: sondaj legacy stocat ca JSON în Post.PollOptions.
                ctx.PostPollVotes.Add(new PostPollVoteEntity { PostId=postId, UserId=userId, OptionIndex=optionIndex, CreatedAt=DateTime.UtcNow });
                ctx.SaveChanges();
                var distribution = ctx.PostPollVotes.Where(v => v.PostId==postId).GroupBy(v => v.OptionIndex).Select(g => new { OptionIndex=g.Key, Count=g.Count() }).ToList();

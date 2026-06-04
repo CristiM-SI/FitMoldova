@@ -7,6 +7,15 @@ export interface PostCreateDto {
     content: string;
     sport: string;
     clubId?: number;
+    attachedChallengeId?: number;
+    imageUrl?: string;
+    imageThumbnailUrl?: string;
+    pollOptions?: string[];
+}
+
+export interface PostImageUploadDto {
+    imageUrl: string;
+    imageThumbnailUrl: string;
 }
 
 export interface PostUpdateDto {
@@ -31,6 +40,10 @@ export interface PostInfoDto {
     commentsCount: number;
     createdAt: string;
     clubId?: number | null;
+    attachedChallengeName?: string | null;
+    attachedChallengeProgress?: number | null;
+    imageUrl?: string | null;
+    imageThumbnailUrl?: string | null;
 }
 
 export interface ReplyDto {
@@ -121,6 +134,17 @@ const postApi = {
     // 2. Create post (Bearer token attached by axiosInstance request interceptor)
     create: (dto: PostCreateDto) =>
         axiosInstance.post<ApiResponse<number>>('/posts', dto).then(unwrap),
+
+    // 2b. Upload post image (.webp via Cloudinary) — multipart/form-data, exact ca galleryApi.upload
+    uploadImage: (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return axiosInstance
+            .post<ApiResponse<PostImageUploadDto>>('/posts/upload-image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then(unwrap);
+    },
 
     // 3. Edit post (server enforces author-or-admin via JWT)
     update: (id: number, dto: PostUpdateDto) =>

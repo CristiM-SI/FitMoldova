@@ -3,6 +3,7 @@ using System;
 using FitMoldova.DataAccesLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FitMoldova.DataAccesLayer.Migrations
 {
     [DbContext(typeof(FitMoldovaContext))]
-    partial class FitMoldovaContextModelSnapshot : ModelSnapshot
+    [Migration("20260603200319_AddPolls")]
+    partial class AddPolls
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -967,38 +970,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                     b.ToTable("RouteHighlights");
                 });
 
-            modelBuilder.Entity("FitMoldova.Domain.Entities.User.PasswordResetCodeEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CodeHash")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PasswordResetCodes");
-                });
-
             modelBuilder.Entity("FitMoldova.Domain.Entities.User.RefreshTokenEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -1386,17 +1357,6 @@ namespace FitMoldova.DataAccesLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("Route");
-                });
-
-            modelBuilder.Entity("FitMoldova.Domain.Entities.User.PasswordResetCodeEntity", b =>
-                {
-                    b.HasOne("FitMoldova.Domain.Entities.User.UDTable", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitMoldova.Domain.Entities.User.RefreshTokenEntity", b =>

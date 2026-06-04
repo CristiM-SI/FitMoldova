@@ -2,16 +2,18 @@ using FitMoldova.BusinessLogic.Core;
 using FitMoldova.BusinessLogic.Interfaces;
 using FitMoldova.Domain.Models.Post;
 using FitMoldova.Domain.Models.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace FitMoldova.BusinessLogic.Structure
 {
      public class PostLogic : PostAction, IPostLogic
      {
-          public ServiceResponse GetAll()                                               => GetAllExecution();
-          public ServiceResponse GetAllPaged(int page, int pageSize, int? clubId)      => GetAllPagedExecution(page, pageSize, clubId);
-          public ServiceResponse GetById(int id)                                        => GetByIdExecution(id);
-          public ServiceResponse GetByUser(int userId)                                  => GetByUserExecution(userId);
+          public ServiceResponse GetAll(int? currentUserId = null)                                      => GetAllExecution(currentUserId);
+          public ServiceResponse GetAllPaged(int page, int pageSize, int? clubId, int? currentUserId = null) => GetAllPagedExecution(page, pageSize, clubId, currentUserId);
+          public ServiceResponse GetById(int id, int? currentUserId = null)                              => GetByIdExecution(id, currentUserId);
+          public ServiceResponse GetByUser(int userId, int? currentUserId = null)                        => GetByUserExecution(userId, currentUserId);
           public ServiceResponse CreatePost(PostCreateDto dto)                          => CreatePostExecution(dto);
+          public ServiceResponse UploadImage(IFormFile file)                            => UploadImageExecution(file);
           public ServiceResponse UpdatePost(int postId, int userId, string role, PostUpdateDto dto) => UpdatePostExecution(postId, userId, role, dto);
           public ServiceResponse SoftDelete(int id, int userId, string role)            => SoftDeleteExecution(id, userId, role);
           public ServiceResponse Delete(int id)                                         => DeleteExecution(id);

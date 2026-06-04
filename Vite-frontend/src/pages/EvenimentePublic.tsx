@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
@@ -160,17 +159,10 @@ const EvenimentePublic: React.FC = () => {
         }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [events, search, catFilter, diffFilter, priceFilter]);
 
-    const parentRef = useRef<HTMLDivElement>(null);
     const eventRows: EventItem[][] = [];
     for (let i = 0; i < filtered.length; i += 3) {
         eventRows.push(filtered.slice(i, i + 3));
     }
-    const rowVirtualizer = useVirtualizer({
-        count: eventRows.length,
-        getScrollElement: () => parentRef.current,
-        estimateSize: () => 300,
-        overscan: 2,
-    });
 
     const hasActiveFilters = catFilter !== 'Toate' || diffFilter !== 'Toate' || priceFilter !== 'Toate' || search;
     const clearFilters = () => { setCatFilter('Toate'); setDiffFilter('Toate'); setPriceFilter('Toate'); setSearch(''); };
@@ -321,31 +313,10 @@ const EvenimentePublic: React.FC = () => {
                             <button className="ep-clear-btn" onClick={clearFilters}>Șterge filtrele</button>
                         </div>
                     ) : (
-                        <div
-                            ref={parentRef}
-                            style={{ height: '80vh', overflowY: 'auto' }}
-                        >
-                            <div
-                                style={{
-                                    height: `${rowVirtualizer.getTotalSize()}px`,
-                                    width: '100%',
-                                    position: 'relative',
-                                }}
-                            >
-                                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-                                    <div
-                                        key={virtualRow.key}
-                                        style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            transform: `translateY(${virtualRow.start}px)`,
-                                            display: 'flex',
-                                            gap: '16px',
-                                        }}
-                                    >
-                                        {eventRows[virtualRow.index].map((ev) => {
+                        <div className="ep-grid">
+                            {eventRows.map((row, rowIdx) => (
+                                <div className="ep-grid-row" key={rowIdx}>
+                                        {row.map((ev) => {
                                             const joined = isJoined(ev.id);
                                             const isJoining = joining === ev.id;
                                             return (
@@ -401,9 +372,8 @@ const EvenimentePublic: React.FC = () => {
                                                 </div>
                                             );
                                         })}
-                                    </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
                     ))}
                 </div>

@@ -15,6 +15,7 @@ import Home from './pages/Home'
 const Clubs             = lazy(() => import('./pages/dashboard/Clubs'))
 const SignUp            = lazy(() => import('./pages/SignUp'))
 const LoginPage         = lazy(() => import('./pages/LoginPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const Dashboard         = lazy(() => import('./pages/dashboard/Dashboard'))
 const Activitati        = lazy(() => import('./pages/dashboard/Activitati'))
 const CommunityPage     = lazy(() => import('./pages/dashboard/CommunityPage'))
@@ -143,6 +144,7 @@ const contactRoute          = createRoute({ getParentRoute: () => rootRoute, pat
 const activitiesPublicRoute = createRoute({ getParentRoute: () => rootRoute, path: '/activitati', component: () => <ActivitiesPage /> })
 const loginRoute            = createRoute({ getParentRoute: () => rootRoute, path: '/login',   component: () => <PublicRoute><LoginPage /></PublicRoute> })
 const registerRoute         = createRoute({ getParentRoute: () => rootRoute, path: '/register', component: () => <PublicRoute><SignUp /></PublicRoute> })
+const forgotPasswordRoute   = createRoute({ getParentRoute: () => rootRoute, path: '/forgot-password', component: () => <PublicRoute><ForgotPasswordPage /></PublicRoute> })
 const accessDeniedRoute     = createRoute({ getParentRoute: () => rootRoute, path: '/access-denied', component: () => <AccessDenied /> })
 
 // ── Detail routes ─────────────────────────────────────────────────────────────
@@ -190,6 +192,7 @@ const routeTree = rootRoute.addChildren([
     activitiesPublicRoute,
     loginRoute,
     registerRoute,
+    forgotPasswordRoute,
     accessDeniedRoute,
     eventDetailRoute,
     clubDetailRoute,

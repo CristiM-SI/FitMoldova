@@ -30,17 +30,22 @@ namespace FitMoldova.Api.Controllers
             User.Claims.FirstOrDefault(c => c.Type == "role" || c.Type.EndsWith("/role"))?.Value
             ?? string.Empty;
 
+        // userId din JWT daca request-ul e autentificat, altfel null (endpoint-uri publice).
+        // Folosit pentru flag-ul "voted" pe sondaje.
+        private int? GetUserIdOrNull() =>
+            User.FindFirst("userId") is { Value: var v } && int.TryParse(v, out var id) ? id : null;
+
         [HttpGet]
         public IActionResult GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             [FromQuery] int? clubId = null)
-            => Ok(_postLogic.GetAllPaged(page, pageSize, clubId));
+            => Ok(_postLogic.GetAllPaged(page, pageSize, clubId, GetUserIdOrNull()));
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var r = _postLogic.GetById(id);
+            var r = _postLogic.GetById(id, GetUserIdOrNull());
             return r.isSuccess ? Ok(r) : NotFound(r);
         }
 
@@ -69,6 +74,21 @@ namespace FitMoldova.Api.Controllers
             }
 
             return StatusCode(201, result);
+        }
+
+        // Upload imagine pentru postari -- accesibil oricarui user AUTENTIFICAT.
+        // multipart/form-data, un singur camp: file. Intoarce URL-urile absolute Cloudinary.
+        [HttpPost("upload-image")]
+        [Authorize]
+        [RequestSizeLimit(10 * 1024 * 1024)] // 10 MB hard cap la nivel de request (backup pentru validarea de 5MB)
+        public IActionResult UploadImage([FromForm] PostImageUploadForm form)
+        {
+            if (form.File == null)
+                return BadRequest(new { isSuccess = false, Message = "Fișierul este obligatoriu." });
+
+            var result = _postLogic.UploadImage(form.File);
+            if (!result.isSuccess) return BadRequest(result);
+            return Ok(result);
         }
 
         // Metoda statica -- nu captureaza nimic din controller (nu e risc de disposed objects)
@@ -202,7 +222,7 @@ namespace FitMoldova.Api.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public IActionResult GetByUser(int userId) => Ok(_postLogic.GetByUser(userId));
+        public IActionResult GetByUser(int userId) => Ok(_postLogic.GetByUser(userId, GetUserIdOrNull()));
 
         [HttpPost("{id}/like")]
         [Authorize]
@@ -257,5 +277,14 @@ namespace FitMoldova.Api.Controllers
             var r = _postLogic.VotePoll(id, userId, dto.OptionIndex);
             return r.isSuccess ? Ok(r) : BadRequest(r);
         }
+    }
+
+    /// <summary>
+    /// Model pentru bind-ul multipart la upload imagine post. Strict pentru controller,
+    /// la fel ca GalleryUploadForm — evită [FromForm] pe IFormFile direct (incompatibil cu Swashbuckle).
+    /// </summary>
+    public class PostImageUploadForm
+    {
+        public IFormFile? File { get; set; }
     }
 }

@@ -12,5 +12,17 @@
           public int CommentsCount { get; set; }
           public DateTime CreatedAt { get; set; }
           public int? ClubId { get; set; }
+
+          // Challenge atașat (opțional)
+          public int? AttachedChallengeId { get; set; }
+          public int? AttachedChallengeProgress { get; set; }
+          public string? AttachedChallengeName { get; set; }
+
+          // Imagine atașată (opțional)
+          public string? ImageUrl { get; set; }
+          public string? ImageThumbnailUrl { get; set; }
+
+          // Sondaj atașat (opțional)
+          public PostPollDto? Poll { get; set; }
      }
 }

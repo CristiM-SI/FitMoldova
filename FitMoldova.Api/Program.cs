@@ -151,6 +151,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<RefreshTokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddSingleton<DbSession>();
 
 builder.Services.AddScoped<UserAction>();

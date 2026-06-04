@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import {
     Box, Typography, Card, CardContent, Button, Chip,
     TextField, InputAdornment, Tabs, Tab, Rating, IconButton, Dialog,
@@ -163,10 +162,8 @@ const ClubsPage: React.FC = () => {
             && (filterCat === 'Toate' || c.category === filterCat);
     }), [displayList, search, filterCat]);
 
-    const clubsParentRef = useRef<HTMLDivElement>(null);
     const clubRows: ClubDto[][] = [];
     for (let i = 0; i < filtered.length; i += 3) clubRows.push(filtered.slice(i, i + 3));
-    const rowVirtualizer = useVirtualizer({ count: clubRows.length, getScrollElement: () => clubsParentRef.current, estimateSize: () => 300, overscan: 2 });
     const totalMembers = clubs.reduce((s, c) => s + (c.membersCount ?? 0), 0);
 
     return (
@@ -232,15 +229,10 @@ const ClubsPage: React.FC = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <div ref={clubsParentRef} style={{ height: '72vh', overflowY: 'auto' }}>
-                    <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-                        {rowVirtualizer.getVirtualItems().map(vRow => (
-                            <div key={vRow.key} style={{
-                                position: 'absolute', top: 0, left: 0, width: '100%',
-                                transform: `translateY(${vRow.start}px)`,
-                                display: 'flex', gap: 16, paddingBottom: 16,
-                            }}>
-                                {clubRows[vRow.index].map(club => {
+                <div className="app-grid">
+                        {clubRows.map((row, rowIdx) => (
+                            <div className="app-grid-row" key={rowIdx}>
+                                {row.map(club => {
                                     const joined_ = isJoined(club.id);
                                     const catColor = CAT_COLORS[club.category] || '#6366f1';
                                     const catIcon = CAT_ICONS[club.category] || '🏅';
@@ -283,13 +275,12 @@ const ClubsPage: React.FC = () => {
                                         </div>
                                     );
                                 })}
-                                {clubRows[vRow.index].length < 3 &&
-                                    Array(3 - clubRows[vRow.index].length).fill(null).map((_, i) => (
+                                {row.length < 3 &&
+                                    Array(3 - row.length).fill(null).map((_, i) => (
                                         <div key={`ph-${i}`} style={{ flex: '1 1 0' }} />
                                     ))}
                             </div>
                         ))}
-                    </div>
                 </div>
             )}
 

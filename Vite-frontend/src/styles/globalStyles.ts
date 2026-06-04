@@ -189,6 +189,10 @@ export const globalStyles = `
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -197,6 +201,33 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
 }
+
+/* ── Grilă universală cu flux natural (fără scroll imbricat) ─── */
+.app-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.app-grid-row {
+  display: flex;
+  gap: 16px;
+}
+
+@keyframes appCardIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* fade-in delicat la montarea cardurilor (cardurile au deja propriul hover) */
+.app-grid-row > * {
+  animation: appCardIn 0.4s ease both;
+}
+.app-grid-row:nth-child(1) > * { animation-delay: 0.04s; }
+.app-grid-row:nth-child(2) > * { animation-delay: 0.10s; }
+.app-grid-row:nth-child(3) > * { animation-delay: 0.16s; }
+.app-grid-row:nth-child(4) > * { animation-delay: 0.22s; }
+.app-grid-row:nth-child(5) > * { animation-delay: 0.28s; }
+.app-grid-row:nth-child(n + 6) > * { animation-delay: 0.34s; }
 
 /* Buttons */
 .btn {
@@ -2837,21 +2868,47 @@ body {
 }
 
 /* ── EVENT CARD ────────────────────────────────────────── */
+/* ── GRILĂ EVENIMENTE (flux natural, fără scroll imbricat) ─── */
+.ep-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ep-grid-row {
+    display: flex;
+    gap: 16px;
+}
+
+@keyframes epCardIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 .ep-card {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 20px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
+    animation: epCardIn 0.4s ease both;
 }
+
+/* fade-in ușor decalat (staggered) pe rânduri */
+.ep-grid-row:nth-child(1) .ep-card { animation-delay: 0.04s; }
+.ep-grid-row:nth-child(2) .ep-card { animation-delay: 0.10s; }
+.ep-grid-row:nth-child(3) .ep-card { animation-delay: 0.16s; }
+.ep-grid-row:nth-child(4) .ep-card { animation-delay: 0.22s; }
+.ep-grid-row:nth-child(5) .ep-card { animation-delay: 0.28s; }
+.ep-grid-row:nth-child(n+6) .ep-card { animation-delay: 0.34s; }
 
 .ep-card:hover {
     transform: translateY(-6px);
     border-color: rgba(26,127,255,0.4);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+    box-shadow: 0 20px 56px rgba(0,0,0,0.4);
 }
 
 .ep-card--joined {

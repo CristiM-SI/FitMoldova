@@ -1,10 +1,13 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import Box from '@mui/material/Box';
+import Popover from '@mui/material/Popover';
 import Navbar from '../components/layout/Navbar';
 import { ROUTES } from '../routes/paths';
 import { useAuth } from '../context/AuthContext';
 import { useForumContext } from '../context/ForumContext';
+import postApi from '../services/api/postApi';
+import { resolveImageUrl } from '../services/api/galleryApi';
 import {
     FORUM_CATEGORIES,
 } from '../types/forum';
@@ -112,6 +115,15 @@ const notifIcon = (type: Notification['type']) => {
     return { icon: '🔔', label: '' };
 };
 
+// ─── Emoji picker (listă statică, fără librărie) ─────────
+const COMMON_EMOJIS = [
+    '😀', '😁', '😂', '🤣', '😊', '😍', '😎', '🤩',
+    '😘', '😋', '🤔', '🤗', '😴', '😇', '🥳', '😅',
+    '😢', '😭', '😡', '👍', '👎', '👏', '🙌', '🙏',
+    '💪', '🔥', '✨', '🎉', '❤️', '💯', '⚡', '🏆',
+    '🥇', '⚽', '🏀', '🏋️', '🚴', '🏃', '🧘', '🥗',
+];
+
 // ─────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────
@@ -126,6 +138,13 @@ export default function ForumPage() {
     const [expandedThread, setExpandedThread]     = useState<number | null>(null);
     const [composeText, setComposeText]           = useState('');
     const [composeCategory, setComposeCategory]   = useState<ForumCategory>('Antrenament');
+
+    // ── Compose-bar tools (emoji / imagine / sondaj) ──
+    const [emojiAnchor, setEmojiAnchor]           = useState<HTMLElement | null>(null);
+    const [composeImage, setComposeImage]         = useState<{ imageUrl: string; imageThumbnailUrl: string } | null>(null);
+    const [imageUploading, setImageUploading]     = useState(false);
+    const [composePoll, setComposePoll]           = useState<string[] | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [replyText, setReplyText]               = useState('');
     const [searchQuery, setSearchQuery]           = useState('');
     const [notifications, setNotifications]       = useState<Notification[]>(INITIAL_NOTIFICATIONS);
@@ -164,11 +183,60 @@ export default function ForumPage() {
     const handlePollVote = forum.handlePollVote;
     const handleFollow = forum.handleFollow;
 
+    const MAX_CHARS = 500;
+
+    const pollFilled = useMemo(
+        () => (composePoll ?? []).map((o) => o.trim()).filter(Boolean),
+        [composePoll],
+    );
+    const canPublish = composeText.trim().length > 0 || !!composeImage || pollFilled.length >= 2;
+
     const handlePublish = useCallback(() => {
-        if (!composeText.trim()) return;
-        forum.handlePublish(composeText, composeCategory, userName, userAvatar, userHandle);
+        if (!canPublish) return;
+        forum.handlePublish(
+            composeText, composeCategory, userName, userAvatar, userHandle,
+            composeImage?.imageUrl,
+            composePoll ?? undefined,
+        );
         setComposeText('');
-    }, [composeText, composeCategory, userName, userAvatar, userHandle, forum]);
+        setComposeImage(null);
+        setComposePoll(null);
+    }, [canPublish, composeText, composeCategory, userName, userAvatar, userHandle, composeImage, composePoll, forum]);
+
+    // ── EMOJI ──
+    const insertEmoji = useCallback((emoji: string) => {
+        setComposeText((prev) => (prev + emoji).slice(0, MAX_CHARS + 50));
+    }, []);
+
+    // ── IMAGINE ──
+    const handleImagePick = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = ''; // permite reselectarea aceluiași fișier
+        if (!file) return;
+        setImageUploading(true);
+        try {
+            const res = await postApi.uploadImage(file);
+            setComposeImage({ imageUrl: res.imageUrl, imageThumbnailUrl: res.imageThumbnailUrl });
+        } catch {
+            forum.showToast('Eroare la încărcarea imaginii.');
+        } finally {
+            setImageUploading(false);
+        }
+    }, [forum]);
+
+    // ── SONDAJ ──
+    const togglePoll = useCallback(() => {
+        setComposePoll((prev) => (prev === null ? ['', ''] : null));
+    }, []);
+    const setPollOption = useCallback((idx: number, value: string) => {
+        setComposePoll((prev) => prev ? prev.map((o, i) => (i === idx ? value : o)) : prev);
+    }, []);
+    const addPollOption = useCallback(() => {
+        setComposePoll((prev) => (prev && prev.length < 4 ? [...prev, ''] : prev));
+    }, []);
+    const removePollOption = useCallback((idx: number) => {
+        setComposePoll((prev) => (prev && prev.length > 2 ? prev.filter((_, i) => i !== idx) : prev));
+    }, []);
 
     const handleReplySubmit = useCallback(() => {
         if (!replyText.trim() || expandedThread === null) return;
@@ -206,7 +274,6 @@ export default function ForumPage() {
     const expandedData  = expandedThread !== null ? threads.find((t) => t.id === expandedThread) : null;
     const activeConvData = activeConv !== null ? conversations.find((c) => c.id === activeConv) : null;
 
-    const MAX_CHARS = 500;
     const charsLeft = MAX_CHARS - composeText.length;
 
     const sxComposeTool = {
@@ -244,6 +311,10 @@ export default function ForumPage() {
                             <Box component="span" sx={sxCategoryTag}>{thread.category}</Box>
                         </Box>
                         <Box sx={{ ...sxContent, mb: '8px' }}>{renderContent(thread.content)}</Box>
+                        {thread.image && (
+                            <Box component="img" src={resolveImageUrl(thread.image)} alt="imagine postare" loading="lazy"
+                                 sx={{ display: 'block', maxWidth: 500, maxHeight: 500, width: '100%', objectFit: 'contain', borderRadius: '14px', border: `1px solid ${ft.border}`, mb: '8px' }} />
+                        )}
                         <Box sx={sxActions} onClick={(e) => e.stopPropagation()}>
                             <Box component="button" sx={{ ...sxAction, '&:hover': { bgcolor: 'rgba(0,200,255,0.06)', color: ft.cyan } }}>{Icons.reply} <span>{thread.replies.length}</span></Box>
                             <Box component="button" sx={{ ...sxAction, color: thread.reposted ? ft.green : ft.muted, '&:hover': { bgcolor: 'rgba(0,200,255,0.06)', color: ft.green } }} onClick={(e) => handleRepost(thread.id, e)}>{Icons.repost} <span>{formatCount(thread.reposts)}</span></Box>
@@ -561,6 +632,11 @@ export default function ForumPage() {
                                                     </Box>
                                                     <Box sx={sxContent}>{renderContent(expandedData.content)}</Box>
 
+                                                    {expandedData.image && (
+                                                        <Box component="img" src={resolveImageUrl(expandedData.image)} alt="imagine postare" loading="lazy"
+                                                             sx={{ display: 'block', maxWidth: 500, maxHeight: 500, width: '100%', objectFit: 'contain', borderRadius: '14px', border: `1px solid ${ft.border}`, mb: '14px' }} />
+                                                    )}
+
                                                     {expandedData.poll && (
                                                         <Box sx={{ mb: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                             {expandedData.poll.options.map((opt, idx) => {
@@ -648,13 +724,70 @@ export default function ForumPage() {
                                                      value={composeText}
                                                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComposeText(e.target.value.slice(0, MAX_CHARS + 50))}
                                                 />
+
+                                                {/* Preview imagine atașată */}
+                                                {(composeImage || imageUploading) && (
+                                                    <Box sx={{ mt: '8px', position: 'relative', display: 'inline-block', alignSelf: 'flex-start' }}>
+                                                        {imageUploading ? (
+                                                            <Box sx={{ width: 120, height: 90, borderRadius: '12px', border: `1px solid ${ft.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: ft.muted, fontSize: '.75rem' }}>
+                                                                Se încarcă…
+                                                            </Box>
+                                                        ) : composeImage && (
+                                                            <>
+                                                                <Box component="img" src={resolveImageUrl(composeImage.imageThumbnailUrl || composeImage.imageUrl)} alt="preview"
+                                                                     sx={{ maxWidth: 200, maxHeight: 150, borderRadius: '12px', border: `1px solid ${ft.border}`, display: 'block' }} />
+                                                                <Box component="button" onClick={() => setComposeImage(null)} title="Elimină imaginea"
+                                                                     sx={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer', bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', lineHeight: 1, '&:hover': { bgcolor: ft.red } }}>
+                                                                    ✕
+                                                                </Box>
+                                                            </>
+                                                        )}
+                                                    </Box>
+                                                )}
+
+                                                {/* Editor sondaj inline */}
+                                                {composePoll && (
+                                                    <Box sx={{ mt: '10px', p: '12px', borderRadius: '12px', border: `1px solid ${ft.border2}`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                        {composePoll.map((opt, idx) => (
+                                                            <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <Box component="input"
+                                                                     sx={{ flex: 1, p: '8px 12px', borderRadius: '8px', bgcolor: 'rgba(255,255,255,0.04)', border: `1px solid ${ft.border}`, color: ft.text, fontFamily: ft.font, fontSize: '.85rem', outline: 'none', '&:focus': { borderColor: ft.cyan }, '&::placeholder': { color: ft.muted } }}
+                                                                     placeholder={`Opțiunea ${idx + 1}`}
+                                                                     maxLength={60}
+                                                                     value={opt}
+                                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPollOption(idx, e.target.value)}
+                                                                />
+                                                                {composePoll.length > 2 && (
+                                                                    <Box component="button" onClick={() => removePollOption(idx)} title="Elimină opțiunea"
+                                                                         sx={{ ...sxComposeTool, p: '6px', opacity: 0.7, color: ft.muted, '&:hover': { opacity: 1, color: ft.red, bgcolor: 'rgba(239,68,68,0.08)' } }}>✕</Box>
+                                                                )}
+                                                            </Box>
+                                                        ))}
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: '2px' }}>
+                                                            {composePoll.length < 4 ? (
+                                                                <Box component="button" onClick={addPollOption}
+                                                                     sx={{ background: 'none', border: 'none', color: ft.cyan, fontFamily: ft.font, fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', opacity: 0.85, '&:hover': { opacity: 1 } }}>
+                                                                    + Adaugă opțiune
+                                                                </Box>
+                                                            ) : <Box />}
+                                                            <Box component="button" onClick={() => setComposePoll(null)}
+                                                                 sx={{ background: 'none', border: 'none', color: ft.muted, fontFamily: ft.font, fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', '&:hover': { color: ft.red } }}>
+                                                                Anulează sondajul
+                                                            </Box>
+                                                        </Box>
+                                                    </Box>
+                                                )}
+
                                                 <Box sx={{ height: 1, bgcolor: ft.border, my: '8px' }} />
                                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <Box sx={{ display: 'flex', gap: '2px' }}>
-                                                        <Box component="button" sx={sxComposeTool} title="Imagine">{Icons.image}</Box>
-                                                        <Box component="button" sx={sxComposeTool} title="GIF">{Icons.gif}</Box>
-                                                        <Box component="button" sx={sxComposeTool} title="Sondaj">{Icons.poll}</Box>
-                                                        <Box component="button" sx={sxComposeTool} title="Emoji">{Icons.emoji}</Box>
+                                                    <Box sx={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                                                        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImagePick} />
+                                                        <Box component="button" sx={{ ...sxComposeTool, ...(composeImage ? { opacity: 1, color: ft.cyan } : {}), ...(imageUploading ? { opacity: 0.4, cursor: 'wait' } : {}) }} title="Imagine"
+                                                             disabled={imageUploading} onClick={() => fileInputRef.current?.click()}>{Icons.image}</Box>
+                                                        <Box component="button" sx={{ ...sxComposeTool, opacity: 0.3, cursor: 'not-allowed', '&:hover': {} }} title="GIF — în curând" disabled>{Icons.gif}</Box>
+                                                        <Box component="button" sx={{ ...sxComposeTool, ...(composePoll ? { opacity: 1, color: ft.cyan } : {}) }} title="Sondaj" onClick={togglePoll}>{Icons.poll}</Box>
+                                                        <Box component="button" sx={{ ...sxComposeTool, ...(emojiAnchor ? { opacity: 1, color: ft.cyan } : {}) }} title="Emoji"
+                                                             onClick={(e: React.MouseEvent<HTMLElement>) => setEmojiAnchor(e.currentTarget)}>{Icons.emoji}</Box>
                                                         <select style={{ background: 'transparent', border: `1px solid ${ft.border}`, borderRadius: 100, padding: '4px 10px', color: ft.cyan, fontSize: '.74rem', fontWeight: 600, outline: 'none', cursor: 'pointer', fontFamily: ft.font }}
                                                                 value={composeCategory} onChange={(e) => setComposeCategory(e.target.value as ForumCategory)}>
                                                             {FORUM_CATEGORIES.filter((c) => c !== 'Toate').map((c) => (
@@ -667,7 +800,7 @@ export default function ForumPage() {
                                                             <Box component="span" sx={{ fontSize: '.72rem', mr: '12px', color: charsLeft <= 0 ? ft.red : charsLeft <= 50 ? '#ff9100' : ft.muted }}>{charsLeft}</Box>
                                                         )}
                                                         <Box component="button" sx={{ p: '8px 22px', borderRadius: 100, border: 'none', bgcolor: ft.blue, color: '#fff', fontFamily: ft.fontCondensed, fontWeight: 700, fontSize: '.85rem', letterSpacing: '.5px', cursor: 'pointer', transition: 'all .15s', '&:hover:not(:disabled)': { bgcolor: '#2a7fff', boxShadow: `0 0 16px rgba(26,111,255,.4)` }, '&:disabled': { opacity: 0.4, cursor: 'not-allowed' } }}
-                                                             disabled={!composeText.trim() || charsLeft < 0} onClick={handlePublish}>Postează</Box>
+                                                             disabled={!canPublish || charsLeft < 0} onClick={handlePublish}>Postează</Box>
                                                     </Box>
                                                 </Box>
                                             </Box>
@@ -730,6 +863,24 @@ export default function ForumPage() {
 
                 </Box>
             </Box>
+
+            {/* ══ EMOJI PICKER POPOVER ══ */}
+            <Popover
+                open={!!emojiAnchor}
+                anchorEl={emojiAnchor}
+                onClose={() => setEmojiAnchor(null)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                slotProps={{ paper: { sx: { bgcolor: '#0a1628', border: `1px solid ${ft.border}`, borderRadius: '12px', p: '8px', mt: '-6px' } } }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '2px', width: 280 }}>
+                    {COMMON_EMOJIS.map((emoji) => (
+                        <Box component="button" key={emoji} onClick={() => insertEmoji(emoji)}
+                             sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1, p: '6px', borderRadius: '8px', transition: 'background .12s', '&:hover': { bgcolor: 'rgba(0,200,255,0.12)' } }}>
+                            {emoji}
+                        </Box>
+                    ))}
+                </Box>
+            </Popover>
         </>
     );
 }

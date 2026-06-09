@@ -5,7 +5,8 @@ namespace FitMoldova.Domain.Models.User
     public class UserLoginDto
     {
         [Required]
-        public string Username { get; set; } = string.Empty;
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
         [Required]
         [RegularExpression(@"^(?=(.*[a-zA-Z]){3,})(?=(.*\d){3,})(?=(.*[^a-zA-Z\d]){2,}).{8,}$",

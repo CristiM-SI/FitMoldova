@@ -63,8 +63,8 @@ builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("auth-limit", opt =>
     {
-        opt.Window               = TimeSpan.FromMinutes(1);
-        opt.PermitLimit          = 5;
+        opt.Window               = TimeSpan.FromHours(1);
+        opt.PermitLimit          = 10;
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit           = 0;
     });

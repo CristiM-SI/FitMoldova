@@ -19,7 +19,6 @@ namespace FitMoldova.Domain.Models.User
             ErrorMessage = "Password must be at least 8 characters with at least 3 letters, 3 digits, and 2 special characters.")]
         public string Password { get; set; } = string.Empty;
 
-        public string? Username { get; set; }
         public string? Phone { get; set; }
         public string? Location { get; set; }
         public string? Bio { get; set; }

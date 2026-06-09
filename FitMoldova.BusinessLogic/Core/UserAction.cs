@@ -26,7 +26,11 @@ namespace FitMoldova.BusinessLogic.Core
                if (_ctx.Users.Any(u => u.Email == dto.Email))
                     return new ServiceResponse { isSuccess = false, Message = "Email deja folosit." };
 
-               var baseUsername = $"{dto.FirstName.ToLower()}.{dto.LastName.ToLower()}";
+               var localPart = dto.Email.Split('@')[0].ToLower();
+               var cleaned = new string(localPart
+                    .Where(c => char.IsLetterOrDigit(c) || c == '.' || c == '_' || c == '-')
+                    .ToArray());
+               var baseUsername = string.IsNullOrEmpty(cleaned) ? "user" : cleaned;
                var username = baseUsername;
                var suffix = 1;
                while (_ctx.Users.Any(u => u.Username == username))
@@ -52,14 +56,14 @@ namespace FitMoldova.BusinessLogic.Core
                {
                     isSuccess = true,
                     Message = "Cont creat.",
-                    Data = new
+                    Data = new UserLoginResultDto
                     {
-                         user.Id,
-                         user.Username,
-                         user.FirstName,
-                         user.LastName,
-                         user.Email,
-                         user.Role,
+                         Id           = user.Id,
+                         Username     = user.Username,
+                         FirstName    = user.FirstName,
+                         LastName     = user.LastName,
+                         Email        = user.Email,
+                         Role         = user.Role.ToString(),
                          RegisteredAt = user.CreatedAt.ToString("o")
                     }
                };
@@ -67,10 +71,9 @@ namespace FitMoldova.BusinessLogic.Core
 
           public ServiceResponse LoginExecution(UserLoginDto dto)
           {
-               var user = _ctx.Users.FirstOrDefault(u =>
-                    u.Username == dto.Username || u.Email == dto.Username);
+               var user = _ctx.Users.FirstOrDefault(u => u.Email == dto.Email);
                if (user == null || !BC.Verify(dto.Password, user.Password))
-                    return new ServiceResponse { isSuccess = false, Message = "Credențiale incorecte." };
+                    return new ServiceResponse { isSuccess = false, Message = "Email sau parolă incorectă." };
                return new ServiceResponse
                {
                     isSuccess = true,

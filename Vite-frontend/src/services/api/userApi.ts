@@ -13,16 +13,6 @@ export interface LoginResponse {
     role: string;
 }
 
-export interface RegisterResponse {
-    id: number;
-    username: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: string;
-    registeredAt: string;
-}
-
 export interface UserProfile {
     id: number;
     username: string;
@@ -78,14 +68,14 @@ export interface FollowingUserDto {
 }
 
 export const userApi = {
-    login: (username: string, password: string) =>
+    login: (email: string, password: string) =>
         axiosInstance
-            .post<LoginResponse>('/user/login', { username, password })
+            .post<LoginResponse>('/user/login', { email, password })
             .then((r) => r.data),
 
-    register: (username: string, firstName: string, lastName: string, email: string, password: string) =>
+    register: (firstName: string, lastName: string, email: string, password: string) =>
         axiosInstance
-            .post<ServiceResponse<RegisterResponse>>('/user/register', { username, firstName, lastName, email, password })
+            .post<LoginResponse>('/user/register', { firstName, lastName, email, password })
             .then((r) => r.data),
 
     getById: (id: number) =>

@@ -34,7 +34,34 @@ public class UserController : ControllerBase
     {
         var result = _userLogic.Register(dto);
         if (!result.isSuccess) return BadRequest(result);
-        return StatusCode(201, result);
+
+        var data = (UserLoginResultDto)result.Data!;
+
+        var (token, expiresAt) = _jwtService.GenerateToken(
+            data.Id, data.Email, data.Username, data.Role);
+
+        var refreshToken = _refreshTokenService.Generate(data.Id);
+
+        Response.Cookies.Append("fitmoldova_refresh", refreshToken.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure   = Request.IsHttps,
+            SameSite = SameSiteMode.Strict,
+            Path     = "/api/auth",
+            Expires  = refreshToken.ExpiresAt
+        });
+
+        return StatusCode(201, new
+        {
+            token,
+            expiresAt,
+            userId    = data.Id,
+            username  = data.Username,
+            firstName = data.FirstName,
+            lastName  = data.LastName,
+            email     = data.Email,
+            role      = data.Role
+        });
     }
 
     [HttpPost("login")]

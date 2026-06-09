@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { userApi } from '../services/api/userApi';
+import { userApi, type LoginResponse } from '../services/api/userApi';
 
 export interface User {
     id: number;
@@ -29,8 +29,8 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isAdmin: boolean;
     loading: boolean;
-    register: (data: { username: string; firstName: string; lastName: string; email: string; password: string }) => Promise<AuthResult>;
-    login: (username: string, password: string) => Promise<AuthResult>;
+    register: (data: { firstName: string; lastName: string; email: string; password: string }) => Promise<AuthResult>;
+    login: (email: string, password: string) => Promise<AuthResult>;
     logout: () => Promise<void>;
 }
 
@@ -98,24 +98,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isAdmin, setIsAdmin] = useState(initial.isAdmin);
     const [loading] = useState(false);
 
-    const login = async (username: string, password: string): Promise<AuthResult> => {
+    // Aplică răspunsul de auth (token + user) — partajat de login și register
+    const applyAuth = (res: LoginResponse): void => {
+        localStorage.setItem(STORAGE.token, res.token);
+        const loggedUser: User = {
+            id: res.userId,
+            username: res.username,
+            firstName: res.firstName,
+            lastName: res.lastName,
+            email: res.email,
+            avatar: `${res.firstName[0]}${res.lastName[0]}`.toUpperCase(),
+            registeredAt: res.expiresAt,
+        };
+        const adminFlag = decodeAdminFromToken(res.token);
+        setUser(loggedUser);
+        setIsAuthenticated(true);
+        setIsAdmin(adminFlag);
+        localStorage.setItem(STORAGE.user, JSON.stringify(loggedUser));
+    };
+
+    const login = async (email: string, password: string): Promise<AuthResult> => {
         try {
-            const res = await userApi.login(username, password);
-            localStorage.setItem(STORAGE.token, res.token);
-            const loggedUser: User = {
-                id: res.userId,
-                username: res.username,
-                firstName: res.firstName,
-                lastName: res.lastName,
-                email: res.email,
-                avatar: `${res.firstName[0]}${res.lastName[0]}`.toUpperCase(),
-                registeredAt: res.expiresAt,
-            };
-            const adminFlag = decodeAdminFromToken(res.token);
-            setUser(loggedUser);
-            setIsAuthenticated(true);
-            setIsAdmin(adminFlag);
-            localStorage.setItem(STORAGE.user, JSON.stringify(loggedUser));
+            const res = await userApi.login(email, password);
+            applyAuth(res);
             return { success: true };
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Eroare de conexiune.';
@@ -124,12 +129,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const register = async (data: {
-        username: string; firstName: string; lastName: string; email: string; password: string;
+        firstName: string; lastName: string; email: string; password: string;
     }): Promise<AuthResult> => {
         try {
-            const res = await userApi.register(data.username, data.firstName, data.lastName, data.email, data.password);
-            if (res.isSuccess) return { success: true };
-            return { success: false, error: res.message ?? 'Eroare la inregistrare.' };
+            const res = await userApi.register(data.firstName, data.lastName, data.email, data.password);
+            applyAuth(res);
+            return { success: true };
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Eroare de conexiune.';
             return { success: false, error: message };

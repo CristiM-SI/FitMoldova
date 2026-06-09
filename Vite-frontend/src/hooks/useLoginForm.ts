@@ -5,7 +5,7 @@ import type { LoginForm, LoginFormErrors } from "../types/login.types";
 import { ROUTES } from "../routes/paths";
 
 const INITIAL_FORM: LoginForm = {
-    username: "",
+    email: "",
     password: "",
     rememberMe: false,
 };
@@ -54,10 +54,10 @@ export function useLoginForm() {
     const validate = (): boolean => {
         const newErrors: LoginFormErrors = {};
 
-        if (!form.username) {
-            newErrors.username = "Numele de utilizator este obligatoriu";
-        } else if (form.username.length < 3) {
-            newErrors.username = "Minim 3 caractere";
+        if (!form.email) {
+            newErrors.email = "Adresa de email este obligatorie";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            newErrors.email = "Adresa de email nu este validă";
         }
 
         if (!form.password) {
@@ -77,7 +77,7 @@ export function useLoginForm() {
 
         setIsLoading(true);
 
-        const result = await login(form.username, form.password);
+        const result = await login(form.email, form.password);
 
         setIsLoading(false);
 

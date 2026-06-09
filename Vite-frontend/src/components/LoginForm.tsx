@@ -89,21 +89,21 @@ export function LoginForm({
             {/* ── Form — previne refresh la Enter ── */}
             <form onSubmit={(e) => { e.preventDefault(); onSubmit(e); }} noValidate>
 
-                {/* Câmp username */}
+                {/* Câmp email */}
                 <div className="form-group">
-                    <label className="form-label" htmlFor="username">Nume utilizator</label>
+                    <label className="form-label" htmlFor="email">Adresă de email</label>
                     <div className="input-wrapper">
                         <input
-                            id="username"
-                            type="text"
-                            placeholder="ex: ion.popescu"
-                            className={`form-input${errors.username ? " error" : ""}`}
-                            value={form.username}
-                            onChange={(e) => onChange("username", e.target.value)}
-                            autoComplete="username"
+                            id="email"
+                            type="email"
+                            placeholder="ex: ion.popescu@gmail.com"
+                            className={`form-input${errors.email ? " error" : ""}`}
+                            value={form.email}
+                            onChange={(e) => onChange("email", e.target.value)}
+                            autoComplete="email"
                         />
                     </div>
-                    {errors.username && <div className="error-msg">⚠ {errors.username}</div>}
+                    {errors.email && <div className="error-msg">⚠ {errors.email}</div>}
                 </div>
 
                 {/* Câmp parolă */}

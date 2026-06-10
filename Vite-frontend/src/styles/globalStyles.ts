@@ -738,6 +738,36 @@ body {
   animation: slideUp 1s ease-out;
 }
 
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1.1rem;
+  margin-bottom: 1.75rem;
+  background: rgba(0, 102, 255, 0.08);
+  border: 1px solid rgba(0, 184, 255, 0.25);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(248, 249, 250, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+.hero-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(0, 208, 132, 0.6);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 208, 132, 0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(0, 208, 132, 0); }
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -863,13 +893,41 @@ body {
 }
 
 .feature-card {
-  padding: 3rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: block;
+  padding: 2.5rem;
+  background: var(--gradient-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  transition: all 0.4s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
   position: relative;
   overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* FIX violet: linkurile vizitate nu mai moștenesc movul implicit al browserului */
+.feature-card,
+.feature-card:link,
+.feature-card:visited,
+.feature-card:hover,
+.feature-card:active {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* glow radial subtil care apare la hover */
+.feature-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(0, 184, 255, 0.12), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.feature-card:hover::after {
+  opacity: 1;
 }
 
 .feature-card::before {
@@ -878,7 +936,7 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: var(--gradient);
   transform: scaleX(0);
   transform-origin: left;
@@ -890,34 +948,68 @@ body {
 }
 
 .feature-card:hover {
-  transform: translateY(-10px);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--primary);
-  box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2);
+  transform: translateY(-8px);
+  border-color: rgba(0, 184, 255, 0.4);
+  box-shadow: 0 24px 60px -15px rgba(0, 102, 255, 0.35);
 }
 
 .feature-icon {
-  width: 70px;
-  height: 70px;
-  background: var(--gradient);
-  border-radius: 16px;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 184, 255, 0.15) 100%);
+  border: 1px solid rgba(0, 184, 255, 0.25);
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  margin-bottom: 2rem;
+  font-size: 1.9rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.08) rotate(-3deg);
+  box-shadow: 0 8px 24px rgba(0, 102, 255, 0.3);
 }
 
 .feature-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
+  color: #ffffff;
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.feature-card:hover .feature-title {
+  color: var(--primary-light);
 }
 
 .feature-description {
-  color: rgba(248, 249, 250, 0.7);
+  color: rgba(248, 249, 250, 0.65);
   line-height: 1.7;
   font-weight: 300;
+  position: relative;
+  z-index: 1;
+}
+
+.feature-arrow {
+  margin-top: 1.5rem;
+  font-size: 1.3rem;
+  color: var(--primary-light);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.feature-card:hover .feature-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .cta-section {

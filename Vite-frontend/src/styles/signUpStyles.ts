@@ -157,8 +157,9 @@ export const signUpStyles = `
 }
 
 .su-input::placeholder {
-    color: var(--text-placeholder);
+    color: rgba(122, 139, 170, 0.5);
     font-size: 0.8125rem;
+    opacity: 1; /* consistent cross-browser (Firefox aplică opacity implicit) */
 }
 
 .su-input:focus {

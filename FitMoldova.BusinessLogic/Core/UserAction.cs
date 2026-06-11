@@ -21,6 +21,33 @@ namespace FitMoldova.BusinessLogic.Core
                _ctx = ctx;
           }
 
+          public ServiceResponse CheckEmailExecution(string email)
+          {
+               // 1. Verifică dacă emailul e deja folosit în baza de date
+               var taken = _ctx.Users.Any(u => u.Email == email);
+               if (taken)
+                    return new ServiceResponse { isSuccess = true, Data = new { taken = true, domainValid = true } };
+
+               // 2. Verifică dacă domeniul emailului are înregistrări MX (acceptă email-uri)
+               var domainValid = false;
+               try
+               {
+                    var domain = email.Split('@').LastOrDefault();
+                    if (!string.IsNullOrEmpty(domain))
+                    {
+                         var hostEntry = System.Net.Dns.GetHostEntry(domain);
+                         domainValid = hostEntry.AddressList.Length > 0;
+                    }
+               }
+               catch
+               {
+                    // Domeniu inexistent sau DNS indisponibil
+                    domainValid = false;
+               }
+
+               return new ServiceResponse { isSuccess = true, Data = new { taken = false, domainValid } };
+          }
+
           public ServiceResponse RegisterExecution(UserCreateDto dto)
           {
                if (_ctx.Users.Any(u => u.Email == dto.Email))
@@ -38,17 +65,19 @@ namespace FitMoldova.BusinessLogic.Core
 
                var user = new UDTable
                {
-                    Username = username,
+                    Username  = username,
                     FirstName = dto.FirstName,
-                    LastName = dto.LastName,
-                    Email = dto.Email,
-                    Password = BC.HashPassword(dto.Password),
+                    LastName  = dto.LastName,
+                    Email     = dto.Email,
+                    Password  = BC.HashPassword(dto.Password),
                     CreatedAt = DateTime.UtcNow,
-                    Role = UserRole.User,
+                    Role      = UserRole.User,
 
-                    Phone = dto.Phone,
-                    Location = dto.Location,
-                    Bio = dto.Bio
+                    // Câmpuri opționale — explicit null/empty pentru user nou
+                    Phone             = null,
+                    Location          = null,
+                    Bio               = null,
+                    ProfileImageUrl   = null,
                };
                _ctx.Users.Add(user);
                _ctx.SaveChanges();

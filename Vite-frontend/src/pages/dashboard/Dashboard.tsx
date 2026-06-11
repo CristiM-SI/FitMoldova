@@ -67,35 +67,48 @@ const Dashboard: React.FC = () => {
     const { user } = useAuth();
     const { progress } = useProgress();
     const {
-        activities,
         challenges,
         events,
         userClubs,
         joinedChallengeIds,
         joinedEventIds,
         activitatiCurente,
+        joinedActivities,
         loading,
         error,
     } = useDashboardData();
 
-    const registeredDate = useMemo(() =>
-        user?.registeredAt
-            ? new Date(user.registeredAt).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })
-            : '',
-    [user?.registeredAt]);
+    // Toate activitățile userului: cele adăugate local + cele joined din API (fără duplicate)
+    const toateActivitatile = useMemo(() => {
+        const localIds = new Set(activitatiCurente.map(a => a.id));
+        const dinDB = joinedActivities
+            .filter(a => !localIds.has(a.id))
+            .map(a => ({
+                id: a.id, name: a.name, type: a.type,
+                distance: a.distance, duration: a.duration,
+                calories: a.calories, date: a.date,
+            }));
+        return [...activitatiCurente, ...dinDB];
+    }, [activitatiCurente, joinedActivities]);
 
-    // Statistici calculate din activitățile reale
+    const registeredDate = useMemo(() =>
+            user?.registeredAt
+                ? new Date(user.registeredAt).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })
+                : '',
+        [user?.registeredAt]);
+
+    // Statistici calculate din TOATE activitățile (locale + joined din API)
     const stats = useMemo(() => {
-        const totalCalories = activitatiCurente.reduce((s, a) => s + (a.calories || 0), 0);
-        const totalDist = activitatiCurente.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0);
-        const uniqueDays = new Set(activitatiCurente.map(a => a.date?.slice(0, 10))).size;
+        const totalCalories = toateActivitatile.reduce((s, a) => s + (a.calories || 0), 0);
+        const totalDist = toateActivitatile.reduce((s, a) => s + (parseFloat(a.distance) || 0), 0);
+        const uniqueDays = new Set(toateActivitatile.map(a => a.date?.slice(0, 10))).size;
         return {
-            totalActivities: activitatiCurente.length,
+            totalActivities: toateActivitatile.length,
             totalDistance: totalDist.toFixed(1),
             totalCalories,
             activeDays: uniqueDays,
         };
-    }, [activitatiCurente]);
+    }, [toateActivitatile]);
 
     const statCards = [
         { label: 'Activități',      value: loading ? '—' : String(stats.totalActivities), hint: 'Activități înregistrate', color: '#e8f3ff', iconBg: '#1a6fff', Icon: DirectionsRun,  link: ROUTES.ACTIVITIES },
@@ -310,7 +323,7 @@ const Dashboard: React.FC = () => {
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                     {[1, 2, 3].map(i => <Skeleton key={i} variant="rounded" height={56} />)}
                                 </Box>
-                            ) : activities.length === 0 ? (
+                            ) : toateActivitatile.length === 0 ? (
                                 <EmptyState
                                     emoji="🏃"
                                     message="Nicio activitate înregistrată încă. Începe primul antrenament!"
@@ -319,7 +332,7 @@ const Dashboard: React.FC = () => {
                                 />
                             ) : (
                                 <List disablePadding>
-                                    {activitatiCurente.slice(0, 5).map((act, i) => (
+                                    {toateActivitatile.slice(0, 5).map((act, i) => (
                                         <React.Fragment key={act.id}>
                                             <ListItem disablePadding sx={{ py: 1.25 }}>
                                                 <ListItemIcon sx={{ minWidth: 44 }}>
@@ -336,7 +349,7 @@ const Dashboard: React.FC = () => {
                                                     }}
                                                 />
                                             </ListItem>
-                                            {i < Math.min(activitatiCurente.length, 5) - 1 && <Divider />}
+                                            {i < Math.min(toateActivitatile.length, 5) - 1 && <Divider />}
                                         </React.Fragment>
                                     ))}
                                 </List>
@@ -378,10 +391,10 @@ const Dashboard: React.FC = () => {
                                 },
                                 {
                                     label: 'Total activități',
-                                    value: activitatiCurente.length,
+                                    value: toateActivitatile.length,
                                     icon: '🏃',
                                     link: ROUTES.ACTIVITIES,
-                                    emptyHint: activitatiCurente.length === 0 ? 'Nicio activitate' : null,
+                                    emptyHint: toateActivitatile.length === 0 ? 'Nicio activitate' : null,
                                     Icon: DirectionsRun,
                                 },
                             ].map((item, i) => (

@@ -78,6 +78,12 @@ export const userApi = {
             .post<LoginResponse>('/user/register', { firstName, lastName, email, password })
             .then((r) => r.data),
 
+    // Verifică dacă emailul este deja înregistrat și dacă domeniul există (fără autentificare)
+    checkEmail: (email: string) =>
+        axiosInstance
+            .get<{ taken: boolean; domainValid: boolean }>('/user/check-email', { params: { email } })
+            .then((r) => r.data),
+
     getById: (id: number) =>
         axiosInstance
             .get<ServiceResponse<UserProfile>>(`/user/${id}`)

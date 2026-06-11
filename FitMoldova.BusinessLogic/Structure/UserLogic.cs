@@ -13,6 +13,7 @@ namespace FitMoldova.BusinessLogic.Structure
 
           public ServiceResponse Register(UserCreateDto dto)                                       => RegisterExecution(dto);
           public ServiceResponse Login(UserLoginDto dto)                                           => LoginExecution(dto);
+          public ServiceResponse CheckEmail(string email)                                          => CheckEmailExecution(email);
           public ServiceResponse GetAll()                                                          => GetAllExecution();
           public ServiceResponse GetById(int id)                                                   => GetByIdExecution(id);
           public ServiceResponse Update(int id, UserUpdateDto dto)                                 => UpdateExecution(id, dto);

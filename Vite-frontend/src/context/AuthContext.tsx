@@ -41,6 +41,23 @@ const STORAGE = {
     user:  'fitmoldova_user',
 };
 
+// Cheile de localStorage aparținând datelor de dashboard per-user
+const DASHBOARD_LS_KEYS = [
+    'fm_user_activities',
+    'fm_user_challenges',
+    'fm_user_events',
+    'fm_user_routes',
+    'fitmoldova_joined_challenges',  // cheie separată din Provocari.tsx / useDashboardApi
+    'fitmoldova_progress',           // ProgressContext
+];
+
+/** Șterge toate datele de sesiune ale userului curent din localStorage */
+function clearAllUserData(): void {
+    localStorage.removeItem(STORAGE.user);
+    localStorage.removeItem(STORAGE.token);
+    DASHBOARD_LS_KEYS.forEach(k => localStorage.removeItem(k));
+}
+
 function decodeAdminFromToken(token: string): boolean {
     try {
         const payload = jwtDecode<any>(token);
@@ -98,8 +115,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isAdmin, setIsAdmin] = useState(initial.isAdmin);
     const [loading] = useState(false);
 
-    // Aplică răspunsul de auth (token + user) — partajat de login și register
+    // Aplică răspunsul de auth (token + user) — partajat de login și register.
+    // Înainte de a seta noul user, curățăm datele celui anterior din localStorage.
     const applyAuth = (res: LoginResponse): void => {
+        // Curăță datele de dashboard ale oricărui user anterior
+        DASHBOARD_LS_KEYS.forEach(k => localStorage.removeItem(k));
+
         localStorage.setItem(STORAGE.token, res.token);
         const loggedUser: User = {
             id: res.userId,
@@ -141,12 +162,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const logout = async () => {
+    const logout = async (): Promise<void> => {
         setUser(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
-        localStorage.removeItem(STORAGE.user);
-        localStorage.removeItem(STORAGE.token);
+        // Șterge token-ul, datele user și tot localStorage-ul de dashboard
+        clearAllUserData();
     };
 
     return (

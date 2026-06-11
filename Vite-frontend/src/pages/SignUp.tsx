@@ -1,8 +1,8 @@
-import { useState, useCallback, type FormEvent } from "react";
+import { useState, useCallback, useRef, type FormEvent } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { ROUTES } from "../routes/paths";
 import { useAuth } from "../context/AuthContext";
-import { useUser } from "../context/UserContext";
+import { userApi } from "../services/api/userApi";
 import { signUpStyles } from "../styles/signUpStyles";
 
 interface FormData {
@@ -50,12 +50,13 @@ const SignUp = () => {
     });
     const navigate = useNavigate();
     const { register } = useAuth();
-    const { setUser } = useUser();
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
+    const [emailChecking, setEmailChecking] = useState(false);
+    const emailCheckRef = useRef<string>("");
     const strength = getPasswordStrength(formData.password);
 
     const validate = useCallback((data: FormData): FormErrors => {
@@ -78,10 +79,37 @@ const SignUp = () => {
         if (touched[name as keyof FormData]) setErrors(validate(updated));
     };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        const { name } = e.target;
+    // Verificare email async la blur — apelează backend-ul dacă emailul e valid ca format
+    const handleBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
         setTouched((prev) => ({ ...prev, [name]: true }));
-        setErrors(validate(formData));
+        const currentErrors = validate(formData);
+        setErrors(currentErrors);
+
+        if (name === "email" && !currentErrors.email && value) {
+            setEmailChecking(true);
+            emailCheckRef.current = value;
+            try {
+                const { taken, domainValid } = await userApi.checkEmail(value);
+                // Ignorăm rezultatul dacă userul a schimbat emailul între timp
+                if (emailCheckRef.current !== value) return;
+                if (taken) {
+                    setErrors((prev) => ({
+                        ...prev,
+                        email: "Această adresă de email este deja înregistrată.",
+                    }));
+                } else if (!domainValid) {
+                    setErrors((prev) => ({
+                        ...prev,
+                        email: "Domeniul acestui email nu există. Verifică adresa introdusă.",
+                    }));
+                }
+            } catch {
+                // Eșec silențios — validarea server-side de la register va prinde oricum duplicatul
+            } finally {
+                setEmailChecking(false);
+            }
+        }
     };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -94,34 +122,24 @@ const SignUp = () => {
         const newErrors = validate(formData);
         setErrors(newErrors);
 
-        if (Object.keys(newErrors).length === 0) {
-            const result = await register({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                password: formData.password,
-            });
+        // Nu trimitem dacă sunt erori locale sau dacă e verificare email în curs
+        if (Object.keys(newErrors).length > 0 || emailChecking) return;
 
-            if (result.success) {
-                setUser({
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    phone: "",
-                    location: "",
-                    bio: "",
-                    joinDate: new Date().toLocaleDateString("ro-RO", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric"
-                    }),
-                });
+        const result = await register({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            password: formData.password,
+        });
 
-                setSubmitted(true);
-                navigate({ to: ROUTES.HOME });
-            } else {
-                setErrors((prev) => ({ ...prev, email: result.error }));
-            }
+        if (result.success) {
+            // AuthContext a setat deja user-ul corect din răspunsul backend-ului.
+            // Nu mai setăm manual UserContext cu date construite local —
+            // acesta va fi populat la primul apel getProfile() din pagina de profil.
+            setSubmitted(true);
+            navigate({ to: ROUTES.HOME });
+        } else {
+            setErrors((prev) => ({ ...prev, email: result.error }));
         }
     };
 
@@ -200,12 +218,19 @@ const SignUp = () => {
 
                     <div className="su-field">
                         <label className="su-label" htmlFor="email">Adresă de email</label>
-                        <input
-                            id="email" name="email" type="email" autoComplete="email"
-                            className={`su-input ${touched.email && errors.email ? "su-inputError" : ""} ${touched.email && !errors.email && formData.email ? "su-inputValid" : ""}`}
-                            placeholder="ion.popescu@gmail.com"
-                            value={formData.email} onChange={handleChange} onBlur={handleBlur}
-                        />
+                        <div className="su-inputWrapper">
+                            <input
+                                id="email" name="email" type="email" autoComplete="email"
+                                className={`su-input ${touched.email && errors.email ? "su-inputError" : ""} ${touched.email && !errors.email && formData.email && !emailChecking ? "su-inputValid" : ""}`}
+                                placeholder="ion.popescu@gmail.com"
+                                value={formData.email} onChange={handleChange} onBlur={handleBlur}
+                            />
+                            {emailChecking && (
+                                <span className="su-toggle" style={{ cursor: "default", fontSize: 12, color: "#94a3b8" }}>
+                                    ⏳
+                                </span>
+                            )}
+                        </div>
                         {touched.email && errors.email && <span className="su-error">{errors.email}</span>}
                     </div>
 
@@ -260,7 +285,14 @@ const SignUp = () => {
                         {touched.confirmPassword && errors.confirmPassword && <span className="su-error">{errors.confirmPassword}</span>}
                     </div>
 
-                    <button type="submit" className="su-submit">CREEAZĂ CONT GRATUIT</button>
+                    <button
+                        type="submit"
+                        className="su-submit"
+                        disabled={emailChecking}
+                        style={emailChecking ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
+                    >
+                        {emailChecking ? "Se verifică emailul..." : "CREEAZĂ CONT GRATUIT"}
+                    </button>
 
                     <p className="su-loginPrompt">
                         Ai deja un cont?{" "}

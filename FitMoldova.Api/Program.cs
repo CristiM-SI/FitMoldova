@@ -61,13 +61,17 @@ builder.Services.AddSwaggerGen(c =>
 // ── Rate limiting ─────────────────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("auth-limit", opt =>
-    {
-        opt.Window               = TimeSpan.FromHours(1);
-        opt.PermitLimit          = 10;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit           = 0;
-    });
+    // auth-limit: per IP — 20 cereri / 10 minute (login, register, forgot-password etc.)
+    options.AddPolicy("auth-limit", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit          = 20,
+                Window               = TimeSpan.FromMinutes(10),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = 0
+            }));
 
     options.AddPolicy("ContactFormPolicy", context =>
         RateLimitPartition.GetFixedWindowLimiter(
@@ -86,7 +90,7 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsJsonAsync(new
         {
             isSuccess = false,
-            message   = "Prea multe cereri. Poți trimite maxim 5 mesaje pe oră."
+            message   = "Prea multe cereri. Încearcă din nou peste câteva minute."
         }, cancellationToken);
     };
 });

@@ -8,6 +8,7 @@ namespace FitMoldova.BusinessLogic.Interfaces
      {
           ServiceResponse Register(UserCreateDto dto);
           ServiceResponse Login(UserLoginDto dto);
+          ServiceResponse CheckEmail(string email);
           ServiceResponse GetAll();
           ServiceResponse GetById(int id);
           ServiceResponse Update(int id, UserUpdateDto dto);

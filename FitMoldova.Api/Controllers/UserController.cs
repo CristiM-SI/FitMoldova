@@ -1,5 +1,6 @@
 // ACCESS CONTROL SUMMARY:
-// Public:             GET /api/user/{id}, GET /api/user/community, POST /api/user/register, POST /api/user/login
+// Public:             GET /api/user/{id}, GET /api/user/community, POST /api/user/register, POST /api/user/login,
+//                     GET /api/user/check-email
 // [Authorize]:        GET /api/user/profile, PUT /api/user/profile, POST /api/user/{id}/follow,
 //                     DELETE /api/user/{id}/unfollow, GET /api/user/following,
 //                     POST /api/user/avatar, PUT /api/user/change-password
@@ -26,6 +27,19 @@ public class UserController : ControllerBase
         _jwtService = jwtService;
         _refreshTokenService = refreshTokenService;
         _env = env;
+    }
+
+    // ─── Verificare email disponibil (public, fără auth) ──────────────────────
+    [HttpGet("check-email")]
+    [EnableRateLimiting("auth-limit")]
+    public IActionResult CheckEmail([FromQuery] string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return BadRequest(new { taken = false, domainValid = false, message = "Email lipsă." });
+
+        var result = _userLogic.CheckEmail(email);
+        // result.Data = { taken, domainValid }
+        return Ok(result.Data);
     }
 
     [HttpPost("register")]

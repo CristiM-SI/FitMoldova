@@ -22,31 +22,29 @@ function getDiffConfig(difficulty: string) {
     return DIFF_CONFIG[normalized] || { color: '#6366f1', bg: '#f0f0ff' };
 }
 
-const JOINED_KEY = 'fitmoldova_joined_challenges';
-
-function loadJoinedIds(): number[] {
-    try {
-        const raw = localStorage.getItem(JOINED_KEY);
-        return raw ? JSON.parse(raw) : [];
-    } catch { return []; }
-}
-
-function saveJoinedIds(ids: number[]) {
-    localStorage.setItem(JOINED_KEY, JSON.stringify(ids));
-}
-
 const Provocari: React.FC = () => {
     const { user } = useAuth();
     const { completeChallenge } = useProgress();
     const dashData = useContext(DashboardDataContext);
     const joinedChallengesWithProgress = dashData?.joinedChallengesWithProgress ?? [];
 
+    // Sursa de adevăr vine din API prin DashboardDataContext, nu din localStorage
+    const [joinedIds, setJoinedIds] = useState<number[]>(() =>
+        dashData?.joinedChallengeIds ?? []
+    );
+
     const [allChallenges, setAllChallenges] = useState<ChallengeDto[]>([]);
-    const [joinedIds, setJoinedIds] = useState<number[]>(loadJoinedIds);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [tab, setTab] = useState(0);
     const [joining, setJoining] = useState<number | null>(null);
+
+    // Sincronizează joinedIds din DashboardDataContext când se încarcă din API
+    useEffect(() => {
+        if (dashData?.joinedChallengeIds) {
+            setJoinedIds(dashData.joinedChallengeIds);
+        }
+    }, [dashData?.joinedChallengeIds]);
 
     // Încarcă provocările din API
     useEffect(() => {
@@ -77,31 +75,27 @@ const Provocari: React.FC = () => {
         setJoining(ch.id);
         try {
             await challengeApi.joinChallenge(ch.id);
-            const newIds = [...joinedIds, ch.id];
-            setJoinedIds(newIds);
-            saveJoinedIds(newIds);
+            setJoinedIds(prev => prev.includes(ch.id) ? prev : [...prev, ch.id]);
             completeChallenge();
         } catch {
             // join eșuat — nu adăugăm în inscrise
         } finally {
             setJoining(null);
         }
-    }, [user?.id, joinedIds, joining, completeChallenge]);
+    }, [user?.id, joining, completeChallenge]);
 
     const handleLeave = useCallback(async (id: number) => {
         if (!user?.id || joining !== null) return;
         setJoining(id);
         try {
             await challengeApi.leaveChallenge(id);
-            const newIds = joinedIds.filter(x => x !== id);
-            setJoinedIds(newIds);
-            saveJoinedIds(newIds);
+            setJoinedIds(prev => prev.filter(x => x !== id));
         } catch {
             // leave eșuat
         } finally {
             setJoining(null);
         }
-    }, [user?.id, joinedIds, joining]);
+    }, [user?.id, joining]);
 
     return (
         <DashboardLayout>

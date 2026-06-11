@@ -78,7 +78,11 @@ const LS = {
 };
 
 function loadLS<T>(key: string): T[] {
-    try { return JSON.parse(localStorage.getItem(key) ?? '[]') ?? []; }
+    // Dacă nu există token valid, nu încărcăm date — aparțin altui user
+    try {
+        if (!localStorage.getItem('fitmoldova_token')) return [];
+        return JSON.parse(localStorage.getItem(key) ?? '[]') ?? [];
+    }
     catch { return []; }
 }
 function saveLS<T>(key: string, val: T[]) {
@@ -111,6 +115,22 @@ export const DashboardDataProvider = ({ children }: { children: ReactNode }) => 
     useEffect(() => { saveLS(LS.challenges, provocariInscrise); }, [provocariInscrise]);
     useEffect(() => { saveLS(LS.events, evenimenteInscrise); },    [evenimenteInscrise]);
     useEffect(() => { saveLS(LS.routes, traseeSalvate); },         [traseeSalvate]);
+
+    // Când userul se deloghează sau se schimbă, resetăm toate stările legacy
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setActivitatiCurente([]);
+            setProvocariInscrise([]);
+            setEvenimenteInscrise([]);
+            setTrseeSalvate([]);
+            setJoinedChallengeIds([]);
+            setJoinedChallengesWithProgress([]);
+            setJoinedEventIds([]);
+            setJoinedActivityIds([]);
+            setJoinedActivities([]);
+            setUserClubs([]);
+        }
+    }, [isAuthenticated]);
 
     const refetch = useCallback(() => setTick(t => t + 1), []);
 
